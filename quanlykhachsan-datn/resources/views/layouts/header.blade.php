@@ -27,9 +27,9 @@
 
         <div class="d-flex align-items-center justify-content-end" style="flex: 1;">
             <div class="d-none d-lg-flex align-items-center auth-links">
-                <a href="#" class="auth-link">ĐĂNG NHẬP</a>
+                <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#loginModal">ĐĂNG NHẬP</a>
                 <span class="auth-separator mx-2">|</span>
-                <a href="#" class="auth-link">ĐĂNG KÝ</a>
+                <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#registerModal">ĐĂNG KÝ</a>
             </div>
             <a href="#" class="btn-book">ĐẶT NGAY</a>
         </div>

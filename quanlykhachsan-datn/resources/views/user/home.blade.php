@@ -116,3 +116,5 @@
 </div>
 
 @endsection
+@include('user.dangky')
+@include('user.dangnhap')
