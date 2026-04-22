@@ -78,6 +78,21 @@
         border-bottom-color: #63325f;
     }
 
+    /* Thêm style cho trường hợp có lỗi (Validation) */
+    .auth-form-side .form-control.is-invalid {
+        border-bottom-color: #dc3545;
+        background-image: none; /* Tắt icon lỗi mặc định của bootstrap để không đè lên icon mắt */
+    }
+
+    .invalid-feedback-custom {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: #dc3545;
+        font-weight: 500;
+    }
+
     .toggle-password {
         position: absolute;
         right: 0;
@@ -140,23 +155,29 @@
                             <p class="text-muted small">Kiến tạo những khoảnh khắc đáng nhớ.</p>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form id="registerForm" action="{{ route('register') }}" method="POST">
                             @csrf
 
                             <div class="input-group-auth">
                                 <label class="form-label-custom">Tên người dùng</label>
-                                <input type="text" name="username" class="form-control" placeholder="Tên tài khoản của bạn" required>
+                                <input type="text" name="username"
+                                       class="form-control @error('username') is-invalid @enderror"
+                                       value="{{ old('username') }}"
+                                       placeholder="Tên tài khoản của bạn" required>
                             </div>
 
                             <div class="input-group-auth">
                                 <label class="form-label-custom">Mật khẩu</label>
-                                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                                <input type="password" name="password" id="password"
+                                       class="form-control"
+                                       placeholder="••••••••" required>
                                 <i class="bi bi-eye toggle-password" onclick="togglePass('password', this)"></i>
                             </div>
 
                             <div class="input-group-auth">
                                 <label class="form-label-custom">Nhập lại Mật khẩu</label>
-                                <input type="password" name="password_confirmation" id="password_confirm" class="form-control" placeholder="••••••••" required>
+                                <input type="password" name="password_confirmation" id="password_confirm"
+                                       class="form-control" placeholder="••••••••" required>
                                 <i class="bi bi-eye toggle-password" onclick="togglePass('password_confirm', this)"></i>
                             </div>
 
@@ -169,12 +190,6 @@
 
                             <button type="submit" class="btn btn-register-submit">Đăng ký ngay</button>
                         </form>
-
-                        <div class="mt-5 text-center">
-                            <p class="small text-muted">Đã có tài khoản?
-                                <a href="#" class="text-dark fw-bold text-decoration-none ms-1 border-bottom border-dark" data-bs-dismiss="modal">ĐĂNG NHẬP</a>
-                            </p>
-                        </div>
                     </div>
 
                     <div class="auth-visual-side d-none d-lg-flex">
@@ -210,4 +225,48 @@
             icon.classList.add("bi-eye");
         }
     }
+
+    $(document).ready(function() {
+
+        $('#registerForm').on('submit', function(e) {
+            e.preventDefault(); // Ngăn load lại trang
+
+            let form = $(this);
+            let submitBtn = form.find('button[type="submit"]');
+
+            // Xóa các lỗi cũ đang hiển thị
+            $('.form-control').removeClass('is-invalid');
+            $('.invalid-feedback-custom').remove();
+            submitBtn.prop('disabled', true).text('Đang xử lý...');
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirect;
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).text('Đăng ký ngay');
+
+                    if (xhr.status === 422) {
+                        // Lấy danh sách lỗi từ Laravel
+                        let errors = xhr.responseJSON.errors;
+
+                        Object.keys(errors).forEach(key => {
+                            let input = $(`[name="${key}"]`);
+                            input.addClass('is-invalid');
+                            // Chèn thông báo lỗi ngay sau input group
+                            input.closest('.input-group-auth').append(`<div class="invalid-feedback-custom">${errors[key][0]}</div>`);
+                        });
+                    } else {
+                        alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                    }
+                }
+            });
+        });
+    });
 </script>

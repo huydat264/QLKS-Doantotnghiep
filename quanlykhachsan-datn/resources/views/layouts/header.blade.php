@@ -27,9 +27,20 @@
 
         <div class="d-flex align-items-center justify-content-end" style="flex: 1;">
             <div class="d-none d-lg-flex align-items-center auth-links">
-                <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#loginModal">ĐĂNG NHẬP</a>
-                <span class="auth-separator mx-2">|</span>
-                <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#registerModal">ĐĂNG KÝ</a>
+
+                @auth
+                    <span class="auth-link" style="text-transform: none; cursor: default;">Chào, {{ Auth::user()->username }}</span>
+                    <span class="auth-separator mx-2">|</span>
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline m-0 p-0">
+                        @csrf
+                        <button type="submit" class="auth-link" style="background: transparent; border: none; padding: 0; outline: none;">ĐĂNG XUẤT</button>
+                    </form>
+                @else
+                    <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#loginModal">ĐĂNG NHẬP</a>
+                    <span class="auth-separator mx-2">|</span>
+                    <a href="#" class="auth-link" data-bs-toggle="modal" data-bs-target="#registerModal">ĐĂNG KÝ</a>
+                @endauth
+
             </div>
             <a href="#" class="btn-book">ĐẶT NGAY</a>
         </div>

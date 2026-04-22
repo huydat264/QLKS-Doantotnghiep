@@ -78,6 +78,22 @@
         border-bottom-color: #63325f;
     }
 
+    /* Tinh chỉnh Input & Highlight lỗi */
+    .auth-form-side .form-control.is-invalid {
+        border-bottom-color: #dc3545;
+        background-image: none;
+    }
+
+    .invalid-feedback-custom {
+        display: block;
+        width: 100%;
+        margin-top: 0.45rem;
+        font-size: 0.75rem;
+        color: #dc3545;
+        font-weight: 500;
+        position: static;
+    }
+
     .toggle-password {
         position: absolute;
         right: 0;
@@ -144,7 +160,7 @@
                             <p class="text-muted small">Tiếp tục hành trình trải nghiệm đẳng cấp.</p>
                         </div>
 
-                        <form action="#" method="POST">
+                        <form id="loginForm" action="{{ route('login') }}" method="POST">
                             @csrf
 
                             <div class="input-group-auth">
@@ -167,7 +183,7 @@
 
                         <div class="mt-5 text-center">
                             <p class="small text-muted">Chưa có tài khoản?
-                                <a href="#" class="text-dark fw-bold text-decoration-none ms-1 border-bottom border-dark" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">ĐĂNG KÝ NGAY</a>
+                                <a href="#" class="text-dark fw-bold text-decoration-none ms-1 border-bottom border-dark" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">ĐĂNG KÝ</a>
                             </p>
                         </div>
                     </div>
@@ -189,6 +205,9 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     function toggleLoginPass(inputId, icon) {
         const input = document.getElementById(inputId);
@@ -202,4 +221,47 @@
             icon.classList.add("bi-eye");
         }
     }
+
+    $(document).ready(function() {
+        $('#loginForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let submitBtn = form.find('button[type="submit"]');
+
+            // Xóa lỗi cũ
+            $('.form-control').removeClass('is-invalid');
+            $('.invalid-feedback-custom').remove();
+            submitBtn.prop('disabled', true).text('Đang xác thực...');
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: form.serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirect;
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).text('Đăng nhập');
+
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(key => {
+                            let input = $(`[name="${key}"]`);
+                            input.addClass('is-invalid');
+                            // Thêm thông báo lỗi
+                            input.closest('.input-group-auth').append(
+                                `<div class="invalid-feedback-custom">${errors[key][0]}</div>`
+                            );
+                        });
+                    } else {
+                        alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                    }
+                }
+            });
+        });
+    });
 </script>
