@@ -5,7 +5,7 @@ use App\Http\Controllers\DangkyDangnhapController;
 
 Route::get('/', function () {
     return view('user.home');
-});
+})->name('home');;
 
 // Routes Đăng ký
 Route::get('/dang-ky', [DangkyDangnhapController::class, 'showDangky'])->name('register');
@@ -16,3 +16,7 @@ Route::get('/dang-nhap', [DangkyDangnhapController::class, 'showDangnhap'])->nam
 Route::post('/dang-nhap', [DangkyDangnhapController::class, 'postDangnhap']);
 
 Route::post('/dang-xuat', [DangkyDangnhapController::class, 'logout'])->name('logout');
+
+Route::get('/diem-den', function () {
+    return view('user.diemden');
+});

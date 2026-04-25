@@ -224,7 +224,7 @@
 
     $(document).ready(function() {
         $('#loginForm').on('submit', function(e) {
-            e.preventDefault();
+            e.preventDefault(); // Ngăn form submit truyền thống tin lên server
 
             let form = $(this);
             let submitBtn = form.find('button[type="submit"]');

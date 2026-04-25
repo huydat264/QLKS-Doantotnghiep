@@ -1,8 +1,8 @@
 <div class="sidebar" id="sidebar">
     <button class="sidebar-close" onclick="toggleMenu()">&times;</button>
     <nav class="sidebar-nav">
-        <a href="#">Trang chủ</a>
-        <a href="#">Điểm đến</a>
+        <a href="{{ route('home') }}">Trang chủ</a>
+        <a href="{{ url('/diem-den') }}">Điểm đến</a>
         <a href="#">Lưu trú</a>
         <a href="#">Trải nghiệm ẩm thực</a>
         <a href="#">Wellness & Spa</a>
