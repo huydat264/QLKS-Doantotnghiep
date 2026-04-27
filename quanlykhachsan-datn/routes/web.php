@@ -20,3 +20,7 @@ Route::post('/dang-xuat', [DangkyDangnhapController::class, 'logout'])->name('lo
 Route::get('/diem-den', function () {
     return view('user.diemden');
 });
+
+use App\Http\Controllers\PhongController;
+
+Route::get('/luu-tru', [PhongController::class, 'indexUser'])->name('phong.user');
