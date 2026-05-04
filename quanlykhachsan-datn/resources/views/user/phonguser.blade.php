@@ -5,7 +5,19 @@
 <style>
     /* ===== STYLE GIAO DIỆN PHÒNG LƯU TRÚ ===== */
     body {
-        font-family: 'Arial', sans-serif; /* Đổi font tùy ý mày */
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* --- HIỆU ỨNG CUỘN (SCROLL REVEAL) --- */
+    .reveal {
+        opacity: 0;
+        transform: translateY(40px); /* Đẩy nhẹ xuống 40px */
+        transition: all 0.8s ease-out; /* Chạy trong 0.8s cho nó sang */
+    }
+
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     .room-card {
@@ -65,15 +77,6 @@
         line-height: 1.6;
     }
 
-    .read-more {
-        color: #673065;
-        font-weight: bold;
-        font-size: 12px;
-        text-decoration: none;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
     /* Thông số phòng bên phải */
     .room-specs {
         font-size: 14px;
@@ -81,7 +84,6 @@
         line-height: 1.8;
     }
 
-    /* Dấu chấm đằng trước thông số */
     .room-specs li::before {
         content: "•";
         margin-right: 8px;
@@ -122,105 +124,380 @@
         background-color: #4a2148;
         color: white;
     }
+
+    .filter-dropdown .nav-link {
+        font-size: 12px;
+        font-weight: bold;
+        color: #673065;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        padding: 5px 15px;
+        transition: 0.3s;
+        border-radius: 4px;
+    }
+
+    .filter-dropdown .nav-link:hover {
+        background-color: #f0e6ef;
+    }
+
+    .dropdown-menu {
+        padding: 20px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        min-width: 250px;
+    }
+
+    /* FORMAT DANH SÁCH TRONG TAB */
+    .custom-list-card {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    .custom-list-card li {
+        font-size: 14px;
+        color: #555;
+        line-height: 2;
+    }
+    .custom-list-card li::before {
+        content: "•";
+        margin-right: 8px;
+        color: #673065;
+        font-weight: bold;
+    }
+
+    /* NÚT ĐỌC THÊM CÂN ĐỐI */
+    .read-more-wrapper {
+        margin-top: auto;
+        padding-top: 20px;
+    }
+    .read-more {
+        color: #673065;
+        font-weight: bold;
+        font-size: 12px;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    .read-more:hover {
+        transform: translateX(8px);
+        color: #4a2148;
+    }
+    /* Tùy chỉnh Accordion */
+    .accordion-button:not(.collapsed) {
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+
+    .accordion-button::after {
+        background-size: 1rem;
+    }
+
+    /* Style cho list dịch vụ khách hàng gióng trái */
+    .service-list-left {
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .service-list-left li {
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        color: #6c757d;
+        line-height: 1.8;
+    }
+
+    .service-list-left li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 12px;
+        width: 10px;
+        height: 1px;
+        background-color: #999;
+    }
+
+    .accordion-button {
+        color: #6b3c64 !important;
+    }
+
+    .extra-info h2 {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+    }
+
+    .illustration-wrapper {
+        padding: 20px;
+        border-left: 1px solid #eee;
+    }
+    @media (max-width: 991px) {
+        .illustration-wrapper { border-left: none; }
+    }
 </style>
 
 <div class="container mt-5 pt-5">
 
+    <!-- Tiêu đề & BỘ LỌC -->
     <div class="row mb-5">
-        <div class="col-12 text-center text-md-start">
-            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #000;">
+        <div class="col-12">
+            <h2 class="text-center text-md-start mb-4" style="font-family: 'Playfair Display', serif; font-size: 32px;">
                 Kiểm tra tình trạng phòng trống và đặt trực tiếp
             </h2>
-            <div class="d-flex gap-4 mt-3 text-uppercase" style="font-size: 12px; font-weight: bold; color: #673065;">
-                <span style="cursor: pointer;">V BỘ LỌC</span>
-                <span style="cursor: pointer;">V SẮP XẾP THEO</span>
-                <span style="cursor: pointer;">V VND</span>
-            </div>
+
+            <form action="{{ url('/luu-tru') }}" method="GET" class="d-flex flex-wrap gap-3 filter-dropdown">
+                <div class="dropdown">
+                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">BỘ LỌC</div>
+                    <div class="dropdown-menu">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Hướng phòng</label>
+                            <select name="huong_phong" class="form-select form-select-sm shadow-none">
+                                <option value="">Tất cả</option>
+                                <option value="biển" {{ request('huong_phong') == 'biển' ? 'selected' : '' }}>Hướng biển</option>
+                                <option value="vườn" {{ request('huong_phong') == 'vườn' ? 'selected' : '' }}>Hướng vườn</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Số người tối thiểu</label>
+                            <input type="number" name="so_luong_nguoi" class="form-control form-control-sm shadow-none" value="{{ request('so_luong_nguoi') }}" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Số phòng ngủ</label>
+                            <input type="number" name="so_phong_ngu" class="form-control form-control-sm shadow-none" value="{{ request('so_phong_ngu') }}" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown">
+                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG</div>
+                    <div class="dropdown-menu">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Standard" id="cb-std" {{ (is_array(request('loai_phong')) && in_array('Standard', request('loai_phong'))) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="cb-std">Standard</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Deluxe" id="cb-dlx" {{ (is_array(request('loai_phong')) && in_array('Deluxe', request('loai_phong'))) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="cb-dlx">Deluxe</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Suite" id="cb-sui" {{ (is_array(request('loai_phong')) && in_array('Suite', request('loai_phong'))) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="cb-sui">Suite</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown">
+                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VND</div>
+                    <div class="dropdown-menu" style="min-width: 300px;">
+                        <label class="form-label text-muted small d-flex justify-content-between">
+                            <span>Mức giá tối đa:</span>
+                            <span id="price-val" class="fw-bold" style="color:#673065;">
+                                {{ number_format(request('gia_max', 5000000), 0, ',', '.') }} VNĐ
+                            </span>
+                        </label>
+                        <input type="range" name="gia_max" class="form-range" min="500000" max="5000000" step="100000" id="price-slider" value="{{ request('gia_max', 5000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
+                <a href="{{ url('/luu-tru') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
+            </form>
         </div>
     </div>
 
+    <!-- DANH SÁCH PHÒNG -->
     @foreach($phongs as $phong)
-    <div class="row room-card">
-
+    <div class="row room-card reveal">
         <div class="col-lg-5 mb-3 mb-lg-0">
             <div class="room-img-wrapper">
-                <img src="{{ asset('storage/' . $phong->anh) }}"
-                     alt="{{ $phong->loai_phong }}"
-                     onerror="this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b';">
+                <img src="{{ $phong->anh }}" alt="{{ $phong->loai_phong }}" onerror="this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b';">
             </div>
         </div>
 
         <div class="col-lg-7 d-flex flex-column">
-
             <div class="row flex-grow-1">
-
-                <div class="col-md-7 pe-md-4">
-                    <h3 class="room-title">
-                        {{ $phong->loai_phong }} - Phòng {{ $phong->so_phong }}
-                    </h3>
+                <div class="col-md-7 pe-md-4 d-flex flex-column">
+                    <h3 class="room-title">{{ $phong->loai_phong }} - Phòng {{ $phong->so_phong }}</h3>
 
                     <ul class="nav nav-tabs-custom" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $phong->id_phong }}">MÔ TẢ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#info-{{ $phong->id_phong }}">THÔNG TIN QUAN TRỌNG</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#amenities-{{ $phong->id_phong }}">TIỆN NGHI</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $phong->id_phong }}">MÔ TẢ</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#info-{{ $phong->id_phong }}">THÔNG TIN QUAN TRỌNG</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#amenities-{{ $phong->id_phong }}">TIỆN NGHI</a></li>
                     </ul>
 
                     <div class="tab-content">
                         <div id="desc-{{ $phong->id_phong }}" class="tab-pane active">
-                            <p class="room-desc">
-                                {{ Str::limit($phong->mo_ta, 180, '...') }}
-                            </p>
-                            <a href="#" class="read-more">ĐỌC THÊM ></a>
+                            <p class="room-desc">{{ Str::limit($phong->mo_ta, 150, '...') }}</p>
                         </div>
-
                         <div id="info-{{ $phong->id_phong }}" class="tab-pane fade">
-                            <p class="room-desc">Giờ nhận phòng: 14:00. Giờ trả phòng: 12:00.</p>
+                            <ul class="custom-list-card">
+                                @foreach(array_slice(explode("\n", $phong->thong_tin_quan_trong), 0, 4) as $item)
+                                    @if(trim($item) != '') <li>{{ trim($item) }}</li> @endif
+                                @endforeach
+                            </ul>
                         </div>
-
                         <div id="amenities-{{ $phong->id_phong }}" class="tab-pane fade">
-                            <p class="room-desc">Hồ bơi riêng, Wifi miễn phí, Tivi màn hình phẳng...</p>
+                            <ul class="custom-list-card">
+                                @foreach(array_slice(explode("\n", $phong->tien_nghi), 0, 4) as $item)
+                                    @if(trim($item) != '') <li>{{ trim($item) }}</li> @endif
+                                @endforeach
+                            </ul>
                         </div>
+                    </div>
+
+                    <div class="read-more-wrapper">
+                        <a href="{{ route('phong.chitiet', $phong->id_phong) }}" class="read-more">ĐỌC THÊM ></a>
                     </div>
                 </div>
 
                 <div class="col-md-5 mt-4 mt-md-0 border-start ps-md-4">
                     <ul class="list-unstyled room-specs">
-                        <li>2,090 foot vuông / 194 mét vuông</li>
+                        <li>{{ $phong->dien_tich }}</li>
                         <li>Số lượng khách tối đa {{ $phong->so_luong_nguoi }}</li>
-                        <li>Hướng phòng: Hướng biển</li>
-                        <li>1 Phòng ngủ</li>
+                        <li>Hướng phòng: {{ $phong->huong_phong }}</li>
+                        <li>{{ $phong->so_phong_ngu }} Phòng ngủ</li>
                     </ul>
-
                     <a href="#" class="read-more d-block mt-4 mb-3">SƠ ĐỒ THIẾT KẾ ></a>
-
-                    <div class="form-check mt-3">
-                        <input class="form-check-input shadow-none" type="checkbox" id="compare-{{ $phong->id_phong }}">
-                        <label class="form-check-label text-muted" for="compare-{{ $phong->id_phong }}">
-                            THÊM ĐỂ SO SÁNH
-                        </label>
-                    </div>
                 </div>
-
             </div>
 
-            <div class="booking-bar mt-auto">
-                <span class="text-muted" style="font-size: 14px;">
-                    Nhập ngày để xem mức giá và đặt phòng (Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ)
-                </span>
-                <a href="#" class="btn btn-book text-decoration-none">NHẬP NGÀY</a>
+            <div class="booking-bar mt-4">
+                <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
+                <a href="#" class="btn btn-book text-decoration-none">ĐẶT PHÒNG</a>
             </div>
-
         </div>
-
     </div>
     @endforeach
 
 </div>
 
+<!-- PHẦN DỊCH VỤ KHÁCH HÀNG (ĐÃ SỬA GIÓNG TRÁI) -->
+<section class="customer-services py-5 mt-5" style="background-color: #faf8f5;">
+    <div class="container reveal">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="mb-4 text-uppercase fw-light" style="color: #4a4a4a; letter-spacing: 2px; font-family: 'Playfair Display', serif;">Dịch vụ khách hàng</h2>
+                <ul class="service-list-left text-muted">
+                    <li>Dịch vụ đưa đón sân bay</li>
+                    <li>Trung tâm thể hình đầy đủ tiện nghi</li>
+                    <li>Hồ bơi trung tâm rộng rãi với dịch vụ phục vụ tại hồ</li>
+                    <li>Six Senses Spa Côn Đảo và Yoga Pavilion</li>
+                    <li>Cửa hàng quà lưu niệm Sense of Boutique</li>
+                    <li>Câu lạc bộ trẻ em Sense of Laughter, miễn phí cho các vị khách nhí từ 4 đến 12 tuổi</li>
+                    <li>Những bất ngờ thú vị! Hãy để đội ngũ Đặt phòng hoặc Quản gia (GEM) giúp quý khách tạo nên những khoảnh khắc bất ngờ.</li>
+                    <li>Quý khách có thể tận hưởng đa dạng các hoạt động ngay trong khuôn viên khu nghỉ dưỡng.</li>
+                    <li>Xe đạp miễn phí</li>
+                    <li>Các môn thể thao dưới nước không dùng động cơ</li>
+                    <li>Dịch vụ ẩm thực tại biệt thự</li>
+                    <li>Hai quầy bar – Elephant Bar và Splash Bar</li>
+                    <li>Hai nhà hàng – By the Beach và Vietnamese by the Market</li>
+                    <li>Deli'cious mang đến những lựa chọn ẩm thực phong phú.</li>
+                </ul>
+            </div>
+            <div class="col-lg-4 d-none d-lg-flex justify-content-center">
+                <div class="illustration-wrapper">
+                    <img src="https://www.sixsenses.com/media/8254/icon-gem.png" alt="icon" style="width: 150px; opacity: 0.6; filter: grayscale(1);">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PHẦN THÔNG TIN THÊM -->
+<section class="extra-info py-5">
+    <div class="container reveal">
+        <h2 class="mb-4 fw-light border-bottom pb-3" style="color: #4a4a4a;">Xem thêm thông tin</h2>
+
+        <div class="accordion accordion-flush" id="accordionInfo">
+            <div class="accordion-item border-bottom">
+                <h2 class="accordion-header" id="flush-headingOne">
+                    <button class="accordion-button collapsed text-uppercase fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                        Thông tin quan trọng dành cho khách
+                    </button>
+                </h2>
+                <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionInfo">
+                    <div class="accordion-body text-muted" style="font-size: 0.9rem;">
+                        <div class="mb-3">
+                            <strong class="d-block text-dark">Nguồn điện</strong>
+                            Khu nghỉ dưỡng sử dụng dòng điện xoay chiều 220 - 240 V. Mỗi phòng đều được trang bị ổ cắm chuyển đổi.
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong class="d-block text-dark">Giờ nhận phòng</strong>
+                                Biệt thự tiêu chuẩn: 14:00<br>Biệt thự nhiều phòng ngủ: 15:00
+                            </div>
+                            <div class="col-md-6">
+                                <strong class="d-block text-dark">Giờ trả phòng</strong>
+                                Biệt thự tiêu chuẩn: 12:00 trưa<br>Biệt thự nhiều phòng ngủ: 12:00 trưa
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="d-block text-dark">Chính sách hủy phòng</strong>
+                            Trong trường hợp trả phòng sớm hơn dự kiến, phí phòng vẫn được áp dụng theo thông tin đặt phòng ban đầu.
+                        </div>
+                        <div class="mb-3">
+                            <strong class="d-block text-dark">Thẻ tín dụng</strong>
+                            Visa, MasterCard và American Express.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item border-bottom">
+                <h2 class="accordion-header" id="flush-headingTwo">
+                    <button class="accordion-button collapsed text-uppercase fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                        Gói dành cho gia đình
+                    </button>
+                </h2>
+                <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionInfo">
+                    <div class="accordion-body text-muted">
+                        Các thông tin về ưu đãi và dịch vụ dành riêng cho gia đình sẽ được cập nhật tại đây.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item border-bottom">
+                <h2 class="accordion-header" id="flush-headingThree">
+                    <button class="accordion-button collapsed text-uppercase fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                        Nhận phòng sớm và trả phòng muộn
+                    </button>
+                </h2>
+                <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionInfo">
+                    <div class="accordion-body text-muted">
+                        Tùy vào tình trạng phòng trống, chúng tôi sẽ nỗ lực hỗ trợ quý khách nhận phòng sớm hoặc trả phòng muộn.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SCRIPT XỬ LÝ HIỆU ỨNG CUỘN -->
+<script>
+    function reveal() {
+        var reveals = document.querySelectorAll(".reveal");
+        for (var i = 0; i < reveals.length; i++) {
+            var windowHeight = window.innerHeight;
+            var elementTop = reveals[i].getBoundingClientRect().top;
+            var elementVisible = 100;
+
+            if (elementTop < windowHeight - elementVisible) {
+                reveals[i].classList.add("active");
+            }
+        }
+    }
+    window.addEventListener("scroll", reveal);
+    window.addEventListener("load", reveal);
+</script>
+
 @endsection
+@include('user.dangky')
+@include('user.dangnhap')
