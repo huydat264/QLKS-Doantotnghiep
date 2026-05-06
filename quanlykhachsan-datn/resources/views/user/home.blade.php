@@ -3,96 +3,33 @@
 @section('content')
 
 @php
-$currentDay = now()->day; // 25
-$currentMonth = now()->month; // 4
-$currentYear = now()->year; // 2026
+$currentDay = now()->day;
+$currentMonth = now()->month;
+$currentYear = now()->year;
 @endphp
 
 <style>
-    /* CSS cho phần Slider Trải Nghiệm */
-    .experience-slider {
-        position: relative;
-    }
-    .experience-slider .carousel-item {
-        height: 85vh; /* Độ cao của slider */
-        min-height: 600px;
-        background-size: cover;
-        background-position: center;
-    }
-    .experience-slider .overlay-dark {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.4); /* Làm tối nền để nổi chữ */
-        z-index: 1;
-    }
-    .experience-slider .carousel-caption {
-        top: 50%;
-        transform: translateY(-50%);
-        bottom: auto;
-        z-index: 2;
-    }
-    .experience-slider .caption-category {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.85rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        margin-bottom: 20px;
-        display: block;
-    }
-    .experience-slider .caption-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 2.8rem;
-        line-height: 1.4;
-        max-width: 800px;
-        margin: 0 auto 30px auto;
-    }
-    .experience-slider .btn-readmore {
-        font-family: 'Montserrat', sans-serif;
-        color: white;
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        border-bottom: 1px solid white;
-        padding-bottom: 3px;
-        transition: 0.3s;
-    }
-    .experience-slider .btn-readmore:hover {
-        color: #ddd;
-        border-color: #ddd;
-    }
-
-    /* Mũi tên chuyển slide - Chỉ hiện khi hover */
-    .experience-slider .carousel-control-prev,
-    .experience-slider .carousel-control-next {
-        width: 8%;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-        z-index: 3;
-    }
-    .experience-slider:hover .carousel-control-prev,
-    .experience-slider:hover .carousel-control-next {
-        opacity: 1;
-    }
-    .carousel-indicators {
-        z-index: 3;
-    }
-    h1 {
-    letter-spacing: 0.5px;
-}
+    .experience-slider{position:relative}
+    .experience-slider .carousel-item{height:85vh;min-height:600px;background-size:cover;background-position:center}
+    .experience-slider .overlay-dark{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}
+    .experience-slider .carousel-caption{top:50%;transform:translateY(-50%);bottom:auto;z-index:2}
+    .experience-slider .caption-category{font-family:'Montserrat',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;display:block}
+    .experience-slider .caption-title{font-family:'Playfair Display',serif;font-size:2.8rem;line-height:1.4;max-width:800px;margin:0 auto 30px auto}
+    .experience-slider .btn-readmore{font-family:'Montserrat',sans-serif;color:white;text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid white;padding-bottom:3px;transition:.3s}
+    .experience-slider .btn-readmore:hover{color:#ddd;border-color:#ddd}
+    .experience-slider .carousel-control-prev,.experience-slider .carousel-control-next{width:8%;opacity:0;transition:opacity .4s ease;z-index:3}
+    .experience-slider:hover .carousel-control-prev,.experience-slider:hover .carousel-control-next{opacity:1}
+    .carousel-indicators{z-index:3}
+    h1{letter-spacing:.5px}
 </style>
 
 <section class="hero d-flex flex-column justify-content-center align-items-center text-white text-center position-relative" style="height: 100vh; overflow: hidden;">
 
-    <video autoplay muted loop playsinline id="heroVideo"
-           style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; z-index: -2; transform: translate(-50%, -50%); object-fit: cover;">
+    <video autoplay muted loop playsinline id="heroVideo" style="position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;z-index:-2;transform:translate(-50%,-50%);object-fit:cover">
         <source src="https://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
         Trình duyệt của bạn không hỗ trợ video.
     </video>
-
-    <div class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: -1;"></div>
+    <div class="overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.3);z-index:-1"></div>
 
     <div data-aos="zoom-in" style="z-index: 1;">
         <h1 class="display-1 fw-bold mb-0">Kim Boutique Hotel</h1>
@@ -123,40 +60,41 @@ $currentYear = now()->year; // 2026
             </div>
 
             <div id="guestPopover" class="booking-popover">
-                <div class="guest-type-row">
-                    <span class="fw-bold">Người lớn</span>
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="counter-btn">-</button><b class="fs-5">2</b><button class="counter-btn">+</button>
-                    </div>
-                </div>
-                <div class="guest-type-row">
-                    <span class="fw-bold">Trẻ em</span>
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="counter-btn">-</button><b class="fs-5">0</b><button class="counter-btn">+</button>
+                <div class="guest-type-row d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Số khách</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="counter-btn btn btn-sm btn-outline-secondary">-</button>
+                        <input type="number" id="guestNumberInput" class="form-control form-control-sm text-center" style="width: 60px;" min="1" value="2">
+                        <button class="counter-btn btn btn-sm btn-outline-secondary">+</button>
                     </div>
                 </div>
             </div>
 
             <div class="search-box bg-white rounded-pill p-3 d-flex align-items-center shadow-lg row mx-0" data-aos="fade-up">
-                <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkin', event)">
-                    <label class="d-block small text-muted fw-bold">Nhận phòng</label>
-                    <div class="small w-100 text-truncate text-start text-dark" id="checkinDisplay">Chọn ngày...</div>
-                </div>
-                <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkout', event)">
-                    <label class="d-block small text-muted fw-bold">Trả phòng</label>
-                    <div class="small w-100 text-truncate text-start text-dark" id="checkoutDisplay">Chọn ngày...</div>
-                </div>
-                <div class="col-md-3 border-end px-4 cursor-pointer" onclick="openGuests(event)">
-                    <label class="d-block small text-muted fw-bold">Khách</label>
-                    <div class="small w-100 text-truncate text-start text-dark" id="guestInputDisplay">2 Người lớn, 0 Trẻ em</div>
-                </div>
-                <div class="col-md-3 px-4">
-                    <label class="d-block small text-muted fw-bold">Mã đặc biệt</label>
-                    <input type="text" class="border-0 w-100 small text-dark" placeholder="Nhập mã...">
-                </div>
-                <div class="col-md-2 p-0">
-                    <button class="btn w-100 rounded-pill py-3 fw-bold text-white btn-book-submit" style="background: var(--primary-color);">TÌM KIẾM <i class="bi bi-search ms-2"></i></button>
-                </div>
+                <form action="{{ route('phong.user') }}" method="GET" class="d-flex align-items-center w-100 row mx-0">
+                    <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkin', event)">
+                        <label class="d-block small text-muted fw-bold">Nhận phòng</label>
+                        <input type="hidden" name="checkin" id="checkinInput">
+                        <div class="small w-100 text-truncate text-start text-dark" id="checkinDisplay">Chọn ngày...</div>
+                    </div>
+                    <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkout', event)">
+                        <label class="d-block small text-muted fw-bold">Trả phòng</label>
+                        <input type="hidden" name="checkout" id="checkoutInput">
+                        <div class="small w-100 text-truncate text-start text-dark" id="checkoutDisplay">Chọn ngày...</div>
+                    </div>
+                    <div class="col-md-3 border-end px-4 cursor-pointer" onclick="openGuests(event)">
+                        <label class="d-block small text-muted fw-bold">Khách</label>
+                        <input type="hidden" name="tong_khach" id="tongKhachInput" value="2">
+                        <div class="small w-100 text-truncate text-start text-dark" id="guestInputDisplay">2 Khách</div>
+                    </div>
+                    <div class="col-md-3 px-4">
+                        <label class="d-block small text-muted fw-bold">Mã đặc biệt</label>
+                        <input type="text" name="ma_dac_biet" class="border-0 w-100 small text-dark" placeholder="Nhập mã...">
+                    </div>
+                    <div class="col-md-2 p-0">
+                        <button type="submit" class="btn w-100 rounded-pill py-3 fw-bold text-white btn-book-submit" style="background: var(--primary-color);">TÌM KIẾM <i class="bi bi-search ms-2"></i></button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -165,7 +103,6 @@ $currentYear = now()->year; // 2026
 <div class="container py-5">
     <div class="row">
 
-        <!-- LEFT: MÔ TẢ -->
         <div class="col-lg-7">
             <h1 class="fw-bold mb-4" style="font-family: 'Playfair Display', serif; line-height: 1.4;">
                 Khu nghỉ dưỡng ven biển tại Việt Nam, nơi tôn vinh và lưu giữ trọn vẹn nét mộc mạc và bản sắc của làng chài truyền thống.
@@ -183,15 +120,10 @@ $currentYear = now()->year; // 2026
             </p>
         </div>
 
-        <!-- RIGHT: LIÊN HỆ -->
         <div class="col-lg-4 offset-lg-1">
             <h6 class="text-uppercase fw-bold text-muted mb-3">Liên hệ</h6>
-
-            <p class="mb-2">Bãi biển </p>
-            <p class="mb-2">Đặc khu Phú Quốc</p>
-            <p class="mb-2">Tp.An Giang-Việt Nam</p>
-            <p class="mt-3 mb-1 text-primary">reservations-phuquoc@kimboutique.com</p>
-            <p class="fw-bold">+84 358414532</p>
+            <p class="mb-2">Bãi biển</p><p class="mb-2">Đặc khu Phú Quốc</p><p class="mb-2">Tp.An Giang-Việt Nam</p>
+            <p class="mt-3 mb-1 text-primary">reservations-phuquoc@kimboutique.com</p><p class="fw-bold">+84 358414532</p>
         </div>
 
     </div>
@@ -286,11 +218,11 @@ $currentYear = now()->year; // 2026
     </div>
 
     <button class="carousel-control-prev" type="button" data-bs-target="#experienceCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 3rem; height: 3rem;"></span>
+        <span class="carousel-control-prev-icon" aria-hidden="true" style="width:3rem;height:3rem"></span>
         <span class="visually-hidden">Previous</span>
     </button>
     <button class="carousel-control-next" type="button" data-bs-target="#experienceCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true" style="width: 3rem; height: 3rem;"></span>
+        <span class="carousel-control-next-icon" aria-hidden="true" style="width:3rem;height:3rem"></span>
         <span class="visually-hidden">Next</span>
     </button>
 </div>
@@ -303,16 +235,32 @@ $currentYear = now()->year; // 2026
 </div>
 
 <script>
-function updateLocalTime() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const timeString = `${hours}:${minutes} ${ampm}`;
-    document.getElementById('localTime').textContent = `Giờ địa phương ${timeString}`;
+function updateLocalTime(){
+    const n=new Date(),h=n.getHours().toString().padStart(2,'0'),m=n.getMinutes().toString().padStart(2,'0'),a=h>=12?'PM':'AM';
+    document.getElementById('localTime').textContent=`Giờ địa phương ${h}:${m} ${a}`;
 }
-updateLocalTime();
-setInterval(updateLocalTime, 1000);
+updateLocalTime();setInterval(updateLocalTime,1000);
+
+// Script cho guest counter
+$(document).ready(function(){
+    let tongKhach=2;
+    function updateGuestDisplay(){
+        $('#guestInputDisplay').text(`${tongKhach} Khách`);
+        $('#tongKhachInput').val(tongKhach);
+        $('#guestNumberInput').val(tongKhach);
+    }
+    $('#guestPopover .guest-type-row .counter-btn').first().click(function(){
+        if(tongKhach>1){tongKhach--;updateGuestDisplay()}
+    });
+    $('#guestPopover .guest-type-row .counter-btn').last().click(function(){
+        tongKhach++;updateGuestDisplay()
+    });
+    $('#guestNumberInput').on('input change',function(){
+        let v=parseInt($(this).val());
+        if(v>=1){tongKhach=v;updateGuestDisplay()}else{$(this).val(tongKhach)}
+    });
+    updateGuestDisplay();
+});
 </script>
 
 @endsection

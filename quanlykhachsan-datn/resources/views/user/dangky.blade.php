@@ -3,17 +3,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* Reset & Fonts */
     #registerModal { font-family: 'Montserrat', sans-serif; }
     #registerModal h2, #registerModal h3 { font-family: 'Playfair Display', serif; }
 
-    /* Hiệu ứng làm mờ nền trang chủ */
     .modal-backdrop.show {
         backdrop-filter: blur(15px);
         background-color: rgba(0, 0, 0, 0.4);
     }
 
-    /* Khung Modal */
     .auth-modal .modal-content {
         border: none;
         border-radius: 4px;
@@ -21,10 +18,8 @@
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* Chia đôi màn hình */
     .auth-split { display: flex; min-height: 600px; }
 
-    /* BÊN TRÁI: FORM */
     .auth-form-side {
         flex: 1.2;
         padding: 60px;
@@ -34,7 +29,6 @@
         justify-content: center;
     }
 
-    /* BÊN PHẢI: ẢNH NỀN */
     .auth-visual-side {
         flex: 1;
         background-image: url('https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?q=80&w=1932&auto=format&fit=crop');
@@ -59,14 +53,13 @@
     .auth-visual-content { position: relative; z-index: 1; }
     .auth-visual-content h3 { font-size: 2.4rem; margin-bottom: 20px; font-style: italic; }
 
-    /* Tinh chỉnh Input & Icon Mắt */
     .input-group-auth { position: relative; margin-bottom: 25px; }
 
     .auth-form-side .form-control {
         border-radius: 0;
         border: none;
         border-bottom: 1px solid #e0e0e0;
-        padding: 12px 30px 12px 0; /* Chừa khoảng trống bên phải cho icon */
+        padding: 12px 30px 12px 0;
         font-size: 0.9rem;
         background: transparent;
         transition: 0.3s;
@@ -78,10 +71,9 @@
         border-bottom-color: #63325f;
     }
 
-    /* Thêm style cho trường hợp có lỗi (Validation) */
     .auth-form-side .form-control.is-invalid {
         border-bottom-color: #dc3545;
-        background-image: none; /* Tắt icon lỗi mặc định của bootstrap để không đè lên icon mắt */
+        background-image: none;
     }
 
     .invalid-feedback-custom {
@@ -96,7 +88,7 @@
     .toggle-password {
         position: absolute;
         right: 0;
-        top: 35px; /* Căn giữa theo chiều dọc của input */
+        top: 35px;
         cursor: pointer;
         color: #999;
         transition: 0.3s;
@@ -188,7 +180,13 @@
                                 </label>
                             </div>
 
-                            <button type="submit" class="btn btn-register-submit">Đăng ký ngay</button>
+                            <button type="submit" class="btn-register-submit">Đăng ký ngay</button>
+
+                            <div class="mt-5 text-center">
+                                <p class="small text-muted">Đã có tài khoản?
+                                    <a href="#" class="text-dark fw-bold text-decoration-none ms-1 border-bottom border-dark" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">ĐĂNG NHẬP</a>
+                                </p>
+                            </div>
                         </form>
                     </div>
 
@@ -227,6 +225,11 @@
     }
 
     $(document).ready(function() {
+        // Đảm bảo backdrop được dọn dẹp khi đóng modal
+        $('#registerModal').on('hidden.bs.modal', function() {
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        });
 
         $('#registerForm').on('submit', function(e) {
             e.preventDefault(); // Ngăn load lại trang
@@ -234,7 +237,6 @@
             let form = $(this);
             let submitBtn = form.find('button[type="submit"]');
 
-            // Xóa các lỗi cũ đang hiển thị
             $('.form-control').removeClass('is-invalid');
             $('.invalid-feedback-custom').remove();
             submitBtn.prop('disabled', true).text('Đang xử lý...');
@@ -253,7 +255,7 @@
                     submitBtn.prop('disabled', false).text('Đăng ký ngay');
 
                     if (xhr.status === 422) {
-                        // Lấy danh sách lỗi từ Laravel
+
                         let errors = xhr.responseJSON.errors;
 
                         Object.keys(errors).forEach(key => {

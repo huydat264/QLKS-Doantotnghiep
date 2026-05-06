@@ -3,17 +3,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-    /* Reset & Fonts đồng bộ với file Đăng ký */
     #loginModal { font-family: 'Montserrat', sans-serif; }
     #loginModal h2, #loginModal h3 { font-family: 'Playfair Display', serif; }
 
-    /* Hiệu ứng làm mờ nền trang chủ */
     .modal-backdrop.show {
         backdrop-filter: blur(15px);
         background-color: rgba(0, 0, 0, 0.4);
     }
 
-    /* Khung Modal */
     .auth-modal .modal-content {
         border: none;
         border-radius: 4px;
@@ -21,10 +18,10 @@
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* Chia đôi màn hình */
+
     .auth-split { display: flex; min-height: 550px; }
 
-    /* BÊN TRÁI: FORM ĐĂNG NHẬP */
+
     .auth-form-side {
         flex: 1.2;
         padding: 60px;
@@ -34,7 +31,7 @@
         justify-content: center;
     }
 
-    /* BÊN PHẢI: ẢNH NỀN (Dùng ảnh khác để phân biệt với Đăng ký) */
+
     .auth-visual-side {
         flex: 1;
         background-image: url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1920&auto=format&fit=crop');
@@ -59,7 +56,7 @@
     .auth-visual-content { position: relative; z-index: 1; }
     .auth-visual-content h3 { font-size: 2.4rem; margin-bottom: 20px; font-style: italic; }
 
-    /* Input & Icon Mắt */
+
     .input-group-auth { position: relative; margin-bottom: 25px; }
 
     .auth-form-side .form-control {
@@ -78,7 +75,7 @@
         border-bottom-color: #63325f;
     }
 
-    /* Tinh chỉnh Input & Highlight lỗi */
+
     .auth-form-side .form-control.is-invalid {
         border-bottom-color: #dc3545;
         background-image: none;
@@ -105,7 +102,7 @@
 
     .toggle-password:hover { color: #63325f; }
 
-    /* Nút bấm & Link phụ */
+
     .btn-login-submit {
         background: #333;
         color: white;
@@ -223,6 +220,12 @@
     }
 
     $(document).ready(function() {
+        // Đảm bảo backdrop được dọn dẹp khi đóng modal
+        $('#loginModal').on('hidden.bs.modal', function() {
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        });
+
         $('#loginForm').on('submit', function(e) {
             e.preventDefault(); // Ngăn form submit truyền thống tin lên server
 
@@ -252,7 +255,7 @@
                         Object.keys(errors).forEach(key => {
                             let input = $(`[name="${key}"]`);
                             input.addClass('is-invalid');
-                            // Thêm thông báo lỗi
+
                             input.closest('.input-group-auth').append(
                                 `<div class="invalid-feedback-custom">${errors[key][0]}</div>`
                             );

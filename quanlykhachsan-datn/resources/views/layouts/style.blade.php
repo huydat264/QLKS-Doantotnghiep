@@ -83,12 +83,12 @@
     <script>
         AOS.init({ duration: 1000, once: true });
 
-        // Hàm điều khiển Sidebar
+
         function toggleMenu() {
             $('#sidebar').toggleClass('active');
         }
 
-        // Hiệu ứng cuộn chuột thay đổi Navbar
+
         $(window).scroll(function() {
             if ($(this).scrollTop() > 50) {
                 $('.navbar').addClass('scrolled');
@@ -99,13 +99,13 @@
             }
         });
 
-        // XỬ LÝ LÔ-GÍC LỊCH MỚI CỦA MÀY
+
         let currentSelecting = 'checkin';
         let checkinDate = null;
         let checkoutDate = null;
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Xóa giờ phút giây để so sánh ngày chính xác
+        today.setHours(0, 0, 0, 0);
 
         let currentMonth = today.getMonth() + 1;
         let currentYear = today.getFullYear();
@@ -114,7 +114,7 @@
             if (event) event.stopPropagation();
             currentSelecting = type;
             $('#guestPopover').hide();
-            showCalendar(); // Reset về hiển thị lưới ngày
+            showCalendar();
             $('#calendarPopover').fadeIn(200);
         }
 
@@ -129,7 +129,7 @@
             $('#yearDisplay').text(currentYear);
         }
 
-        // --- LUỒNG 1: HIỂN THỊ CHỌN NĂM ---
+
         function showYearSelector() {
             let html = '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">';
             let startYear = today.getFullYear(); // Không cho chọn năm trước năm hiện tại
@@ -143,11 +143,11 @@
             $('#prevMonth, #nextMonth').hide(); // Ẩn mũi tên chuyển tháng
         }
 
-        // --- LUỒNG 2: HIỂN THỊ CHỌN THÁNG ---
+
         function showMonthSelector() {
             let html = '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">';
             for (let m = 1; m <= 12; m++) {
-                // Lock tháng trong quá khứ nếu đang ở năm hiện tại
+
                 let isPastMonth = (currentYear === today.getFullYear() && m < (today.getMonth() + 1));
                 let classes = isPastMonth ? 'month-cell past border' : 'month-cell cursor-pointer hover-bg border';
                 html += `<div class="${classes}" data-month="${m}">Tháng ${m}</div>`;
@@ -158,9 +158,9 @@
             $('#prevMonth, #nextMonth').hide();
         }
 
-        // --- LUỒNG 3: HIỂN THỊ LỊCH (CHỌN NGÀY) ---
+
         function showCalendar() {
-            $('#prevMonth, #nextMonth').show(); // Hiện lại mũi tên
+            $('#prevMonth, #nextMonth').show();
             updateHeader();
 
             let html = `
@@ -202,44 +202,42 @@
             }
         }
 
-        // --- BẮT SỰ KIỆN CLICK CHO LUỒNG ---
 
-        // Click vào chữ Năm -> Hiện bảng năm
         $(document).on('click', '#yearDisplay', function(e) {
             e.stopPropagation();
             showYearSelector();
         });
 
-        // Click vào chữ Tháng -> Hiện bảng tháng
+
         $(document).on('click', '#monthDisplay', function(e) {
             e.stopPropagation();
             showMonthSelector();
         });
 
-        // Chọn năm xong -> Quay lại lịch chọn ngày
+
         $(document).on('click', '.year-cell:not(.past)', function(e) {
             e.stopPropagation();
             currentYear = parseInt($(this).data('year'));
             showCalendar();
         });
 
-        // Chọn tháng xong -> Tự động chuyển sang lịch chọn ngày
+
         $(document).on('click', '.month-cell:not(.past)', function(e) {
             e.stopPropagation();
             currentMonth = parseInt($(this).data('month'));
             showCalendar();
         });
 
-        // Mũi tên chuyển tháng nhanh ở ngoài lịch
+
         $('#prevMonth').click(function(e) {
             e.stopPropagation();
             let tempMonth = currentMonth - 1;
             let tempYear = currentYear;
             if (tempMonth < 1) { tempMonth = 12; tempYear--; }
 
-            // Chặn lùi về tháng trước nếu là tháng quá khứ
+
             if (tempYear < today.getFullYear() || (tempYear === today.getFullYear() && tempMonth < today.getMonth() + 1)) {
-                return; // Không làm gì cả
+                return;
             }
             currentMonth = tempMonth;
             currentYear = tempYear;
@@ -253,7 +251,7 @@
             showCalendar();
         });
 
-        // Xử lý chọn ngày Nhận / Trả phòng
+
         $(document).on('click', '.date-cell.available, .date-cell.in-range', function(e) {
             e.stopPropagation();
             const day = parseInt($(this).data('day'));
@@ -263,11 +261,13 @@
 
             if (currentSelecting === 'checkin') {
                 checkinDate = selectedDate;
-                checkoutDate = null; // Reset trả phòng
+                checkoutDate = null;
                 $('#checkinDisplay').text(formattedDate).removeClass('text-muted');
                 $('#checkoutDisplay').text('Chọn ngày...');
+                $('#checkinInput').val(formattedDate);
+                $('#checkoutInput').val('');
 
-                // Chọn xong ngày nhận -> Ẩn luôn popover
+
                 currentSelecting = 'checkout';
                 $('#calendarPopover').fadeOut(200);
             } else {
@@ -277,12 +277,13 @@
                 }
                 checkoutDate = selectedDate;
                 $('#checkoutDisplay').text(formattedDate).removeClass('text-muted');
-                $('#calendarPopover').fadeOut(200); // Chọn xong 2 cái thì tắt popover
+                $('#checkoutInput').val(formattedDate);
+                $('#calendarPopover').fadeOut(200);
             }
-            showCalendar(); // Vẽ lại lịch để đổ màu
+            showCalendar();
         });
 
-        // Đóng Popover khi click ra ngoài
+
         $(document).on('click', function(e) {
             if (!$(e.target).closest('.search-box, .booking-popover').length) {
                 $('.booking-popover').fadeOut(150);

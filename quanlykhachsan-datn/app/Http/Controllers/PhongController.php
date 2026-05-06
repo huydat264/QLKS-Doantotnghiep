@@ -33,6 +33,25 @@ public function indexUser(Request $request)
         $query->where('so_phong_ngu', $request->so_phong_ngu);
     }
 
+    // 4. Lọc theo tìm kiếm từ home: ngày nhận/trả phòng và số khách
+    if ($request->filled('tong_khach')) {
+        $tong_khach = $request->input('tong_khach');
+        if ($tong_khach > 0) {
+            $query->where('so_luong_nguoi', '>=', $tong_khach);
+        }
+    }
+
+    // Lọc theo ngày nhận/trả phòng: cần bảng đặt phòng để kiểm tra availability
+    // Tạm thời bỏ qua, chỉ lưu tham số để hiển thị
+    // if ($request->filled('checkin') && $request->filled('checkout')) {
+    //     // Logic kiểm tra phòng trống
+    // }
+
+    // Mã đặc biệt: xử lý sau
+    // if ($request->filled('ma_dac_biet')) {
+    //     // Áp dụng mã giảm giá hoặc ưu đãi
+    // }
+
     // Lấy dữ liệu đã lọc
     $phongs = $query->get();
 

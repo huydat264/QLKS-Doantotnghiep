@@ -22,7 +22,6 @@
         margin-bottom: 60px;
     }
 
-
     .room-img-wrapper {
         position: relative;
         overflow: hidden;
@@ -150,11 +149,13 @@
         padding-left: 0;
         margin-bottom: 0;
     }
+
     .custom-list-card li {
         font-size: 14px;
         color: #555;
         line-height: 2;
     }
+
     .custom-list-card li::before {
         content: "•";
         margin-right: 8px;
@@ -166,6 +167,7 @@
         margin-top: auto;
         padding-top: 20px;
     }
+
     .read-more {
         color: #673065;
         font-weight: bold;
@@ -176,6 +178,7 @@
         display: inline-block;
         transition: all 0.3s ease;
     }
+
     .read-more:hover {
         transform: translateX(8px);
         color: #4a2148;
@@ -194,7 +197,6 @@
     .accordion-button::after {
         background-size: 1rem;
     }
-
 
     .service-list-left {
         padding-left: 0;
@@ -233,6 +235,7 @@
         padding: 20px;
         border-left: 1px solid #eee;
     }
+
     @media (max-width: 991px) {
         .illustration-wrapper { border-left: none; }
     }
@@ -240,38 +243,15 @@
 
 <div class="container mt-5 pt-5">
 
-
     <div class="row mb-5">
         <div class="col-12">
             <h2 class="text-center text-md-start mb-4" style="font-family: 'Playfair Display', serif; font-size: 32px;">
-                Kiểm tra tình trạng phòng trống và đặt trực tiếp
+                Khám phá các Gói Combo Ưu Đãi
             </h2>
 
-            <form action="{{ url('/luu-tru') }}" method="GET" class="d-flex flex-wrap gap-3 filter-dropdown">
+            <form action="{{ url('/combo') }}" method="GET" class="d-flex flex-wrap gap-3 filter-dropdown">
                 <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">BỘ LỌC</div>
-                    <div class="dropdown-menu">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Hướng phòng</label>
-                            <select name="huong_phong" class="form-select form-select-sm shadow-none">
-                                <option value="">Tất cả</option>
-                                <option value="biển" {{ request('huong_phong') == 'biển' ? 'selected' : '' }}>Hướng biển</option>
-                                <option value="vườn" {{ request('huong_phong') == 'vườn' ? 'selected' : '' }}>Hướng vườn</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Số người tối thiểu</label>
-                            <input type="number" name="so_luong_nguoi" class="form-control form-control-sm shadow-none" value="{{ request('so_luong_nguoi') }}" min="1">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Số phòng ngủ</label>
-                            <input type="number" name="so_phong_ngu" class="form-control form-control-sm shadow-none" value="{{ request('so_phong_ngu') }}" min="1">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG</div>
+                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG ÁP DỤNG</div>
                     <div class="dropdown-menu">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Standard" id="cb-std" {{ (is_array(request('loai_phong')) && in_array('Standard', request('loai_phong'))) ? 'checked' : '' }}>
@@ -289,82 +269,72 @@
                 </div>
 
                 <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VND</div>
+                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">MỨC GIÁ COMBO (VND)</div>
                     <div class="dropdown-menu" style="min-width: 300px;">
                         <label class="form-label text-muted small d-flex justify-content-between">
-                            <span>Mức giá tối đa:</span>
+                            <span>Giá tối đa:</span>
                             <span id="price-val" class="fw-bold" style="color:#673065;">
-                                {{ number_format(request('gia_max', 5000000), 0, ',', '.') }} VNĐ
+                                {{ number_format(request('gia_max', 10000000), 0, ',', '.') }} VNĐ
                             </span>
                         </label>
-                        <input type="range" name="gia_max" class="form-range" min="500000" max="5000000" step="100000" id="price-slider" value="{{ request('gia_max', 5000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
+                        <input type="range" name="gia_max" class="form-range" min="1000000" max="20000000" step="500000" id="price-slider" value="{{ request('gia_max', 10000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
-                <a href="{{ url('/luu-tru') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
+                <a href="{{ url('/combo') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
             </form>
         </div>
     </div>
 
-
-    @foreach($phongs as $phong)
+    @foreach($combos as $combo)
     <div class="row room-card reveal">
         <div class="col-lg-5 mb-3 mb-lg-0">
             <div class="room-img-wrapper">
-                <img src="{{ $phong->anh }}" alt="{{ $phong->loai_phong }}" onerror="this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b';">
+                <img src="{{ $combo->hinh_anh }}" alt="{{ $combo->ten_combo }}" onerror="this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b';">
             </div>
         </div>
 
         <div class="col-lg-7 d-flex flex-column">
             <div class="row flex-grow-1">
                 <div class="col-md-7 pe-md-4 d-flex flex-column">
-                    <h3 class="room-title">{{ $phong->loai_phong }} - Phòng {{ $phong->so_phong }}</h3>
+                    <h3 class="room-title">{{ $combo->ten_combo }}</h3>
 
                     <ul class="nav nav-tabs-custom" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $phong->id_phong }}">MÔ TẢ</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#info-{{ $phong->id_phong }}">THÔNG TIN QUAN TRỌNG</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#amenities-{{ $phong->id_phong }}">TIỆN NGHI</a></li>
+                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $combo->id_combo }}">MÔ TẢ COMBO</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#info-{{ $combo->id_combo }}">CHI TIẾT GÓI</a></li>
                     </ul>
 
                     <div class="tab-content">
-                        <div id="desc-{{ $phong->id_phong }}" class="tab-pane active">
-                            <p class="room-desc">{{ Str::limit($phong->mo_ta, 150, '...') }}</p>
+                        <div id="desc-{{ $combo->id_combo }}" class="tab-pane active">
+                            <p class="room-desc">{{ Str::limit($combo->mo_ta, 150, '...') }}</p>
                         </div>
-                        <div id="info-{{ $phong->id_phong }}" class="tab-pane fade">
+                        <div id="info-{{ $combo->id_combo }}" class="tab-pane fade">
                             <ul class="custom-list-card">
-                                @foreach(array_slice(explode("\n", $phong->thong_tin_quan_trong), 0, 4) as $item)
-                                    @if(trim($item) != '') <li>{{ trim($item) }}</li> @endif
-                                @endforeach
-                            </ul>
-                        </div>
-                        <div id="amenities-{{ $phong->id_phong }}" class="tab-pane fade">
-                            <ul class="custom-list-card">
-                                @foreach(array_slice(explode("\n", $phong->tien_nghi), 0, 4) as $item)
-                                    @if(trim($item) != '') <li>{{ trim($item) }}</li> @endif
-                                @endforeach
+                                <li>Áp dụng cho hạng phòng: {{ $combo->loai_phong_ap_dung }}</li>
+                                <li>Lưu trú trọn gói: {{ $combo->so_dem_luu_tru }} đêm</li>
+                                <li>Bao gồm các dịch vụ đi kèm trong gói</li>
+                                <li>Giá phòng định mức: {{ number_format($combo->gia_phong_dinh_muc, 0, ',', '.') }} VNĐ</li>
                             </ul>
                         </div>
                     </div>
 
                     <div class="read-more-wrapper">
-                        <a href="{{ route('phong.chitiet', $phong->id_phong) }}" class="read-more">ĐỌC THÊM ></a>
+                        <a href="{{ url('/combo/' . $combo->id_combo) }}" class="read-more">ĐỌC THÊM ></a>
                     </div>
                 </div>
 
                 <div class="col-md-5 mt-4 mt-md-0 border-start ps-md-4">
                     <ul class="list-unstyled room-specs">
-                        <li>{{ $phong->dien_tich }}</li>
-                        <li>Số lượng khách tối đa {{ $phong->so_luong_nguoi }}</li>
-                        <li>Hướng phòng: {{ $phong->huong_phong }}</li>
-                        <li>{{ $phong->so_phong_ngu }} Phòng ngủ</li>
+                        <li><strong>Loại phòng:</strong> {{ $combo->loai_phong_ap_dung }}</li>
+                        <li><strong>Số đêm lưu trú:</strong> {{ $combo->so_dem_luu_tru }} đêm</li>
+                        <li>Tiết kiệm hơn so với đặt phòng lẻ</li>
                     </ul>
-                    <a href="#" class="read-more d-block mt-4 mb-3">SƠ ĐỒ THIẾT KẾ ></a>
                 </div>
             </div>
 
             <div class="booking-bar mt-4">
-                <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
+                <span class="text-muted" style="font-size: 14px;">Giá trọn gói: {{ number_format($combo->gia_combo, 0, ',', '.') }} VNĐ</span>
                 @auth
     <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
        class="btn btn-book text-decoration-none">
@@ -414,7 +384,6 @@
         </div>
     </div>
 </section>
-
 
 <section class="extra-info py-5">
     <div class="container reveal">
@@ -484,7 +453,6 @@
     </div>
 </section>
 
-<!-- SCRIPT HIỆU ỨNG CUỘN -->
 <script>
     function reveal() {
         var reveals = document.querySelectorAll(".reveal");

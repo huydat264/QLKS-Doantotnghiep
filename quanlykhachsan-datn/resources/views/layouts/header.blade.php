@@ -4,6 +4,7 @@
         <a href="{{ route('home') }}">Trang chủ</a>
         <a href="{{ url('/diem-den') }}">Điểm đến</a>
         <a href="{{ route('phong.user') }}">Lưu trú</a>
+        <a href="{{ route('combo.index') }}">Combo</a>
         <a href="#">Trải nghiệm ẩm thực</a>
         <a href="#">Wellness & Spa</a>
         <a href="#">Phát triển bền vững</a>

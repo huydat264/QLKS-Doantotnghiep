@@ -8,7 +8,6 @@
         color: #666;
     }
 
-    /* ===== HERO SLIDER ===== */
     .hero-slider {
         height: 100vh;
         overflow: hidden;
@@ -59,7 +58,6 @@
         letter-spacing: 2px;
     }
 
-    /* ===== CODE CŨ GIỮ NGUYÊN ===== */
     .section {
         padding: 80px 0;
     }
@@ -121,25 +119,21 @@
     .feature-list li {
         margin-bottom: 6px;
     }
-    /* TAB STYLE */
 #customTab .nav-link {
     position: relative;
     color: #000;
     transition: 0.3s;
 }
 
-/* hover đổi màu */
 #customTab .nav-link:hover {
     color: #673065;
 }
 
-/* active giữ màu */
 #customTab .nav-link.active {
     color: #673065;
     background: none;
 }
 
-/* underline (mặc định ẩn) */
 #customTab .nav-link::after {
     content: "";
     position: absolute;
@@ -152,24 +146,22 @@
     transform: translateX(-50%);
 }
 
-/* hover hiện underline */
 #customTab .nav-link:hover::after {
     width: 100%;
 }
 
-/* active luôn có underline */
 #customTab .nav-link.active::after {
     width: 100%;
 }
-/* ===== MAP MARKERS ===== */
+/* MAP MARKERS*/
 .map-marker {
     position: absolute;
     width: 35px;
     height: 35px;
-    background-color: #666; /* Màu xám mặc định */
+    background-color: #666;
     color: white;
     border: 2px solid white;
-    border-radius: 50% 50% 50% 0; /* Tạo hình giọt nước */
+    border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     display: flex;
     align-items: center;
@@ -180,7 +172,6 @@
     padding: 0;
 }
 
-/* Xoay lại chữ bên trong cho thẳng */
 .map-marker::before {
     content: attr(data-num);
     transform: rotate(45deg);
@@ -188,12 +179,10 @@
     font-size: 14px;
 }
 
-/* Ẩn số gốc trong button để dùng số ở ::before */
 .map-marker {
     font-size: 0;
 }
 
-/* Hiệu ứng hover và khi được chọn (active) chuyển sang màu tím */
 .map-marker:hover, .map-marker.active {
     background-color: #673065;
     transform: rotate(-45deg) scale(1.1);
@@ -202,7 +191,6 @@
 
 </style>
 
-<!-- ===== SLIDER THÊM VÀO ===== -->
 <div id="heroCarousel" class="carousel slide hero-slider" data-bs-ride="carousel" data-bs-interval="3000">
 
     <div class="carousel-inner">
@@ -225,16 +213,12 @@
 
     </div>
 
-    <!-- overlay -->
     <div class="hero-overlay"></div>
-
-    <!-- text -->
     <div class="hero-content">
         <div class="hero-title">Kimboutique</div>
         <div class="hero-subtitle">Mỗi chuyến bay mở ra một thiên đường của quý khách</div>
     </div>
 
-    <!-- button -->
     <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </button>
@@ -276,11 +260,10 @@
 
 </ul>
 
-<!-- SECTION 1 -->
 <div class="section container">
     <div class="row">
 
-        <!-- LEFT -->
+
         <div class="col-lg-8 text-content">
             <p>
                 Six Senses Con Dao là điểm đến biệt lập đầy quyến rũ, chỉ cách TP. Hồ Chí Minh 45 phút bay hoặc
@@ -295,7 +278,6 @@
             </p>
         </div>
 
-        <!-- RIGHT -->
         <div class="col-lg-4">
             <div class="download-box">
                 <h6>TẢI XUỐNG</h6>
@@ -306,7 +288,6 @@
     </div>
 </div>
 
-<!-- SECTION 2 -->
 <div class="section bg-light">
     <div class="container">
 
@@ -316,7 +297,6 @@
 
         <div class="row">
 
-            <!-- ITEM 1 -->
             <div class="col-lg-6">
                 <div class="feature-item">
                     <img src="https://cdn-icons-png.flaticon.com/512/869/869869.png" class="feature-icon">
@@ -332,7 +312,6 @@
                 </div>
             </div>
 
-            <!-- ITEM 2 -->
             <div class="col-lg-6">
                 <div class="feature-item">
                     <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" class="feature-icon">
@@ -349,7 +328,6 @@
                 </div>
             </div>
 
-            <!-- ITEM 3 -->
             <div class="col-lg-6">
                 <div class="feature-item">
                     <img src="https://cdn-icons-png.flaticon.com/512/2972/2972185.png" class="feature-icon">
@@ -365,7 +343,7 @@
                 </div>
             </div>
 
-            <!-- ITEM 4 -->
+
             <div class="col-lg-6">
                 <div class="feature-item">
                     <img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" class="feature-icon">
@@ -454,22 +432,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     markers.forEach(marker => {
         marker.addEventListener('click', function() {
-            // Xóa class active ở tất cả marker
             markers.forEach(m => m.classList.remove('active'));
-            // Thêm class active cho marker được click
+
             this.classList.add('active');
 
-            // Lấy data từ marker
+            // Lấy data
             const newImg = this.getAttribute('data-img');
             const newNum = this.getAttribute('data-num');
             const newTitle = this.getAttribute('data-title');
             const newDesc = this.getAttribute('data-desc');
 
-            // Hiệu ứng mờ dần ảnh trước khi đổi
+            // Hiệu ứng mờ dần
             detailImg.style.opacity = 0;
 
             setTimeout(() => {
-                // Cập nhật nội dung
                 detailImg.src = newImg;
                 detailBadge.innerText = newNum;
                 detailTitle.innerText = newTitle;
@@ -477,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Hiện ảnh lại
                 detailImg.style.opacity = 1;
-            }, 300); // Đợi 0.3s cho mượt
+            }, 300); // 0.3s
         });
     });
 });

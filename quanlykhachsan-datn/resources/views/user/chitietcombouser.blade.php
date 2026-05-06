@@ -3,7 +3,6 @@
 @section('content')
 
 <style>
-
     .balanced-container {
         max-width: 1100px;
         margin: 0 auto;
@@ -34,7 +33,6 @@
         margin-bottom: 30px;
     }
 
-    /* Banner ảnh full */
     .banner-wrapper {
         width: 100%;
         height: 60vh;
@@ -48,7 +46,6 @@
         object-fit: cover;
     }
 
-    /* Phần mô tả chính */
     .desc-highlight {
         font-family: 'Playfair Display', serif;
         font-size: 26px;
@@ -63,7 +60,6 @@
         line-height: 1.8;
     }
 
-    /* Cột thông số bên phải */
     .room-specs-list {
         list-style: none;
         padding-left: 0;
@@ -94,7 +90,6 @@
         margin-bottom: 30px;
     }
 
-    /* Nút Đặt phòng & Hiệu ứng */
     .btn-booking {
         display: block;
         width: 100%;
@@ -118,7 +113,6 @@
         transform: translateY(-3px);
     }
 
-    /* Box 2 cột (Tiện nghi & Thông tin) */
     .info-box {
         background-color: #f9f8f6;
         padding: 60px 40px;
@@ -150,41 +144,35 @@
 
 <div class="container-fluid px-0 mt-5 pt-5">
 
-
     <div class="balanced-container">
-        <a href="{{ url('/luu-tru') }}" class="breadcrumb-custom">< KHU NGHỈ DƯỠNG</a>
-        <h1 class="detail-title">{{ $phong->loai_phong }}</h1>
+        <a href="{{ url('/combo') }}" class="breadcrumb-custom">< DANH SÁCH COMBO</a>
+        <h1 class="detail-title">{{ $combo->ten_combo }}</h1>
     </div>
-
 
     <div class="banner-wrapper">
-        <img src="{{ $phong->anh }}" alt="{{ $phong->loai_phong }}">
+        <img src="{{ $combo->hinh_anh }}" alt="{{ $combo->ten_combo }}">
     </div>
-
 
     <div class="balanced-container">
         <div class="row">
-
             <div class="col-md-7 pe-md-5">
                 <div class="desc-highlight">
-                    {{ $phong->mo_ta }}
+                    {{ $combo->mo_ta }}
                 </div>
                 <div class="main-desc">
-                    <p>Trải nghiệm không gian đẳng cấp với thiết kế tỉ mỉ, mang lại sự riêng tư tuyệt đối cho kỳ nghỉ của bạn. Tận hưởng vẻ đẹp trọn vẹn của thiên nhiên ngay trong tầm mắt với những tiện ích chuẩn 5 sao.</p>
+                    <p>Khám phá trọn vẹn kỳ nghỉ dưỡng với các gói ưu đãi thiết kế riêng biệt. Tận hưởng mọi dịch vụ đẳng cấp nhất và tiết kiệm thời gian chuẩn bị cho chuyến đi của bạn.</p>
                 </div>
             </div>
 
-
             <div class="col-md-5 border-start ps-md-5">
                 <ul class="room-specs-list">
-                    <li>{{ $phong->dien_tich }}</li>
-                    <li>Số lượng khách tối đa {{ $phong->so_luong_nguoi }}</li>
-                    <li>Hướng phòng: {{ $phong->huong_phong }}</li>
-                    <li>{{ $phong->so_phong_ngu }} Phòng ngủ</li>
+                    <li><strong>Áp dụng:</strong> Phòng hạng {{ $combo->loai_phong_ap_dung }}</li>
+                    <li><strong>Thời gian:</strong> {{ $combo->so_dem_luu_tru }} đêm lưu trú</li>
+                    <li><strong>Giá phòng định mức:</strong> {{ number_format($combo->gia_phong_dinh_muc, 0, ',', '.') }} VNĐ</li>
+                    <li><strong>Giá trọn gói:</strong> <span class="fw-bold" style="color: #673065; font-size: 18px;">{{ number_format($combo->gia_combo, 0, ',', '.') }} VNĐ</span></li>
                 </ul>
 
-                <a href="#" class="design-link">Sơ đồ thiết kế ></a>
-
+                <a href="#" class="design-link">Xem quy định áp dụng ></a>
                 @auth
     <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
        class="btn-booking">
@@ -203,31 +191,31 @@
         <div class="info-box shadow-sm">
             <div class="row">
                 <div class="col-md-6 mb-4 mb-md-0 pe-md-5">
-                    <h3 class="info-title">Tiện nghi</h3>
+                    <h3 class="info-title">Quyền lợi Gói Combo</h3>
                     <ul class="custom-list">
-                        @if($phong->tien_nghi)
-                            @foreach(explode("\n", $phong->tien_nghi) as $item)
+                        @if($combo->quyen_loi)
+                            @foreach(explode("\n", $combo->quyen_loi) as $item)
                                 @if(trim($item) != '')
                                     <li>{{ trim($item) }}</li>
                                 @endif
                             @endforeach
                         @else
-                            <li>Đang cập nhật...</li>
+                            <li>Đang cập nhật quyền lợi...</li>
                         @endif
                     </ul>
                 </div>
 
                 <div class="col-md-6 border-start ps-md-5">
-                    <h3 class="info-title">Thông tin quan trọng</h3>
+                    <h3 class="info-title">Điều khoản áp dụng</h3>
                     <ul class="custom-list">
-                        @if($phong->thong_tin_quan_trong)
-                            @foreach(explode("\n", $phong->thong_tin_quan_trong) as $item)
+                        @if($combo->dieu_khoan)
+                            @foreach(explode("\n", $combo->dieu_khoan) as $item)
                                 @if(trim($item) != '')
                                     <li>{{ trim($item) }}</li>
                                 @endif
                             @endforeach
                         @else
-                            <li>Đang cập nhật...</li>
+                            <li>Đang cập nhật điều khoản...</li>
                         @endif
                     </ul>
                 </div>
