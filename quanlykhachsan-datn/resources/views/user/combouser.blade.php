@@ -336,7 +336,7 @@
             <div class="booking-bar mt-4">
                 <span class="text-muted" style="font-size: 14px;">Giá trọn gói: {{ number_format($combo->gia_combo, 0, ',', '.') }} VNĐ</span>
                 @auth
-    <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
+    <a href="{{ route('booking.check', ['type' => 'combo', 'id' => $combo->id_combo]) }}"
        class="btn btn-book text-decoration-none">
        ĐẶT PHÒNG
     </a>

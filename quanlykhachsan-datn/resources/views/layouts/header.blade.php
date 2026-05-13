@@ -43,7 +43,7 @@
                 @endauth
 
             </div>
-            <a href="#" class="btn-book">ĐẶT NGAY</a>
+            <a href="{{ route('phong.user') }}" class="btn-book">ĐẶT NGAY</a>
         </div>
     </div>
 </nav>

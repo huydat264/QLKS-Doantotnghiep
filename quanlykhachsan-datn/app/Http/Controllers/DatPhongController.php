@@ -13,13 +13,13 @@ use Carbon\Carbon;
 
 class DatPhongController extends Controller
 {
-    // Khởi tạo luồng: kiểm tra thông tin cá nhân khách hàng
+    // kiểm tra thông tin cá nhân khách hàng
     public function checkCustomer($type, $id)
     {
         // Lưu thông tin loại hình đặt (phong hoặc combo) và ID vào Session
         session(['booking_type' => $type, 'booking_id' => $id]);
 
-        // Kiểm tra xem user hiện tại đã có hồ sơ khách hàng chưa (Khớp với cột tai_khoan_khachhang_id trong DB)
+        // Kiểm tra xem user hiện tại đã có hồ sơ khách hàng chưa
         $khachHang = KhachHang::where('tai_khoan_khachhang_id', Auth::id())->first();
 
         if (!$khachHang) {
@@ -29,13 +29,13 @@ class DatPhongController extends Controller
         return redirect()->route('booking.services');
     }
 
-    // Bước 1: Hiển thị form nhập thông tin khách hàng lần đầu
+
     public function showCustomerForm()
     {
         return view('user.infkhachhang');
     }
 
-    // Bước 1: Lưu thông tin khách hàng vào DB
+
     public function saveCustomer(Request $request)
     {
         $request->validate([
@@ -46,7 +46,7 @@ class DatPhongController extends Controller
         ]);
 
         KhachHang::create([
-            'tai_khoan_khachhang_id' => Auth::id(), // Đã sửa khớp sơ đồ DB
+            'tai_khoan_khachhang_id' => Auth::id(),
             'ho_ten'                 => $request->ho_ten,
             'ngay_sinh'              => $request->ngay_sinh,
             'gioi_tinh'              => $request->gioi_tinh,
@@ -59,7 +59,7 @@ class DatPhongController extends Controller
         return redirect()->route('booking.services');
     }
 
-    // Bước 2: Hiển thị trang chọn ngày và dịch vụ đi kèm
+    // trang chọn ngày và dịch vụ
     public function showServiceForm()
     {
         $type = session('booking_type');
@@ -69,65 +69,80 @@ class DatPhongController extends Controller
         $item = ($type == 'phong') ? Phong::find($id) : Combo::find($id);
         $dichVus = DichVu::all();
 
-        return view('user.dichvubooking', compact('item', 'dichVus', 'type'));
+        $luuTruKeywords = ['Ăn', 'Spa', 'Giặt', 'Phòng', 'Buffet'];
+        $dvLuuTru = $dichVus->filter(function ($dv) use ($luuTruKeywords) {
+            foreach ($luuTruKeywords as $key) {
+                if (str_contains($dv->ten_dich_vu, $key) || str_contains($dv->loai_dich_vu, $key)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        $dvNgoaiLe = $dichVus->diff($dvLuuTru);
+
+        $defaultCheckin = Carbon::today()->toDateString();
+        $defaultCheckout = Carbon::today()->addDay()->toDateString();
+
+        return view('user.dichvubooking', compact('item', 'type', 'dvLuuTru', 'dvNgoaiLe', 'defaultCheckin', 'defaultCheckout'));
     }
 
-    // Bước 2: Xử lý dữ liệu chọn ngày và dịch vụ bổ trợ
-    public function saveServices(Request $request)
-    {
-        $request->validate([
-            'ngay_nhan' => 'required|date',
-            'ngay_tra'  => 'required|date|after:ngay_nhan',
-        ]);
+    //  Xử lý dữ liệu chọn ngày và dịch vụ bổ trợ
+public function saveServices(Request $request)
+{
+    // 1. Validate - Chặn ngày quá khứ và logic ngày nhận/trả
+    $request->validate([
+        'ngay_nhan' => 'required|date|after_or_equal:today',
+        'ngay_tra'  => 'required|date|after:ngay_nhan',
+    ]);
 
-        $ngay_nhan = Carbon::parse($request->ngay_nhan);
-        $ngay_tra = Carbon::parse($request->ngay_tra);
-        $so_dem = $ngay_nhan->diffInDays($ngay_tra);
+    // 2. Tính số đêm lưu trú thực tế
+    $ngay_nhan = \Carbon\Carbon::parse($request->ngay_nhan);
+    $ngay_tra = \Carbon\Carbon::parse($request->ngay_tra);
+    $so_dem = $ngay_nhan->diffInDays($ngay_tra);
 
-        if ($so_dem <= 0) {
-            return redirect()->back()->withErrors(['date' => 'Ngày trả phòng phải sau ngày nhận phòng ít nhất 1 đêm!']);
-        }
-
-        // Lấy danh sách dịch vụ đi kèm được chọn
-        $dichVuIds = $request->input('dich_vu', []);
-
-        // Mảng lưu số lượng của từng dịch vụ (mặc định nếu không truyền là 1)
-        $soLuongDichVu = $request->input('so_luong', []);
-
-        // Khớp với cột khóa chính id_dichvu trong DB
-        $selectedDichVus = DichVu::whereIn('id_dichvu', $dichVuIds)->get();
-
-        $tong_tien_dich_vu = 0;
-        $dich_vu_session_data = [];
-
-        foreach ($selectedDichVus as $dv) {
-            $qty = isset($soLuongDichVu[$dv->id_dichvu]) ? intval($soLuongDichVu[$dv->id_dichvu]) : 1;
-            if ($qty <= 0) $qty = 1;
-
-            // Trong DB cột giá dịch vụ là 'gia' chứ không phải 'gia_dich_vu'
-            $thanh_tien_dv = $dv->gia * $qty;
-            $tong_tien_dich_vu += $thanh_tien_dv;
-
-            $dich_vu_session_data[$dv->id_dichvu] = [
-                'id_dichvu'  => $dv->id_dichvu,
-                'so_luong'   => $qty,
-                'thanh_tien' => $thanh_tien_dv
-            ];
-        }
-
-        // Lưu toàn bộ thông tin tính toán tạm thời vào session
-        session([
-            'ngay_nhan'          => $request->ngay_nhan,
-            'ngay_tra'           => $request->ngay_tra,
-            'so_dem'             => $so_dem,
-            'booking_dich_vus'   => $dich_vu_session_data,
-            'tong_tien_dich_vu'  => $tong_tien_dich_vu
-        ]);
-
-        return redirect()->route('booking.confirm');
+    if ($so_dem <= 0) {
+        return redirect()->back()->withErrors(['date' => 'Ngày trả phòng phải sau ngày nhận phòng ít nhất 1 đêm!']);
     }
 
-    // Bước 3: Trang xác nhận thông tin tổng quan
+    // 3. Xử lý dịch vụ và số lượng
+    $dichVuIds = $request->input('dich_vu', []);
+    $soLuongDichVu = $request->input('so_luong', []); // Lấy mảng số lượng từ form
+
+    $selectedDichVus = \App\Models\DichVu::whereIn('id_dichvu', $dichVuIds)->get();
+
+    $tong_tien_dich_vu = 0;
+    $dich_vu_session_data = [];
+
+    foreach ($selectedDichVus as $dv) {
+        // Lấy số lượng tương ứng với ID dịch vụ, mặc định là 1
+        $qty = isset($soLuongDichVu[$dv->id_dichvu]) ? intval($soLuongDichVu[$dv->id_dichvu]) : 1;
+        if ($qty <= 0) $qty = 1;
+
+        $thanh_tien_dv = $dv->gia * $qty;
+        $tong_tien_dich_vu += $thanh_tien_dv;
+
+        $dich_vu_session_data[$dv->id_dichvu] = [
+            'id_dichvu'  => $dv->id_dichvu,
+            'ten_dich_vu' => $dv->ten_dich_vu,
+            'so_luong'   => $qty,
+            'gia'        => $dv->gia,
+            'thanh_tien' => $thanh_tien_dv
+        ];
+    }
+
+    // 4. Lưu toàn bộ vào session
+    session([
+        'ngay_nhan'          => $request->ngay_nhan,
+        'ngay_tra'           => $request->ngay_tra,
+        'so_dem'             => $so_dem,
+        'booking_dich_vus'   => $dich_vu_session_data,
+        'tong_tien_dich_vu'  => $tong_tien_dich_vu
+    ]);
+
+    return redirect()->route('booking.confirm');
+}
+
+    // Trang xác nhận thông tin tổng quan
     public function showConfirmation()
     {
         $khachHang = KhachHang::where('tai_khoan_khachhang_id', Auth::id())->first();
@@ -135,25 +150,41 @@ class DatPhongController extends Controller
 
         $item = ($type == 'phong') ? Phong::find(session('booking_id')) : Combo::find(session('booking_id'));
 
-        $sessionDichVus = session('booking_dich_vus', []);
-        $selectedDichVus = DichVu::whereIn('id_dichvu', array_keys($sessionDichVus))->get();
+        $bookingServices = session('booking_dich_vus', []);
+        $serviceTotal = session('tong_tien_dich_vu', 0);
+        $ngay_nhan = session('ngay_nhan');
+        $ngay_tra = session('ngay_tra');
+        $so_dem = session('so_dem', 0);
 
         // Tính tổng tiền phòng/combo hóa đơn
         if ($type == 'phong') {
             // Đối với PHÒNG: Giá phòng tính theo số đêm ở
-            $gia_goc = $item->gia_phong * session('so_dem');
+            $roomTotal = $item->gia_phong * $so_dem;
         } else {
             // Đối với COMBO: Đặt combo ăn theo giá trị trọn gói của combo đó
-            $gia_goc = $item->gia_combo;
+            $roomTotal = $item->gia_combo;
         }
 
-        $tong_thanh_toan = $gia_goc + session('tong_tien_dich_vu');
-        session(['tong_thanh_toan' => $tong_thanh_toan]);
+        $totalAmount = $roomTotal + $serviceTotal;
+        $depositAmount = round($totalAmount * 0.3);
+        session(['tong_thanh_toan' => $totalAmount]);
 
-        return view('user.xacnhanbooking', compact('khachHang', 'item', 'type', 'selectedDichVus', 'sessionDichVus', 'tong_thanh_toan'));
+        return view('user.xacnhanbooking', compact(
+            'khachHang',
+            'item',
+            'type',
+            'bookingServices',
+            'serviceTotal',
+            'ngay_nhan',
+            'ngay_tra',
+            'so_dem',
+            'roomTotal',
+            'totalAmount',
+            'depositAmount'
+        ));
     }
 
-    // Bước 4: Trang hiển thị lựa chọn phương thức thanh toán & số tiền cọc
+    // Trang hiển thị lựa chọn phương thức thanh toán & số tiền cọc
     public function showPayment()
     {
         $tong_thanh_toan = session('tong_thanh_toan');
@@ -162,7 +193,7 @@ class DatPhongController extends Controller
         return view('user.thanhtoanbooking', compact('tong_thanh_toan', 'tien_coc'));
     }
 
-    // Bước 4: Khởi chạy tích hợp giả lập cổng thanh toán Sandbox VNPay
+    //  Khởi chạy tích hợp giả lập cổng thanh toán Sandbox VNPay
     public function vnpayPayment(Request $request)
     {
         // Giả lập tạo URL kết nối VNPay Sandbox và tự động callback trả về thành công '00'
@@ -172,7 +203,7 @@ class DatPhongController extends Controller
         ]);
     }
 
-    // Bước 5: Tiếp nhận phản hồi từ VNPay và ghi dữ liệu đồng bộ xuống Hệ thống CSDL
+    //  Tiếp nhận phản hồi từ VNPay và ghi dữ liệu đồng bộ xuống Hệ thống CSDL
     public function vnpayReturn(Request $request)
     {
         if ($request->vnp_ResponseCode == '00') {

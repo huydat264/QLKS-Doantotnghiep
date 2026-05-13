@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 06, 2026 lúc 02:29 PM
+-- Thời gian đã tạo: Th5 13, 2026 lúc 12:08 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -39,13 +39,6 @@ CREATE TABLE `bangluong` (
   `tong_luong` decimal(15,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `bangluong`
---
-
-INSERT INTO `bangluong` (`id_bangluong`, `id_nhanvien`, `thang`, `nam`, `so_ngay_cong`, `thuong`, `phat`, `luong_co_ban`, `tong_luong`) VALUES
-(6, 12, 10, 2025, 0, 200000.00, 0.00, 12000000.00, 200000.00);
-
 -- --------------------------------------------------------
 
 --
@@ -61,13 +54,6 @@ CREATE TABLE `chamcong` (
   `so_ngay_nghi_khong_phep` int(11) DEFAULT 0,
   `so_ngay_nghi_co_phep` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `chamcong`
---
-
-INSERT INTO `chamcong` (`id_chamcong`, `id_nhanvien`, `thang`, `nam`, `so_ngay_di_lam`, `so_ngay_nghi_khong_phep`, `so_ngay_nghi_co_phep`) VALUES
-(10, 12, 9, 2025, 24, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -130,16 +116,6 @@ CREATE TABLE `datphong` (
   `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đã thanh toán','Đã hủy') DEFAULT 'Chờ xác nhận'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `datphong`
---
-
-INSERT INTO `datphong` (`id_datphong`, `id_khachhang`, `id_phong`, `id_combo`, `id_voucher`, `ngay_dat`, `ngay_nhan`, `ngay_tra`, `loai_hinh_dat`, `tong_tien_phai_tra`, `trang_thai`) VALUES
-(45, 1, 2, NULL, NULL, '2025-10-05', '2025-10-06', '2025-10-07', 'LE', 0.00, 'Đã thanh toán'),
-(46, 28, 9, NULL, NULL, '2025-10-05', '2025-10-07', '2025-10-08', 'LE', 0.00, 'Đã thanh toán'),
-(52, 29, 4, NULL, NULL, '2025-10-06', '2025-10-07', '2025-10-08', 'LE', 0.00, 'Đã thanh toán'),
-(59, 28, 9, NULL, NULL, '2025-10-06', '2025-10-07', '2025-10-09', 'LE', 0.00, 'Đã xác nhận');
-
 -- --------------------------------------------------------
 
 --
@@ -185,15 +161,6 @@ CREATE TABLE `hoadon` (
   `ngay_xuat` date DEFAULT curdate()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `hoadon`
---
-
-INSERT INTO `hoadon` (`id_hoadon`, `id_datphong`, `tong_tien`, `ngay_xuat`) VALUES
-(38, 45, 640000.00, '2025-10-06'),
-(41, 46, 300000.00, '2025-10-06'),
-(43, 52, 0.00, '2025-10-06');
-
 -- --------------------------------------------------------
 
 --
@@ -217,11 +184,8 @@ CREATE TABLE `khachhang` (
 --
 
 INSERT INTO `khachhang` (`id_khachhang`, `tai_khoan_khachhang_id`, `ho_ten`, `ngay_sinh`, `gioi_tinh`, `so_dien_thoai`, `email`, `cccd`, `dia_chi`) VALUES
-(1, 1, 'Nguyễn Văn A', '1990-01-01', 'Nam', '0987654323', 'b@example.com', '123456789012', 'Hà Nội'),
-(2, 2, 'Trần Thị B', '1992-05-15', 'Nữ', '0987654321', 'a@example.com', '210987654321', 'Kiên Giang'),
-(28, NULL, 'Nguyễn Diệu Thu', '2000-10-05', 'Nữ', '0922679345', 'dieuthu05@gmail.com', '023647892729', 'Hưng Yên'),
-(29, NULL, 'Lê Linh Chi', '2002-09-27', 'Nữ', '0935728972', 'linhchi426@gmail.com', '023456788002', 'Thái Nguyên'),
-(32, NULL, 'Lê Huy Đạt', '2004-06-22', 'Nam', '0358414532', 'huydatsan@gmail.com', '001204009986', 'Gl-HN');
+(32, NULL, 'Lê Huy Đạt', '2004-06-22', 'Nam', '0358414532', 'huydatsan@gmail.com', '001204009986', 'Gl-HN'),
+(33, 29, 'Lê Huy Đạt', '2004-06-22', 'Nam', '0358414532', 'huydatsan@gmail.com', '001204009986', 'GL');
 
 -- --------------------------------------------------------
 
@@ -239,13 +203,6 @@ CREATE TABLE `nhanvien` (
   `so_dien_thoai` varchar(15) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `nhanvien`
---
-
-INSERT INTO `nhanvien` (`id_nhanvien`, `tai_khoan_nhanvien_id`, `ho_ten`, `chuc_vu`, `luong_co_ban`, `ngay_vao_lam`, `so_dien_thoai`, `email`) VALUES
-(12, 3, 'Lê Văn Lương', 'Quản lý', 12000000.00, '1995-08-17', '0983537828', 'vanluong44@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -309,15 +266,6 @@ CREATE TABLE `sudungdichvu` (
   `thanh_tien` decimal(15,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `sudungdichvu`
---
-
-INSERT INTO `sudungdichvu` (`id_sudungdv`, `id_datphong`, `id_dichvu`, `so_luong`, `thanh_tien`) VALUES
-(30, 46, 1, 1, 300000.00),
-(31, 45, 8, 1, 550000.00),
-(32, 45, 13, 1, 90000.00);
-
 -- --------------------------------------------------------
 
 --
@@ -338,10 +286,6 @@ CREATE TABLE `taikhoan` (
 --
 
 INSERT INTO `taikhoan` (`id_taikhoan`, `username`, `password`, `role`, `trang_thai`, `created_at`) VALUES
-(1, 'khachhang1', 'kh_pass1', 'USER', 'ACTIVE', '2025-09-18 14:00:00'),
-(2, 'khachhang2', 'kh_pass2', 'USER', 'ACTIVE', '2025-09-18 14:01:00'),
-(3, 'nhanvien1', 'nv_pass1', 'NHANVIEN', 'ACTIVE', '2025-09-18 14:02:00'),
-(4, 'admin1', 'ad_pass1', 'ADMIN', 'ACTIVE', '2025-09-18 14:03:00'),
 (29, 'hltv', '$2y$12$iwIJjTi45uY6LIC4C5oB9.URb6JoNOyN/JgO213XXQGsoG3t3J1Uu', 'USER', 'ACTIVE', '2026-04-22 21:41:37'),
 (30, 'testdangky', '$2y$12$uz0buX/W4inUq71hk.nJ6uEyp3FUEvcjC9pwHoFCFUZ/JJVkYkyKa', 'USER', 'ACTIVE', '2026-04-22 22:20:12'),
 (31, 'Test1', '$2y$12$z504nTGgRbDsGYUiwclxP.wdsT.J4vf/DEopNG2r701jpU4n6F4Ty', 'USER', 'ACTIVE', '2026-04-22 22:30:31'),
@@ -358,19 +302,12 @@ CREATE TABLE `thanhtoan` (
   `id_datphong` int(11) NOT NULL,
   `ngay_thanh_toan` datetime DEFAULT current_timestamp(),
   `so_tien` decimal(15,2) NOT NULL,
+  `vnp_transaction_no` varchar(100) DEFAULT NULL,
+  `vnp_response_code` varchar(50) DEFAULT NULL,
   `hinh_thuc` enum('Tiền mặt','Chuyển khoản') NOT NULL,
   `ghi_chu` text DEFAULT NULL,
   `loai_thanh_toan` enum('Đặt cọc 30%','Thanh toán trọn gói Combo','Tiền gia hạn phòng','Thanh toán phần còn lại','Thu tiền bồi thường (hư hại)') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `thanhtoan`
---
-
-INSERT INTO `thanhtoan` (`id_thanhtoan`, `id_datphong`, `ngay_thanh_toan`, `so_tien`, `hinh_thuc`, `ghi_chu`, `loai_thanh_toan`) VALUES
-(39, 45, '2025-10-06 11:37:10', 640000.00, 'Tiền mặt', NULL, ''),
-(44, 46, '2025-10-06 15:37:23', 300000.00, 'Tiền mặt', NULL, ''),
-(47, 52, '2025-10-06 16:44:01', 0.00, 'Tiền mặt', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -517,7 +454,7 @@ ALTER TABLE `combo`
 -- AUTO_INCREMENT cho bảng `datphong`
 --
 ALTER TABLE `datphong`
-  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT cho bảng `dichvu`
@@ -529,13 +466,13 @@ ALTER TABLE `dichvu`
 -- AUTO_INCREMENT cho bảng `hoadon`
 --
 ALTER TABLE `hoadon`
-  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT cho bảng `khachhang`
 --
 ALTER TABLE `khachhang`
-  MODIFY `id_khachhang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id_khachhang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT cho bảng `nhanvien`
@@ -553,7 +490,7 @@ ALTER TABLE `phong`
 -- AUTO_INCREMENT cho bảng `sudungdichvu`
 --
 ALTER TABLE `sudungdichvu`
-  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT cho bảng `taikhoan`

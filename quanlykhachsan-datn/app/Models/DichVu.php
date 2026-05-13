@@ -14,8 +14,9 @@ class DichVu extends Model
 
     protected $fillable = [
         'ten_dich_vu',
-        'gia_dich_vu',
+        'gia',
         'loai_dich_vu',
-        'anh_dich_vu'
+        'anh_dich_vu',
+        'mo_ta'
     ];
 }

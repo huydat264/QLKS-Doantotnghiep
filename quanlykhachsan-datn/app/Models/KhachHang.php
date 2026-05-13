@@ -10,13 +10,13 @@ class KhachHang extends Model
 {
     use HasFactory;
 
-    protected $table = 'khachhang'; // Tên bảng trong DB của mày
+    protected $table = 'khachhang';
     protected $primaryKey = 'id_khachhang';
     public $timestamps = false;
 
-    // Các cột cho phép lưu dữ liệu từ form (Mass Assignment)
+    // Sửa 'id_taikhoan' thành 'tai_khoan_khachhang_id' để khớp với DB
     protected $fillable = [
-        'id_taikhoan',
+        'tai_khoan_khachhang_id',
         'ho_ten',
         'ngay_sinh',
         'gioi_tinh',
@@ -26,9 +26,11 @@ class KhachHang extends Model
         'dia_chi'
     ];
 
-    // Liên kết với bảng User (nếu cần)
+    // Cập nhật lại liên kết với bảng taikhoan
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_taikhoan');
+        // 'tai_khoan_khachhang_id' là khóa ngoại ở bảng khachhang
+        // 'id_taikhoan' là khóa chính ở bảng taikhoan
+        return $this->belongsTo(User::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
     }
 }

@@ -15,7 +15,7 @@
         <div class="pay-container shadow-sm">
             <div class="text-center mb-4">
                 <p class="text-uppercase text-muted small letter-spacing-2 mb-1">Bước 4: Thanh toán đặt cọc</p>
-                <h3 class="font-family-serif">Ký quỹ bảo đảm giữ chỗ</h3>
+                <h3 class="font-family-serif">Thanh toán bảo đảm giữ chỗ</h3>
             </div>
 
             <div class="price-badge">
@@ -36,7 +36,7 @@
                 <div class="method-card">
                     <input class="form-check-input me-3" type="radio" name="payment_gateway" value="vnpay" checked id="r_vnpay">
                     <label class="d-flex align-items-center w-100" for="r_vnpay" style="cursor:pointer;">
-                        <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo-vnpay.svg" alt="VNPay" height="30" class="me-3">
+                        <img src="https://vnpay.vn/Cong-thanh-toan-VNPAY-QR-0myhb8a9f2qm" alt="VNPay" height="30" class="me-3">
                         <div>
                             <strong class="d-block text-dark small">Cổng thanh toán điện tử VNPay</strong>
                             <small class="text-muted" style="font-size:12px;">Hỗ trợ thẻ ATM nội địa, QR Code ngân hàng, thẻ quốc tế Visa/MasterCard</small>
