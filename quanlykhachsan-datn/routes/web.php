@@ -51,4 +51,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dat-phong/thanh-toan', [DatPhongController::class, 'showPayment'])->name('booking.payment');
     Route::post('/dat-phong/vnpay-process', [DatPhongController::class, 'vnpayPayment'])->name('booking.vnpay_process');
     Route::get('/dat-phong/vnpay-return', [DatPhongController::class, 'vnpayReturn'])->name('booking.vnpay_return');
+
+    // Route xem lịch sử phòng đã đặt
+    Route::get('/phong-da-dat', [App\Http\Controllers\DatPhongController::class, 'lichSuDatPhong'])->name('booking.history');
+    // Route XEM CHI TIẾT ĐƠN HÀNG
+    Route::get('/phong-da-dat/{id}', [App\Http\Controllers\DatPhongController::class, 'chiTietDatPhong'])->name('booking.detail');
 });
