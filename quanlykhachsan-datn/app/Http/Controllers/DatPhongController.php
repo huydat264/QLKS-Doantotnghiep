@@ -11,6 +11,7 @@ use App\Mail\XacNhanDatPhong;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class DatPhongController extends Controller
@@ -398,8 +399,7 @@ class DatPhongController extends Controller
                     try {
     Mail::to($khachHang->email)->send(new XacNhanDatPhong($donDat));
 } catch (\Exception $mailEx) {
-    // Tạm thời hiển thị lỗi ra màn hình để biết tại sao mail chết
-    dd("LỖI GỬI MAIL: " . $mailEx->getMessage());
+    Log::error("KHÔNG GỬI ĐƯỢC MAIL XÁC NHẬN (ID Đơn: $id_datphong): " . $mailEx->getMessage());
 }
 
                     $sess = session();
