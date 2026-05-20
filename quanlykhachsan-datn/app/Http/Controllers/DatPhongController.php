@@ -7,8 +7,10 @@ use App\Models\KhachHang;
 use App\Models\Phong;
 use App\Models\Combo;
 use App\Models\DichVu;
+use App\Mail\XacNhanDatPhong;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class DatPhongController extends Controller
@@ -34,9 +36,12 @@ class DatPhongController extends Controller
     {
         $request->validate([
             'ho_ten' => 'required|string|max:100',
+            'ngay_sinh' => 'nullable|date',
+            'gioi_tinh' => 'nullable|string|max:10',
             'so_dien_thoai' => 'required|string|max:15',
             'email' => 'required|email|max:100',
             'cccd' => 'required|string|max:20',
+            'dia_chi' => 'nullable|string|max:200',
         ]);
 
         KhachHang::create([
@@ -107,7 +112,6 @@ class DatPhongController extends Controller
             $qty = isset($soLuongDichVu[$dv->id_dichvu]) ? intval($soLuongDichVu[$dv->id_dichvu]) : 1;
             if ($qty <= 0) $qty = 1;
 
-            // SỬA: Thay thế biến chứa ký tự tiếng Việt có dấu tránh lỗi bộ giải mã byte
             $gia_dv_goc = (int)$dv->gia;
             $thanh_tien_dv = $gia_dv_goc * $qty;
             $tong_tien_dich_vu += $thanh_tien_dv;
@@ -168,7 +172,6 @@ class DatPhongController extends Controller
         $tong_thanh_toan = (int)session('tong_thanh_toan', 0);
         $tien_coc = (int)round($tong_thanh_toan * 0.30);
 
-        // Bảo vệ: Nếu số tiền cọc tính toán quá bé để test, nâng tạm lên 10,000 VNĐ ở view hiển thị
         if ($tien_coc < 5000 && $tong_thanh_toan > 0) {
             $tien_coc = 10000;
         }
@@ -180,80 +183,84 @@ class DatPhongController extends Controller
     // KHỞI CHẠY TÍCH HỢP GỌI API VNPAY
     // =========================================================================
     public function vnpayPayment(Request $request)
-{
-    $tong_thanh_toan = (int)session('tong_thanh_toan', 0);
+    {
+        $tong_thanh_toan = (int)session('tong_thanh_toan', 0);
 
-    if ($tong_thanh_toan <= 0) {
-        return redirect()->route('booking.services')->with('error', 'Phiên làm việc đã hết hạn, vui lòng thao tác lại!');
-    }
-
-    $tien_coc = (int)round($tong_thanh_toan * 0.30);
-    if ($tien_coc < 5000) {
-        $tien_coc = 10000;
-    }
-
-    $vnp_Amount     = (int)($tien_coc * 100);
-    $vnp_TmnCode    = env('VNP_TMN_CODE');
-    $vnp_HashSecret = env('VNP_HASH_SECRET');
-    $vnp_Url        = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
-    $vnp_Returnurl  = env('VNP_RETURNURL', route('booking.vnpay_return'));
-
-    $vnp_TxnRef    = 'DH_' . time();
-    $vnp_OrderInfo = 'ThanhToanTienCocDatPhong';
-    $vnp_OrderType = 'other';
-    $vnp_Locale    = 'vn';
-
-    $vnp_IpAddr = $request->ip();
-    if ($vnp_IpAddr === '::1' || empty($vnp_IpAddr)) {
-        $vnp_IpAddr = '127.0.0.1';
-    }
-
-    $inputData = [
-        "vnp_Version"    => "2.1.0",
-        "vnp_TmnCode"    => $vnp_TmnCode,
-        "vnp_Amount"     => $vnp_Amount,
-        "vnp_Command"    => "pay",
-        "vnp_CreateDate" => date('YmdHis'),
-        "vnp_CurrCode"   => "VND",
-        "vnp_IpAddr"     => $vnp_IpAddr,
-        "vnp_Locale"     => $vnp_Locale,
-        "vnp_OrderInfo"  => $vnp_OrderInfo,
-        "vnp_OrderType"  => $vnp_OrderType,
-        "vnp_ReturnUrl"  => $vnp_Returnurl,
-        "vnp_TxnRef"     => $vnp_TxnRef,
-    ];
-
-    ksort($inputData);
-    $query = "";
-    $i = 0;
-    $hashdata = "";
-    foreach ($inputData as $key => $value) {
-        if ($i == 1) {
-            $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
-        } else {
-            $hashdata .= urlencode($key) . "=" . urlencode($value);
-            $i = 1;
+        if ($tong_thanh_toan <= 0) {
+            dd('LỖI GỬI ĐI: Mất Session, hãy thử đặt lại phòng.');
         }
-        $query .= urlencode($key) . "=" . urlencode($value) . '&';
+
+        $tien_coc = (int)round($tong_thanh_toan * 0.30);
+        if ($tien_coc < 5000) {
+            $tien_coc = 10000;
+        }
+
+        $vnp_Amount     = (int)($tien_coc * 100);
+        $vnp_TmnCode    = env('VNP_TMN_CODE');
+        $vnp_HashSecret = env('VNP_HASH_SECRET');
+        $vnp_Url        = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+        // Cho hệ thống tự bắt link thay vì fix cứng trong .env
+        $vnp_Returnurl  = route('booking.vnpay_return');
+
+        $vnp_TxnRef    = 'DH_' . time();
+        $vnp_OrderInfo = 'ThanhToanTienCocDatPhong';
+        $vnp_OrderType = 'other';
+        $vnp_Locale    = 'vn';
+
+        $vnp_IpAddr = $request->ip();
+        if ($vnp_IpAddr === '::1' || empty($vnp_IpAddr)) {
+            $vnp_IpAddr = '127.0.0.1';
+        }
+
+        $inputData = [
+            "vnp_Version"    => "2.1.0",
+            "vnp_TmnCode"    => $vnp_TmnCode,
+            "vnp_Amount"     => $vnp_Amount,
+            "vnp_Command"    => "pay",
+            "vnp_CreateDate" => date('YmdHis'),
+            "vnp_CurrCode"   => "VND",
+            "vnp_IpAddr"     => $vnp_IpAddr,
+            "vnp_Locale"     => $vnp_Locale,
+            "vnp_OrderInfo"  => $vnp_OrderInfo,
+            "vnp_OrderType"  => $vnp_OrderType,
+            "vnp_ReturnUrl"  => $vnp_Returnurl,
+            "vnp_TxnRef"     => $vnp_TxnRef,
+        ];
+
+        ksort($inputData);
+        $query = "";
+        $i = 0;
+        $hashdata = "";
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . "=" . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+        }
+
+        $vnp_Url = $vnp_Url . "?" . $query . 'vnp_SecureHash=' . hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+
+        return redirect($vnp_Url);
     }
 
-    $vnp_Url = $vnp_Url . "?" . $query . 'vnp_SecureHash=' . hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-
-
-    return redirect($vnp_Url);
-}
     // =========================================================================
-    // TIẾP NHẬN PHẢN HỒI KIỂM TRA CHỮ KÝ BẢO MẬT & ĐỐI CHIẾU SỐ TIỀN VNPAY TRẢ VỀ
+    // TIẾP NHẬN PHẢN HỒI (ĐÃ ĐỔI redirect THÀNH dd ĐỂ BẮT ĐÚNG BỆNH NẾU CÓ LỖI)
     // =========================================================================
     public function vnpayReturn(Request $request)
     {
         $vnp_SecureHash = $request->input('vnp_SecureHash');
 
         if (!$vnp_SecureHash) {
-            return redirect()->route('booking.services')->with('error', 'Giao dịch thanh toán đã bị hủy hoặc không nhận được phản hồi hợp lệ từ VNPay!');
+            dd('LỖI TỪ VNPAY: Không nhận được mã băm (Hash) hoặc khách hàng đã bấm hủy thanh toán.');
         }
 
-        $vnp_HashSecret = env('VNP_HASH_SECRET', '96IBAWESGPZIDKDXJZKJZVEMZCOHLXKA');
+        $vnp_HashSecret = env('VNP_HASH_SECRET');
+        if (!$vnp_HashSecret) {
+            dd('LỖI CẤU HÌNH: Thiếu VNP_HASH_SECRET trong file .env');
+        }
 
         $inputData = array();
         foreach ($request->all() as $key => $value) {
@@ -283,20 +290,30 @@ class DatPhongController extends Controller
 
             if ($request->input('vnp_ResponseCode') == '00') {
 
+                // Kiểm tra Session nghiêm ngặt
+                $session = session();
+                if (!$session || !$session->has('tong_thanh_toan')) {
+                    dd('LỖI MẤT SESSION: Trình duyệt đã reset bộ nhớ khi từ VNPay về. Hãy chắc chắn mày không chạy lộn xộn giữa localhost và 127.0.0.1');
+                }
+
                 $tong_thanh_toan = (int)session('tong_thanh_toan', 0);
                 $tien_coc_he_thong = (int)round($tong_thanh_toan * 0.30);
 
                 if ($tien_coc_he_thong < 5000) {
-                    $tien_coc_he_thong = 10000; // Đồng bộ hạn mức giả lập khi check kết quả trả về
+                    $tien_coc_he_thong = 10000;
                 }
 
                 $tien_vnpay_thuc_nhan = (int)($request->input('vnp_Amount') / 100);
 
                 if ($tien_vnpay_thuc_nhan != $tien_coc_he_thong) {
-                    return redirect()->route('booking.services')->with('error', 'Lỗi bảo mật: Số tiền cọc thanh toán không trùng khớp hệ thống!');
+                    dd("LỖI SỐ TIỀN: Khách trả {$tien_vnpay_thuc_nhan} VNĐ, nhưng hệ thống tính là {$tien_coc_he_thong} VNĐ.");
                 }
 
                 $khachHang = \App\Models\KhachHang::where('tai_khoan_khachhang_id', Auth::id())->first();
+                if (!$khachHang) {
+                    dd('LỖI AUTHENTICATION: Hệ thống quên mất mày là ai (Không tìm thấy khách hàng). Auth session bị xóa sau khi redirect.');
+                }
+
                 $type = session('booking_type');
                 $booking_id = session('booking_id');
 
@@ -348,11 +365,11 @@ class DatPhongController extends Controller
                         'id_datphong'        => $id_datphong,
                         'ngay_thanh_toan'    => Carbon::now(),
                         'so_tien'            => $tien_coc_he_thong,
-                        'hinh_thuc'          => 'Chuyển khoản VNPay',
+                        'hinh_thuc'          => 'VNPAY',
                         'loai_thanh_toan'    => 'Đặt cọc 30%',
                         'vnp_transaction_no' => $request->input('vnp_TransactionNo'),
                         'vnp_response_code'  => $request->input('vnp_ResponseCode'),
-                        'ghi_chu'            => 'Thanh toán qua cổng API VNPay thành công.'
+                        'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công'
                     ]);
 
                     // Bước 5: Cập nhật sơ đồ phòng
@@ -365,20 +382,41 @@ class DatPhongController extends Controller
                     DB::commit();
 
                     $item = ($type == 'phong') ? \App\Models\Phong::find($booking_id) : \App\Models\Combo::find($booking_id);
-                    $selectedDichVus = \App\Models\DichVu::whereIn('id_dichvu', array_keys($sessionDichVus))->get();
+                    $selectedDichVus = !empty($sessionDichVus) ? \App\Models\DichVu::whereIn('id_dichvu', array_keys($sessionDichVus))->get() : collect([]);
 
-                    session()->forget(['booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem', 'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan']);
+                    $donDat = DB::table('datphong')
+                        ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
+                        ->where('datphong.id_datphong', $id_datphong)
+                        ->select(
+                            'datphong.*',
+                            'khachhang.ho_ten',
+                            'khachhang.email',
+                            'datphong.tong_tien_phai_tra as tong_tien'
+                        )
+                        ->first();
+
+                    try {
+    Mail::to($khachHang->email)->send(new XacNhanDatPhong($donDat));
+} catch (\Exception $mailEx) {
+    // Tạm thời hiển thị lỗi ra màn hình để biết tại sao mail chết
+    dd("LỖI GỬI MAIL: " . $mailEx->getMessage());
+}
+
+                    $sess = session();
+                    if ($sess) {
+                        $sess->forget(['booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem', 'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan']);
+                    }
 
                     return view('user.phieuxacnhan', compact('khachHang', 'item', 'type', 'selectedDichVus', 'tien_coc_he_thong'));
 
                 } catch (\Exception $e) {
                     DB::rollBack();
-                    return redirect()->route('booking.services')->with('error', 'Lỗi DB: ' . $e->getMessage());
+                    dd('LỖI LƯU DATABASE: ' . $e->getMessage() . ' - Tại dòng: ' . $e->getLine());
                 }
             }
-            return redirect()->route('booking.services')->with('error', 'Giao dịch thanh toán thất bại hoặc đã bị hủy!');
+            dd('LỖI GIAO DỊCH VNPAY: Mã lỗi ' . $request->input('vnp_ResponseCode'));
         }
-        return redirect()->route('booking.services')->with('error', 'Lỗi bảo mật: Dữ liệu phản hồi sai chữ ký mã hóa bí mật!');
+        dd('LỖI BẢO MẬT: Chữ ký Hash sai lệch.');
     }
 
     // =========================================================================
