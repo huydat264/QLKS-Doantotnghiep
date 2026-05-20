@@ -40,7 +40,7 @@
                 <div class="col-md-6 mb-3 mb-md-0">
                     <div class="info-block-title"><i class="bi bi-door-open me-1"></i> Thông tin dịch vụ lưu trú</div>
                     <div class="item-row">
-                        <span class="item-label">Tên lựa chọn:</span>
+                        <span class="item-label">Tên/Số phòng:</span>
                         <span class="item-value text-uppercase" style="color: #673065;">{{ $donDat->loai_hinh_dat == 'LẺ' ? $donDat->so_phong : $donDat->ten_combo }}</span>
                     </div>
                     @if($donDat->loai_hinh_dat == 'LẺ')

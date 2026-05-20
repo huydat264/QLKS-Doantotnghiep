@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 13, 2026 lúc 12:08 PM
+-- Thời gian đã tạo: Th5 18, 2026 lúc 09:53 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -111,10 +111,17 @@ CREATE TABLE `datphong` (
   `ngay_dat` date NOT NULL,
   `ngay_nhan` date NOT NULL,
   `ngay_tra` date DEFAULT NULL,
-  `loai_hinh_dat` enum('LE','COMBO') DEFAULT 'LE',
+  `loai_hinh_dat` enum('LẺ','COMBO') NOT NULL,
   `tong_tien_phai_tra` decimal(15,2) NOT NULL DEFAULT 0.00,
   `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đã thanh toán','Đã hủy') DEFAULT 'Chờ xác nhận'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `datphong`
+--
+
+INSERT INTO `datphong` (`id_datphong`, `id_khachhang`, `id_phong`, `id_combo`, `id_voucher`, `ngay_dat`, `ngay_nhan`, `ngay_tra`, `loai_hinh_dat`, `tong_tien_phai_tra`, `trang_thai`) VALUES
+(64, 33, 3, NULL, NULL, '2026-05-18', '2026-05-18', '2026-05-19', 'LẺ', 1500000.00, 'Đã xác nhận');
 
 -- --------------------------------------------------------
 
@@ -160,6 +167,13 @@ CREATE TABLE `hoadon` (
   `tong_tien` decimal(15,2) NOT NULL,
   `ngay_xuat` date DEFAULT curdate()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `hoadon`
+--
+
+INSERT INTO `hoadon` (`id_hoadon`, `id_datphong`, `tong_tien`, `ngay_xuat`) VALUES
+(51, 64, 1500000.00, '2026-05-18');
 
 -- --------------------------------------------------------
 
@@ -233,7 +247,7 @@ CREATE TABLE `phong` (
 INSERT INTO `phong` (`id_phong`, `so_phong`, `loai_phong`, `gia_phong`, `so_luong_nguoi`, `trang_thai`, `mo_ta`, `anh`, `dien_tich`, `huong_phong`, `so_phong_ngu`, `tien_nghi`, `thong_tin_quan_trong`) VALUES
 (1, '101', 'Standard', 500000.00, 2, 'Trống', 'Phòng Standard nhỏ gọn (~20 m²), 1 giường đôi queen loại cơ bản, có cửa sổ nhìn vào nội khu, điều hoà, TV màn hình phẳng, wifi tốc độ cao, phòng tắm vòi sen, đồ vệ sinh cá nhân tiêu chuẩn.', 'https://images.pexels.com/photos/28272332/pexels-photo-28272332.jpeg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng'),
 (2, '102', 'Standard', 500000.00, 2, 'Trống', 'Phòng tiêu chuẩn tiện nghi, 2 giường đơn, thích hợp cho bạn bè hoặc đồng nghiệp.', 'https://ezcloud.vn/wp-content/uploads/2023/03/phong-standard-la-gi.webp', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng'),
-(3, '103', 'Standard', 600000.00, 2, 'Bảo trì', 'Phòng tiêu chuẩn gọn gàng, 1 giường đôi, có ánh sáng tự nhiên, lý tưởng cho kỳ nghỉ ngắn.', 'https://res.cloudinary.com/maistra/image/upload/w_1920,c_lfill,g_auto,q_auto,dpr_auto/f_auto/v1700658053/Proprietes/Select/Zagreb/Hotel%20International/22.11.23/23074-09-18%20Hotel%20International%20Rooms/23074-09-18%20Hotel%20International%20Rooms%20Standard%20Single%20Use/Webres%202000px/23074-09-18_Hotel_International_Rooms_Classic_Queen_1_2000px_sivgq2.jpg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng'),
+(3, '103', 'Standard', 600000.00, 2, 'Đã đặt', 'Phòng tiêu chuẩn gọn gàng, 1 giường đôi, có ánh sáng tự nhiên, lý tưởng cho kỳ nghỉ ngắn.', 'https://res.cloudinary.com/maistra/image/upload/w_1920,c_lfill,g_auto,q_auto,dpr_auto/f_auto/v1700658053/Proprietes/Select/Zagreb/Hotel%20International/22.11.23/23074-09-18%20Hotel%20International%20Rooms/23074-09-18%20Hotel%20International%20Rooms%20Standard%20Single%20Use/Webres%202000px/23074-09-18_Hotel_International_Rooms_Classic_Queen_1_2000px_sivgq2.jpg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng'),
 (4, '104', 'Deluxe', 1450000.00, 3, 'Trống', 'Phòng cao cấp rộng rãi, thiết kế hiện đại, cửa sổ view thành phố.', 'https://noithaticon.vn/wp-content/uploads/2023/08/kich-thuoc-giuong-don-tan-co-dien-2-1690878432.jpg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7'),
 (5, '105', 'Deluxe', 1500000.00, 3, 'Trống', 'Phòng cao cấp sang trọng, có ban công nhỏ và tầm nhìn thoáng đãng.', 'https://dyf.vn/wp-content/uploads/2021/12/phong-Deluxe-Double.jpg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7'),
 (6, '106', 'Deluxe', 1000000.00, 3, 'Trống', 'Phòng cao cấp tiện nghi, giường lớn, phù hợp nghỉ dưỡng dài ngày.', 'https://statics.vinpearl.com/gia-phong-vinpearl-ha-long-03.jpg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7'),
@@ -265,6 +279,13 @@ CREATE TABLE `sudungdichvu` (
   `so_luong` int(11) DEFAULT 1,
   `thanh_tien` decimal(15,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `sudungdichvu`
+--
+
+INSERT INTO `sudungdichvu` (`id_sudungdv`, `id_datphong`, `id_dichvu`, `so_luong`, `thanh_tien`) VALUES
+(42, 64, 1, 3, 900000.00);
 
 -- --------------------------------------------------------
 
@@ -308,6 +329,13 @@ CREATE TABLE `thanhtoan` (
   `ghi_chu` text DEFAULT NULL,
   `loai_thanh_toan` enum('Đặt cọc 30%','Thanh toán trọn gói Combo','Tiền gia hạn phòng','Thanh toán phần còn lại','Thu tiền bồi thường (hư hại)') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `thanhtoan`
+--
+
+INSERT INTO `thanhtoan` (`id_thanhtoan`, `id_datphong`, `ngay_thanh_toan`, `so_tien`, `vnp_transaction_no`, `vnp_response_code`, `hinh_thuc`, `ghi_chu`, `loai_thanh_toan`) VALUES
+(53, 64, '2026-05-18 18:55:30', 450000.00, 'MOCK_VNP_682668', '00', 'Chuyển khoản', 'Giả lập thanh toán VNPay cọc 30% thành công.', 'Đặt cọc 30%');
 
 -- --------------------------------------------------------
 
@@ -454,7 +482,7 @@ ALTER TABLE `combo`
 -- AUTO_INCREMENT cho bảng `datphong`
 --
 ALTER TABLE `datphong`
-  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT cho bảng `dichvu`
@@ -466,7 +494,7 @@ ALTER TABLE `dichvu`
 -- AUTO_INCREMENT cho bảng `hoadon`
 --
 ALTER TABLE `hoadon`
-  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT cho bảng `khachhang`
@@ -490,7 +518,7 @@ ALTER TABLE `phong`
 -- AUTO_INCREMENT cho bảng `sudungdichvu`
 --
 ALTER TABLE `sudungdichvu`
-  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT cho bảng `taikhoan`
@@ -502,7 +530,7 @@ ALTER TABLE `taikhoan`
 -- AUTO_INCREMENT cho bảng `thanhtoan`
 --
 ALTER TABLE `thanhtoan`
-  MODIFY `id_thanhtoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id_thanhtoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT cho bảng `voucher`
