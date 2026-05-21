@@ -42,6 +42,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Thêm guard này
+    'admin' => [
+        'driver' => 'session',
+        'provider' => 'users', // Hoặc tạo provider riêng nếu admin ở bảng khác
+    ],
     ],
 
     /*

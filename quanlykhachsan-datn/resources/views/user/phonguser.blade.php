@@ -363,20 +363,32 @@
                 </div>
             </div>
 
+            @php
+                $isSaleActive = $phong->is_sale_active;
+                $giaHienTai = $phong->gia_hien_tai;
+            @endphp
             <div class="booking-bar mt-4">
-                <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
+                    @if($isSaleActive)
+                    <div>
+                        <span class="text-muted small">Giá gốc: </span><span class="text-muted" style="font-size: 14px;"><del>{{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ</del></span>
+                        <div class="text-price-green fw-bold mt-1">Giá sale: {{ number_format($giaHienTai, 0, ',', '.') }} VNĐ/Đêm</div>
+                    </div>
+                @else
+                    <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
+                @endif
+
                 @auth
-    <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
-       class="btn btn-book text-decoration-none">
-       ĐẶT PHÒNG
-    </a>
-@else
-    <a href="javascript:void(0)"
-       class="btn btn-book text-decoration-none"
-       data-bs-toggle="modal"
-       data-bs-target="#loginModal"> ĐẶT PHÒNG
-    </a>
-@endauth
+                    <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
+                        class="btn btn-book text-decoration-none">
+                        ĐẶT PHÒNG
+                    </a>
+                @else
+                    <a href="javascript:void(0)"
+                        class="btn btn-book text-decoration-none"
+                        data-bs-toggle="modal"
+                        data-bs-target="#loginModal"> ĐẶT PHÒNG
+                    </a>
+                @endauth
             </div>
         </div>
     </div>

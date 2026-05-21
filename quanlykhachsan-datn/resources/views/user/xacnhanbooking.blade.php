@@ -58,7 +58,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Đơn giá:</span>
-                <span class="info-value">{{ number_format($item->gia_phong ?? $item->gia_combo, 0, ',', '.') }} VNĐ / đêm</span>
+                <span class="info-value">{{ number_format($item->gia_hien_tai ?? $item->gia_combo, 0, ',', '.') }} VNĐ / đêm</span>
             </div>
             <div class="info-row border-top pt-3 mt-2">
                 <span class="info-label">Ngày nhận phòng:</span>

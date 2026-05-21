@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
+use App\Models\DangkyDangnhapModel;
 
 class KhachHang extends Model
 {
@@ -14,7 +14,7 @@ class KhachHang extends Model
     protected $primaryKey = 'id_khachhang';
     public $timestamps = false;
 
-    // Sửa 'id_taikhoan' thành 'tai_khoan_khachhang_id' để khớp với DB
+
     protected $fillable = [
         'tai_khoan_khachhang_id',
         'ho_ten',
@@ -25,12 +25,9 @@ class KhachHang extends Model
         'cccd',
         'dia_chi'
     ];
-
-    // Cập nhật lại liên kết với bảng taikhoan
     public function user()
     {
-        // 'tai_khoan_khachhang_id' là khóa ngoại ở bảng khachhang
-        // 'id_taikhoan' là khóa chính ở bảng taikhoan
-        return $this->belongsTo(User::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
+
+        return $this->belongsTo(DangkyDangnhapModel::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
     }
 }

@@ -113,7 +113,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-uppercase small fw-bold">Tổng tiền tạm tính:</span>
                                 <span class="fs-5 fw-bold" style="color: #673065;">
-                                    <span id="total-price-display">{{ number_format($item->gia_phong ?? $item->gia_combo, 0, ',', '.') }}</span> VNĐ
+                                    <span id="total-price-display">{{ number_format($item->gia_hien_tai ?? $item->gia_combo, 0, ',', '.') }}</span> VNĐ
                                 </span>
                             </div>
                         </div>
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('.service-checkbox');
     const serviceList = document.getElementById('list-selected-services');
     const totalDisplay = document.getElementById('total-price-display');
-    const basePrice = parseInt("{{ $item->gia_phong ?? $item->gia_combo }}");
+    const basePrice = parseInt("{{ $item->gia_hien_tai ?? $item->gia_combo }}");
 
     function updateSummary() {
         const checkin = new Date(checkinInput.value);

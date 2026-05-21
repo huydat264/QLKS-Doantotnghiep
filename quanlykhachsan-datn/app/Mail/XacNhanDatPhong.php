@@ -10,7 +10,7 @@ class XacNhanDatPhong extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $donDat; // Biến này sẽ truyền data sang View
+    public $donDat; // truyền data sang View
 
     public function __construct($donDat)
     {
@@ -19,7 +19,7 @@ class XacNhanDatPhong extends Mailable
 
     public function build()
     {
-        // Trỏ đến file view email của bạn
+        // Trỏ đến file view
         return $this->subject('Xác nhận đặt phòng thành công!')
                     ->view('user.email_xacnhan');
     }

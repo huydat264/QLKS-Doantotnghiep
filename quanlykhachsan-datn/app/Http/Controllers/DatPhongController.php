@@ -151,9 +151,11 @@ class DatPhongController extends Controller
         $so_dem = session('so_dem', 0);
 
         if ($type == 'phong') {
-            $roomTotal = (int)$item->gia_phong * $so_dem;
+            $roomPrice = (int)$item->gia_hien_tai;
+            $roomTotal = $roomPrice * $so_dem;
         } else {
-            $roomTotal = (int)$item->gia_combo;
+            $roomPrice = (int)$item->gia_combo;
+            $roomTotal = $roomPrice;
         }
 
         $totalAmount = $roomTotal + $serviceTotal;
@@ -180,9 +182,7 @@ class DatPhongController extends Controller
         return view('user.thanhtoanbooking', compact('tong_thanh_toan', 'tien_coc'));
     }
 
-    // =========================================================================
     // KHỞI CHẠY TÍCH HỢP GỌI API VNPAY
-    // =========================================================================
     public function vnpayPayment(Request $request)
     {
         $tong_thanh_toan = (int)session('tong_thanh_toan', 0);
@@ -247,9 +247,7 @@ class DatPhongController extends Controller
         return redirect($vnp_Url);
     }
 
-    // =========================================================================
     // TIẾP NHẬN PHẢN HỒI (ĐÃ ĐỔI redirect THÀNH dd ĐỂ BẮT ĐÚNG BỆNH NẾU CÓ LỖI)
-    // =========================================================================
     public function vnpayReturn(Request $request)
     {
         $vnp_SecureHash = $request->input('vnp_SecureHash');
@@ -291,7 +289,7 @@ class DatPhongController extends Controller
 
             if ($request->input('vnp_ResponseCode') == '00') {
 
-                // Kiểm tra Session nghiêm ngặt
+                // Kiểm tra Session
                 $session = session();
                 if (!$session || !$session->has('tong_thanh_toan')) {
                     dd('LỖI MẤT SESSION: Trình duyệt đã reset bộ nhớ khi từ VNPay về. Hãy chắc chắn mày không chạy lộn xộn giữa localhost và 127.0.0.1');
@@ -320,7 +318,7 @@ class DatPhongController extends Controller
 
                 DB::beginTransaction();
                 try {
-                    // Bước 1: Lưu Đặt Phòng (datphong)
+                    //  Lưu Đặt Phòng (datphong)
                     $datPhongData = [
                         'id_khachhang'  => $khachHang->id_khachhang,
                         'ngay_dat'      => Carbon::now()->toDateString(),
@@ -341,7 +339,7 @@ class DatPhongController extends Controller
 
                     $id_datphong = DB::table('datphong')->insertGetId($datPhongData);
 
-                    // Bước 2: Lưu Sử dụng Dịch vụ (sudungdichvu)
+                    //  Lưu Sử dụng Dịch vụ (sudungdichvu)
                     $sessionDichVus = session('booking_dich_vus', []);
                     if (!empty($sessionDichVus)) {
                         foreach ($sessionDichVus as $dv) {
@@ -354,14 +352,14 @@ class DatPhongController extends Controller
                         }
                     }
 
-                    // Bước 3: Lưu Hóa đơn (hoadon)
+                    //  Lưu Hóa đơn (hoadon)
                     $id_hoadon = DB::table('hoadon')->insertGetId([
                         'id_datphong' => $id_datphong,
                         'tong_tien'   => $tong_thanh_toan,
                         'ngay_xuat'   => Carbon::now()->toDateString()
                     ]);
 
-                    // Bước 4: Lưu Lịch sử Thanh toán vào bảng thanhtoan
+                    //  Lưu Lịch sử Thanh toán vào bảng thanhtoan
                     DB::table('thanhtoan')->insert([
                         'id_datphong'        => $id_datphong,
                         'ngay_thanh_toan'    => Carbon::now(),
@@ -373,7 +371,7 @@ class DatPhongController extends Controller
                         'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công'
                     ]);
 
-                    // Bước 5: Cập nhật sơ đồ phòng
+                    //  Cập nhật sơ đồ phòng
                     if ($type == 'phong') {
                         DB::table('phong')
                             ->where('id_phong', $booking_id)
@@ -419,9 +417,7 @@ class DatPhongController extends Controller
         dd('LỖI BẢO MẬT: Chữ ký Hash sai lệch.');
     }
 
-    // =========================================================================
     // XEM LỊCH SỬ PHÒNG / COMBO ĐÃ ĐẶT
-    // =========================================================================
     public function lichSuDatPhong()
     {
         $khachHang = \App\Models\KhachHang::where('tai_khoan_khachhang_id', Auth::id())->first();
@@ -442,9 +438,7 @@ class DatPhongController extends Controller
         return view('user.lichsu_datphong', compact('danhSachDat'));
     }
 
-    // =========================================================================
     // XEM CHI TIẾT MỘT ĐƠN ĐẶT PHÒNG
-    // =========================================================================
     public function chiTietDatPhong($id)
     {
         $khachHang = \App\Models\KhachHang::where('tai_khoan_khachhang_id', Auth::id())->first();

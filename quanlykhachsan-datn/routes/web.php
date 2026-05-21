@@ -5,6 +5,12 @@ use App\Http\Controllers\DangkyDangnhapController;
 use App\Http\Controllers\PhongController;
 use App\Http\Controllers\ComboUserController;
 use App\Http\Controllers\DatPhongController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\PhongManagementController;
+use App\Models\TaiKhoan;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
     return view('user.home');
@@ -19,6 +25,13 @@ Route::get('/dang-nhap', [DangkyDangnhapController::class, 'showDangnhap'])->nam
 Route::post('/dang-nhap', [DangkyDangnhapController::class, 'postDangnhap']);
 
 Route::post('/dang-xuat', [DangkyDangnhapController::class, 'logout'])->name('logout');
+
+// ==================== ROUTE ĐĂNG NHẬP ADMIN (PHẢI Ở NGOÀI AUTH) ====================
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+});
 
 Route::get('/diem-den', function () {
     return view('user.diemden');
@@ -56,4 +69,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/phong-da-dat', [App\Http\Controllers\DatPhongController::class, 'lichSuDatPhong'])->name('booking.history');
     // Route XEM CHI TIẾT ĐƠN HÀNG
     Route::get('/phong-da-dat/{id}', [App\Http\Controllers\DatPhongController::class, 'chiTietDatPhong'])->name('booking.detail');
+});
+
+// ==================== ROUTE PHÍA ADMIN ====================
+Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('can:access-admin')
+        ->name('dashboard');
+
+    // Các route quản lý phòng
+    Route::get('/quan-ly-phong', [PhongManagementController::class, 'index'])->name('phong.index');
+    Route::post('/quan-ly-phong/update/{id}', [PhongManagementController::class, 'updateRoom'])->name('phong.update');
+    Route::post('/quan-ly-phong/giai-phong/{id}', [PhongManagementController::class, 'giaiPhongPhong'])->name('phong.giaiphong');
+    Route::post('/quan-ly-phong/apply-sale', [PhongManagementController::class, 'applySale'])->name('phong.applySale');
 });

@@ -24,7 +24,6 @@ class ComboUserController extends Controller
     public function show($id)
     {
         $combo = Combo::findOrFail($id);
-        // Đổi từ user.combo.show sang user.combo.chitietcombouser
         return view('user.chitietcombouser', compact('combo'));
     }
 }

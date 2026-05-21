@@ -10,22 +10,21 @@ use Illuminate\Validation\ValidationException;
 
 class DangkyDangnhapController extends Controller
 {
-    // --- HIỂN THỊ VIEW ---
     public function showDangky() { return view('user.dangky'); }
     public function showDangnhap() { return view('user.dangnhap'); }
 
 // --- LOGIC ĐĂNG KÝ ---
     public function postDangky(Request $request)
     {
-        // 1. Xác thực dữ liệu với điều kiện mật khẩu phức tạp
+        // Xác thực dữ liệu với điều kiện mật khẩu phức tạp
         $request->validate([
             'username' => 'required|unique:taikhoan,username|max:50',
             'password' => [
                 'required',
                 'confirmed',
-                'min:8',             // Ít nhất 8 ký tự
-                'regex:/[A-Z]/',      // Phải có ít nhất 1 chữ cái viết hoa
-                'regex:/[@$!%*#?&]/', // Phải có ít nhất 1 ký tự đặc biệt
+                'min:8',
+                'regex:/[A-Z]/',
+                'regex:/[@$!%*#?&]/',
             ],
         ], [
             'username.unique' => 'Tên người dùng đã tồn tại.',
@@ -34,7 +33,7 @@ class DangkyDangnhapController extends Controller
             'password.regex' => 'Mật khẩu phải bao gồm ít nhất 1 chữ hoa và 1 ký tự đặc biệt (@$!%*#?&).',
         ]);
 
-        // 2. Tạo bản ghi mới và gán vào biến $user
+        // Tạo bản ghi mới và gán vào biến $user
         $user = DangkyDangnhapModel::create([
             'username' => $request->username,
             'password' => Hash::make($request->password),
@@ -42,10 +41,10 @@ class DangkyDangnhapController extends Controller
             'trang_thai' => 'ACTIVE',
         ]);
 
-        // 3. TỰ ĐỘNG ĐĂNG NHẬP NGAY SAU KHI TẠO
+        //  TỰ ĐỘNG ĐĂNG NHẬP NGAY SAU KHI TẠO
         Auth::login($user);
 
-        // 4. Trả về link trang chủ ('/') thay vì trang login
+        //  Trả về link trang chủ ('/') thay vì trang login
         if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Đăng ký tài khoản thành công!', 'redirect' => url('/')]);
         }
