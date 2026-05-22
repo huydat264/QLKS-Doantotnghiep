@@ -9,6 +9,12 @@
     .table td { padding: 12px 10px; color: #475569; vertical-align: middle; }
     .text-truncate-custom { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; font-size: 0.85rem; }
     .img-thumbnail-custom { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .table td.customer-col,
+    .table td.sale-col {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .btn-rounded { border-radius: 8px !important; font-weight: 600; font-size: 0.8rem; transition: all 0.2s ease-in-out; }
     .btn-action-custom { min-width: 85px; padding: 6px 10px; }
     .btn-blue-primary { background-color: #2563eb; color: #ffffff; border: none; }
@@ -67,10 +73,10 @@
                     <th>Tiện nghi</th>
                     <th>Lưu ý</th>
                     <th>Giá gốc</th>
-                    <th>Giá bán</th>
+                    <th>Giá sau Sale</th>
                     <th>Trạng thái</th>
-                    <th>Khách</th>
-                    <th>Sale</th>
+                    <th width="180">Khách</th>
+                    <th width="120">Sale</th>
                     <th class="text-center" width="280">Hành động</th>
                 </tr>
             </thead>
@@ -119,14 +125,14 @@
                         @endif
                     </td>
 
-                    <td>
+                    <td class="customer-col">
                         @if($phong->datPhongHienTai && $phong->datPhongHienTai->khachhang)
-                            <div class="fw-bold text-dark small"><i class="bi bi-person-fill text-primary"></i> {{ $phong->datPhongHienTai->khachhang->ho_ten }}</div>
+                            <div class="fw-bold text-dark small text-truncate-custom" style="max-width: 160px; white-space: nowrap;"><i class="bi bi-person-fill text-primary"></i> {{ $phong->datPhongHienTai->khachhang->ho_ten }}</div>
                         @else
                             <span class="text-muted small">---</span>
                         @endif
                     </td>
-                    <td>
+                    <td class="sale-col">
                         @if($isSaleActive)
                             <span class="badge badge-sale-red"><i class="bi bi-lightning-charge-fill"></i> -{{ $phong->giam_gia_percent }}%</span>
                         @else

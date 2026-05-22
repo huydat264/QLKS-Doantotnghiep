@@ -121,6 +121,21 @@
         color: white;
     }
 
+    .btn-book.disabled {
+        background-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+        pointer-events: none;
+        text-decoration: none;
+    }
+
+    .btn-book.disabled:hover {
+        background-color: #ccc;
+        color: #666;
+        transform: none;
+        box-shadow: none;
+    }
+
     .filter-dropdown .nav-link {
         font-size: 12px;
         font-weight: bold;
@@ -377,18 +392,26 @@
                     <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
                 @endif
 
-                @auth
-                    <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
-                        class="btn btn-book text-decoration-none">
-                        ĐẶT PHÒNG
-                    </a>
+                @if($phong->trang_thai === 'Trống')
+                    @auth
+                        <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
+                            class="btn btn-book text-decoration-none">
+                            ĐẶT PHÒNG
+                        </a>
+                    @else
+                        <a href="javascript:void(0)"
+                            class="btn btn-book text-decoration-none"
+                            data-bs-toggle="modal"
+                            data-bs-target="#loginModal"> ĐẶT PHÒNG
+                        </a>
+                    @endauth
                 @else
                     <a href="javascript:void(0)"
-                        class="btn btn-book text-decoration-none"
-                        data-bs-toggle="modal"
-                        data-bs-target="#loginModal"> ĐẶT PHÒNG
+                        class="btn btn-book text-decoration-none disabled"
+                        title="Phòng này đã được đặt hoặc không khả dụng">
+                        HẾT PHÒNG
                     </a>
-                @endauth
+                @endif
             </div>
         </div>
     </div>

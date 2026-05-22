@@ -38,11 +38,11 @@
 
             <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 0.75rem; color: #6c757d;">Quản lý</li>
 
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-calendar-check"></i> Đặt phòng</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.datphong.*') ? 'active' : '' }}" href="{{ route('admin.datphong.index') }}"><i class="bi bi-calendar-check"></i> Đặt phòng</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.phong.*') ? 'active' : '' }}" href="{{ route('admin.phong.index') }}"><i class="bi bi-door-open"></i> Phòng</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-people"></i> Khách hàng</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cup-hot"></i> Dịch vụ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cart-plus"></i> Sử dụng dịch vụ</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.khachhang.*') ? 'active' : '' }}" href="{{ route('admin.khachhang.index') }}"><i class="bi bi-people"></i> Khách hàng</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.dichvu.*') ? 'active' : '' }}" href="{{ route('admin.dichvu.index') }}"><i class="bi bi-cup-hot"></i> Dịch vụ</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.sudungdichvu.*') ? 'active' : '' }}" href="{{ route('admin.sudungdichvu.index') }}"><i class="bi bi-cart-plus"></i> Sử dụng dịch vụ</a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-credit-card"></i> Thanh toán</a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-box-seam"></i> Combo</a></li>
 
@@ -83,6 +83,7 @@
         @yield('content')
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

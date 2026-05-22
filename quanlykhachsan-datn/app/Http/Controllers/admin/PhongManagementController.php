@@ -81,7 +81,7 @@ class PhongManagementController extends Controller
         $phong = Phong::findOrFail($id);
 
         $datPhong = DatPhong::where('id_phong', $id)
-                            ->whereIn('trang_thai', ['Đã đặt', 'Trống', 'Bảo trì'])
+                            ->whereIn('trang_thai', ['Đã đặt', 'Đã xác nhận', 'Trống', 'Bảo trì'])
                             ->first();
 
         if ($datPhong) {

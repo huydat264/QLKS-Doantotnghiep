@@ -8,6 +8,10 @@ use App\Http\Controllers\DatPhongController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\PhongManagementController;
+use App\Http\Controllers\Admin\DatPhongManagementController;
+use App\Http\Controllers\Admin\KhachHangManagementController;
+use App\Http\Controllers\Admin\DichVuManagementController;
+use App\Http\Controllers\Admin\SuDungDichVuManagementController;
 use App\Models\TaiKhoan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -82,4 +86,30 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/quan-ly-phong/update/{id}', [PhongManagementController::class, 'updateRoom'])->name('phong.update');
     Route::post('/quan-ly-phong/giai-phong/{id}', [PhongManagementController::class, 'giaiPhongPhong'])->name('phong.giaiphong');
     Route::post('/quan-ly-phong/apply-sale', [PhongManagementController::class, 'applySale'])->name('phong.applySale');
+    // Nhóm route Quản lý đặt phòng
+    Route::get('/dat-phong', [DatPhongManagementController::class, 'index'])->name('datphong.index');
+    Route::post('/dat-phong/store', [DatPhongManagementController::class, 'store'])->name('datphong.store');
+
+    // Khai báo rõ ràng route lấy dữ liệu chi tiết phục vụ cho việc sửa đơn (nếu dùng AJAX)
+    Route::get('/dat-phong/edit/{id}', [DatPhongManagementController::class, 'edit'])->name('datphong.edit');
+
+    Route::post('/dat-phong/update/{id}', [DatPhongManagementController::class, 'update'])->name('datphong.update');
+    Route::delete('/dat-phong/delete/{id}', [DatPhongManagementController::class, 'destroy'])->name('datphong.destroy');
+
+    // API Route phục vụ AJAX live-price nhảy số tiền tự động khi kéo lịch
+    Route::get('/dat-phong/get-live-price', [DatPhongManagementController::class, 'getLivePrice'])->name('datphong.getprice');
+
+    // Nhóm route Quản lý khách hàng
+    Route::get('/khach-hang', [\App\Http\Controllers\Admin\KhachHangManagementController::class, 'index'])->name('khachhang.index');
+    Route::post('/khach-hang/store', [\App\Http\Controllers\Admin\KhachHangManagementController::class, 'store'])->name('khachhang.store');
+    Route::post('/khach-hang/update/{id}', [\App\Http\Controllers\Admin\KhachHangManagementController::class, 'update'])->name('khachhang.update');
+    // Nhóm route Quản lý dịch vụ mới tinh
+    Route::get('/quan-ly-dich-vu', [DichVuManagementController::class, 'index'])->name('dichvu.index');
+    Route::post('/quan-ly-dich-vu/store', [DichVuManagementController::class, 'store'])->name('dichvu.store');
+    Route::post('/quan-ly-dich-vu/update/{id}', [DichVuManagementController::class, 'update'])->name('dichvu.update');
+    Route::delete('/quan-ly-dich-vu/delete/{id}', [DichVuManagementController::class, 'destroy'])->name('dichvu.destroy');
+    // Nhóm route Quản lý sử dụng dịch vụ
+    Route::get('/quan-ly-su-dung-dich-vu', [SuDungDichVuManagementController::class, 'index'])->name('sudungdichvu.index');
+    Route::post('/quan-ly-su-dung-dich-vu/store', [SuDungDichVuManagementController::class, 'store'])->name('sudungdichvu.store');
+    Route::post('/quan-ly-su-dung-dich-vu/update/{id}', [SuDungDichVuManagementController::class, 'update'])->name('sudungdichvu.update');
 });

@@ -24,7 +24,11 @@ class DashboardController extends Controller
         $phongTrong = Phong::where('trang_thai', 'Trống')->count();
         $phongDangThue = Phong::where('trang_thai', 'Đã đặt')->count();
         $datPhongHomNay = DatPhong::whereDate('ngay_dat', $today)->count();
-        $doanhThuHomNay = ThanhToan::whereDate('ngay_thanh_toan', $today)->sum('so_tien');
+        // Doanh thu thanh toán trong ngày (Chỉ tính những đơn KHÔNG BỊ HỦY)
+$doanhThuHomNay = ThanhToan::whereDate('ngay_thanh_toan', $today)
+    ->whereHas('datphong', function($q) {
+        $q->where('trang_thai', '!=', 'Đã hủy');
+    })->sum('so_tien');
 
         // 2. TÌNH TRẠNG PHÒNG (Group theo Tầng)
         $phongs = Phong::all()->groupBy(function($phong) {
@@ -96,6 +100,9 @@ class DashboardController extends Controller
         // 5. BIỂU ĐỒ ĐƯỜNG: DOANH THU (Thống kê 7 ngày gần nhất)
         $dataDoanhThu = ThanhToan::selectRaw('DATE(ngay_thanh_toan) as ngay, SUM(so_tien) as tong_tien')
             ->where('ngay_thanh_toan', '>=', Carbon::now()->subDays(6))
+            ->whereHas('datphong', function($q) {
+                $q->where('trang_thai', '!=', 'Đã hủy');
+            })
             ->groupBy('ngay')
             ->orderBy('ngay', 'asc')
             ->get();

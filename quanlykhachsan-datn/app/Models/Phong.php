@@ -22,12 +22,12 @@ class Phong extends Model
         'sale_tu_ngay' => 'datetime',
         'sale_den_ngay' => 'datetime',
     ];
-    // Thiết lập liên kết lấy đơn đặt phòng đang hoạt động (Đã đặt hoặc Đang ở)
+    // Thiết lập liên kết lấy đơn đặt phòng đang hoạt động (chỉ đơn Đã đặt)
     public function datPhongHienTai()
     {
         return $this->hasOne(DatPhong::class, 'id_phong')
-                    ->whereIn('trang_thai', ['Đã đặt', 'Trống', 'Bảo trì'])
-                    ->orderBy('ngay_dat', 'desc');
+                    ->whereIn('trang_thai', ['Đã đặt', 'Đã xác nhận'])
+                    ->latestOfMany('ngay_dat');
     }
 
     public function getIsSaleActiveAttribute()

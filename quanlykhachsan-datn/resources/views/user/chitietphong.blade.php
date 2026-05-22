@@ -185,18 +185,26 @@
 
                 <a href="#" class="design-link">Sơ đồ thiết kế ></a>
 
-                @auth
-    <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
-       class="btn-booking">
-       ĐẶT PHÒNG NGAY
-    </a>
-@else
-    <a href="javascript:void(0)"
-       class="btn-booking"
-       data-bs-toggle="modal"
-       data-bs-target="#loginModal"> ĐẶT PHÒNG NGAY
-    </a>
-@endauth
+                @if($phong->trang_thai === 'Trống')
+                    @auth
+                        <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
+                           class="btn-booking">
+                           ĐẶT PHÒNG NGAY
+                        </a>
+                    @else
+                        <a href="javascript:void(0)"
+                           class="btn-booking"
+                           data-bs-toggle="modal"
+                           data-bs-target="#loginModal"> ĐẶT PHÒNG NGAY
+                        </a>
+                    @endauth
+                @else
+                    <a href="javascript:void(0)"
+                       class="btn-booking"
+                       style="background-color: #ccc; color: #666; cursor: not-allowed; pointer-events: none;"
+                       title="Phòng này đã được đặt hoặc không khả dụng"> HẾT PHÒNG
+                    </a>
+                @endif
             </div>
         </div>
 
