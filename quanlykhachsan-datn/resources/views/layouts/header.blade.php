@@ -40,7 +40,7 @@
 
         <div class="text-center" style="flex: 1;">
             <a href="/">
-                <img src="https://www.sixsenses.com/Content/Images/logo-six-senses-white.svg" id="logo" alt="Logo">
+                <img src="https://cdn0806.cdn4s.com/media/logo/logo%20png.png" id="logo" alt="Logo">
             </a>
         </div>
 

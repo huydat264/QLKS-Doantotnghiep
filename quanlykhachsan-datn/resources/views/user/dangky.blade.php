@@ -142,7 +142,7 @@
                 <div class="auth-split">
                     <div class="auth-form-side">
                         <div class="mb-5">
-                            <img src="https://www.sixsenses.com/Content/Images/logo-six-senses.svg" height="25" class="mb-4">
+                            <img src="https://cdn0806.cdn4s.com/media/logo/logo%20png.png" height="25" class="mb-4">
                             <h2 class="display-6">Tham gia cùng chúng tôi</h2>
                             <p class="text-muted small">Kiến tạo những khoảnh khắc đáng nhớ.</p>
                         </div>

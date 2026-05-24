@@ -111,7 +111,7 @@ $currentYear = now()->year;
             <p class="text-muted" style="line-height: 1.8;">
                 Ẩn mình giữa Vườn quốc gia và khu bảo tồn biển được bảo vệ, khu nghỉ dưỡng mang đến không gian yên bình,
                 nơi mỗi khoảnh khắc đều gợi lên cảm giác an yên và thư thái. Là khu nghỉ dưỡng ven biển sang trọng
-                hàng đầu tại Côn Đảo, nơi đây kết hợp giữa vẻ đẹp đương đại và nét mộc mạc làng chài xưa.
+                hàng đầu tại Phú Quốc, nơi đây kết hợp giữa vẻ đẹp đương đại và nét mộc mạc làng chài xưa.
             </p>
 
             <p class="text-muted" style="line-height: 1.8;">
@@ -141,7 +141,7 @@ $currentYear = now()->year;
         <div class="col-md-auto me-4">
             <a href="#" class="d-flex align-items-center text-decoration-none text-secondary">
                 <i class="bi bi-map me-2" style="font-size: 1.2rem;"></i>
-                <span class="text-uppercase">Cách đến với Six Senses</span>
+                <span class="text-uppercase">Cách đến với Kim Boutique Hotel</span>
             </a>
         </div>
 
@@ -228,7 +228,7 @@ $currentYear = now()->year;
 </div>
 <div class="container py-5">
     <div class="text-center py-5" data-aos="fade-up">
-        <h2 class="display-4 mb-3">Nhật ký Six Senses</h2>
+        <h2 class="display-4 mb-3">Nhật ký Kim Boutique Hotel</h2>
         <p class="text-muted mx-auto" style="max-width: 700px;">Khám phá những câu chuyện thú vị và những khoảnh khắc đáng nhớ tại khu nghỉ dưỡng của chúng tôi qua lăng kính của các vị khách.</p>
         <a href="#" class="text-uppercase small fw-bold text-dark letter-spacing-2 text-decoration-none mt-3 d-inline-block">XEM TẤT CẢ CÂU CHUYỆN <i class="bi bi-arrow-right ms-2"></i></a>
     </div>
