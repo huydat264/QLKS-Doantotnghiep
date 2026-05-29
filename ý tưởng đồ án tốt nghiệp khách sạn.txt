@@ -1,0 +1,159 @@
+Lệnh run teminal user: 	cd C:\xampp\htdocs\QLKStotnghiep\quanlykhachsan-datn    ------      php artisan serve 
+Đổi link sang admin: http://127.0.0.1:8000/admin/login
+admin1/nhanvien1-123456
+
+php artisan storage:link (dùng để link với bên ngoài,dùng khi ảnh load lỗi)
+
+php artisan config:clear
+mã mail: gjha uzwr kphk smf
+5/7: lưu lý lựa chọn phòng trong lịch trừ những ngày đã được đặt
+
+vnpay :gmail trường và 123456@Ab
+
+Hash: 9017e111b93604cace3504e247e477e5a2f6df7348aeb368323d13f2dfbbbb5cbc8ed72b029256e7f6ea5b5c29fe5299e475299aefb8a57c8f22790f60ce789f
+
+inf->dichvubooking->xacnhanbooking->thanhtoanbooking->phieuxacnhan  
+
+Câu hỏi cần giải quyết:
+***Vấn đề thanh toán ng dùng:thế nếu không thanh toán mà bấm tiếp thì nó vẫn ghi nhận thì mình lỗ à,và nếu ng dùng chỉnh sửa tiền thì giải quyết như nào
+***Vấn đề giảm giá phòng khi nghỉ lễ xong sang ngày thường thì tính giá như nào
+*** phần đặt combo bên người dùng chỉnh làm sao cho hiện cả danh mục dịch vụ đã được đi kèm
+***quản lý đặt phòng xoá nút xoá đi
+
+voucher phát thông qua khách hàng bằng email-và gửi mail phản hồi cho khách hàng (làm ở trang khách hàng hiện tại chưa có)
+tính thêm tiền VAT ở thanh toán các chiều
+đơn đặt hôm nay ở dashboard cũng huỷ nếu khách huỷ phòng(hiện tại đặt xong huỷ vấn tính đặt)
+Gia hạn thêm phòng qly đặt phòng,tổng tiền hiện tại chỉ là tiền phòng ngoại trừ combo
+Qly đặt phòng không sửa được là do đã thanh toán cọc,muốn sửa sang phòng huỷ khách đi đã,xem xét làm huỷ là huỷ luôn tại set lại thì mất phòng
+Thêm dịch vụ ở user cũng thêm vào bảng sử dụng dịch vụ luôn---cập nhật giá vốn dịch vụ trong database làm thống kê
+phần khách hàng top 5 phần tổng chi chỉ lấy khi khách hàng đã thanh toán toàn bộ chứ không phải chỉ mỗi cọc
+Logic huỷ đặt phòng thì cộng thẳng 30% vào tổng thu
+Xem lại phần xoá bỏ khách hàng ở qlyphòng và qly đặt phòng,nếu thanh toán xong rồi thì sửa được không...
+Phần quản lý đặt phòng xem xét đặt được cả combo (nhớ sửa lại các sơ đồ)
+Làm thêm phần hoá đơn sau thanh toán nối luôn với qly đặt phòng xem lại cho dễ
+Load thêm cột ngày ở qly sử dụng dịch vụ
+Phòng không được khách nhận tự động huỷ sau 1h
+Nhân viên bên lễ tân cũng thấy nhưng không tương tác được
+xem xét lại bảng combo trông cứ sai sai
+Xoá dịch vụ làm bảng tbao đẹp đẹp tí
+Xem lại cái ngày lập ở chi tiết hoá đơn cọc(user) đang bị sai
+Thêm cột thuế tncn bảng bangluong trong db
+
+Hỏi ý kiến xem có nên làm thêm phòng cho khách sạn không
+
+
+Mẫu web làm theo Six Senses Con Dao: https://www.sixsenses.com/vn/hotels-resorts/asia-the-pacific/vietnam/con-dao/
+
+*****Vẽ vời biểu đồ****
+-Đến sửa tt dịch vụ,chưa vẽ voucher+combo+đánh giá+erd+Lý do chọn đề tài + phân cấp chức năng
+-biểu đồ hoạt động phòng vẽ thêm luồng tăng giảm giá (sale)
+-sửa lại controller của toàn bộ tuần tự
+
+
+*******Điểm khác biệt: Hỗ trợ khách hàng quyết định,hỗ trợ chủ khách sạn quyết định hướng phát triển k dừng lại ở quản lý*********
+Build theo MVC
+****Phải dùng thuật toán phân loại khách hàng,hoặc so sánh dữ liệu thống kê doanh thu giữa các tháng.
+
+
+***Gợi ý phòng theo phòng có lượng người sử dụng cao,theo combo cao (Cái này làm theo lọc thay vì show ngay lập tức)
+*** Tính toán chi phí hao mòn theo tỉ lệ**
+**đưa AI vào để Phân tích xu hướng (Trend Analysis)-Dự báo nhu cầu phòng (Demand Forecasting)-Phân khúc khách hàng (Customer Segmentation)
+**làm chat bot luôn
+**Làm share lên mạng xã hội dùng Social Share URLs (up lên fb,tiktok...)
+**làm thanh toán qua vnpay luôn
+
+**xem hướng xử lý 1 người đặt nhiều phòng****
+** làm giả dữ liệu bằng Database Seeder
+**Đọc lại note trong đt
+
+
+**Nếu làm tạo tài khoản cho nhân viên bằng thằng admin thì thêm sơ đồ
+
+
+**Phân tích xử lý các câu hỏi khách hàng thường hay hỏi chat bot hoặc nvien tư vấn
+**Khách đến đặt phòng trực tiếp thì dùng voucher ở email
+
+
+**Đặt combo trực tiếp qua form đặt phòng luôn,combo không sửa được tại thanh toán rồi,ở phần quản lý combo thêm 1 nút phát hành&huỷ phát hành
+
+
+**Phần thanh toán thêm thanh toán khi khách làm hỏng đồ,thêm 1 mục cộng tiền riêng tính chi phí phát sinh
+
+
+**Lọc phòng theo giá,danh mục,giường,rate (khung tìm kiếm cũng là một kiểu lọc)
+
+
+*thêm đánh giá khách hàng(làm bên admin) +vẽ thêm biểu đồ,sửa lại db,sửa lại biểu đồ phần thống kê. đánh giá hiện ngay sau thanh toán và có 1 form riêng*********************************************************
+-Kiểm tra phần voucher trong database đang hơi sai sai(23/5 sai sai thật cập nhập lại)
+
+
+-phần thanh toán khách hàng mới thì đẩy lên đầu
+
+
+-Vụ confirm phòng bên admin xem làm như nào thanh toán tự động confirm còn lại để ở trạng thái chờ xử lý
+
+
+-Tự tính lương nvien dựa trên lương cơ bản (thế sửa đổi bảng tuần tụ)
+
+
+- Chỉnh sale (lưu ý tính lại tiền khi gia hạn phòng khi hết sale)
+-Phần giá của phòng bên khách hàng làm chữ bé ưu đãi(Bên phía admin phần quản lý phòng chỉnh được giảm theo %)
+
+
+-Xem lại vụ quản lý tài khoản nhân viên
+
+
+-Hiện tại cấp phát voucher là công khai còn phát riêng chưa làm(làm sau)
+
+-Xem xét đến phần khách hàng đến khách sạn đặt khách sạn bao nhiêu lần làm thống kê từ đó đưa ra ưu đãi riêng
+
+
+-Xem xét kĩ phần nếu khách hàng muốn gia hạn ở thêm thì sao
+
+
+-Người dùng (Thêm 2 thứ tiếng Việt và Anh)(Đặt cọc,xem,xem phòng đã đặt,đánh giá,hoá đơn tạm thời)
+-Build điều chỉnh giá phòng cho admin được,voucher nữa
+-Định vị trên gg map
+
+
+-xử lý tránh việc chồng chéo đặt (đặt xong lock in real-time,tính toán phương án 2 người cùng đặt 1 lúc thì ưu tiên như nào)
+
+
+-Gủi gmail xác nhận đặt phòng hoặc 1 phương thức khác(Gửi xác nhận qua sđt)
+
+
+-Đặt phòng xem xét 1 người đặt phòng cho cả 1 công ty thì như nào (chọn từng phòng hay phương án như nào,nếu chọn từng phòng làm tick cho tối ưu)
+
+
+-thanh toán trực tuyến và trực tiếp(Thống kê kèo theo liên quan)
+-Xem xét phần thanh toán cho thanh toán trước hay là sau vì ảnh hưởng đến thông tin thống kê(Nhưng mà nên là bắt buộc cọc phòng trước tránh trường hợp đối thủ cạnh tranh spam phòng)
+
+
+-Nếu khách hàng không tới và k phản hồi thì xem xét tới việc (Phòng tự động trả về trống sau 30p 1 tiếng gì đó)
+
+
+-thêm voucher (kỹ càng việc phát cho ai,áp dụng tất cả hay cá nhân luồng phát và đến tay khách hàng qua nền tảng nào'mail hoặc sđt',giao diện phía quản lý vừa thêm sửa xoá vừa cho phép phát hành luôn hoặc tách riêng thành 'quản lý sử dụng voucher')
+-Xem xét xem có thêm chấm công không,rồi lương thưởng... (Phần này thay bằng combo thì hợp lý hơn,voucher thì phát số lượng thấp cho khách hàng)
+
+
+-Dịch vụ (đi theo gói phòng hay là đặt riêng phương thức như nào)
+
+
+-Đặc biệt chú ý phần thống kê:(Thống kê theo gì ngày tháng năm,gồm các hạng mục nào ,"tính toán cả số lượng phòng trống... thay vì chỉ thống kê doanh thu")
+
+
+-Quản lý sử dụng dịch vụ thêm cột ngày tháng năm
+
+
+-Lương thưởng cho nhân viên cũng vào thống kê để tính doanh thu luôn khấu trừ
+
+
+-Phần quản lý đánh giá người dùng(thêm điều kiện tránh spam k tốt)
+-phần chọn ngày đặt phòng hight light các đặt phòng khác ngày khác
+
+
+
+-Xem xét vẽ thêm làm ai gợi ý phòng giảm giá hoặc search phòng phù hợp dựa vào chat bot
+
+-Tiềm năng ptr thêm: (Hệ thống quản lý đa khách sạn,Hệ thống trông xe tự động,ứng dụng ai vận hành thay cho thao tác con người,tự động thống kê đưa ra thiếu sót hoặc hướng ptr)
+-xem xét làm chat nối từ khách hàng tới nhân viên(hoặc tìm hiểu làm ai agent)

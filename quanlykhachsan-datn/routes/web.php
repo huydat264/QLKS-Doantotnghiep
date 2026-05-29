@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\DatPhongManagementController;
 use App\Http\Controllers\Admin\KhachHangManagementController;
 use App\Http\Controllers\Admin\DichVuManagementController;
 use App\Http\Controllers\Admin\SuDungDichVuManagementController;
+use App\Http\Controllers\Admin\NhanVienManagementController;
+use App\Http\Controllers\Admin\ChamCongManagementController;
+use App\Http\Controllers\Admin\BangLuongManagementController;
 use App\Models\TaiKhoan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -112,4 +115,17 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/quan-ly-su-dung-dich-vu', [SuDungDichVuManagementController::class, 'index'])->name('sudungdichvu.index');
     Route::post('/quan-ly-su-dung-dich-vu/store', [SuDungDichVuManagementController::class, 'store'])->name('sudungdichvu.store');
     Route::post('/quan-ly-su-dung-dich-vu/update/{id}', [SuDungDichVuManagementController::class, 'update'])->name('sudungdichvu.update');
+    // Nhóm route Quản lý nhân viên mới tinh
+    Route::get('/quan-ly-nhan-vien', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'index'])->name('nhanvien.index');
+    Route::post('/quan-ly-nhan-vien/store', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'store'])->name('nhanvien.store');
+    Route::post('/quan-ly-nhan-vien/update/{id}', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'update'])->name('nhanvien.update');
+    Route::delete('/quan-ly-nhan-vien/delete/{id}', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'destroy'])->name('nhanvien.destroy');
+    // Nhóm route Quản lý chấm công
+    Route::get('/quan-ly-cham-cong', [\App\Http\Controllers\Admin\ChamCongManagementController::class, 'index'])->name('chamcong.index');
+    Route::post('/quan-ly-cham-cong/store', [\App\Http\Controllers\Admin\ChamCongManagementController::class, 'store'])->name('chamcong.store');
+    Route::post('/quan-ly-cham-cong/update/{id}', [\App\Http\Controllers\Admin\ChamCongManagementController::class, 'update'])->name('chamcong.update');
+    // Nhóm route Quản lý Bảng Lương
+    Route::get('/quan-ly-bang-luong', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'index'])->name('bangluong.index');
+    Route::post('/quan-ly-bang-luong/tinh-luong', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'calculate'])->name('bangluong.calculate');
+    Route::post('/quan-ly-bang-luong/update/{id}', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'update'])->name('bangluong.update');
 });

@@ -48,9 +48,9 @@
 
             @if(Auth::check() && strtoupper(trim(Auth::user()->role)) === 'ADMIN')
                 <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 0.75rem; color: #6c757d;">Nội bộ & Thống kê</li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-badge"></i> Nhân viên</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-clock-history"></i> Chấm công</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cash-coin"></i> Bảng lương</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.nhanvien.*') ? 'active' : '' }}" href="{{ route('admin.nhanvien.index') }}"><i class="bi bi-person-badge"></i> Nhân viên</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.chamcong.*') ? 'active' : '' }}" href="{{ route('admin.chamcong.index') }}"><i class="bi bi-clock-history"></i> Chấm công</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.bangluong.*') ? 'active' : '' }}" href="{{ route('admin.bangluong.index') }}"><i class="bi bi-cash-coin"></i> Bảng lương</a></li>
                 <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê</a></li>
                 <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-ticket-perforated"></i> Quản lý voucher</a></li>
             @endif

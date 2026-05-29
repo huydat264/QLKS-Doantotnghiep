@@ -8,6 +8,7 @@ use App\Models\DatPhong;
 use App\Models\Phong;
 use App\Models\KhachHang;
 use Carbon\Carbon;
+use App\Models\ThanhToan;
 
 class DatPhongManagementController extends Controller
 {
