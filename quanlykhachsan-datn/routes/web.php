@@ -12,9 +12,12 @@ use App\Http\Controllers\Admin\DatPhongManagementController;
 use App\Http\Controllers\Admin\KhachHangManagementController;
 use App\Http\Controllers\Admin\DichVuManagementController;
 use App\Http\Controllers\Admin\SuDungDichVuManagementController;
+use App\Http\Controllers\Admin\ThanhToanManagementController;
+use App\Http\Controllers\Admin\ComboManagementController;
 use App\Http\Controllers\Admin\NhanVienManagementController;
 use App\Http\Controllers\Admin\ChamCongManagementController;
 use App\Http\Controllers\Admin\BangLuongManagementController;
+use App\Http\Controllers\Admin\VoucherManagementController;
 use App\Models\TaiKhoan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -95,7 +98,6 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
 
     // Khai báo rõ ràng route lấy dữ liệu chi tiết phục vụ cho việc sửa đơn (nếu dùng AJAX)
     Route::get('/dat-phong/edit/{id}', [DatPhongManagementController::class, 'edit'])->name('datphong.edit');
-
     Route::post('/dat-phong/update/{id}', [DatPhongManagementController::class, 'update'])->name('datphong.update');
     Route::delete('/dat-phong/delete/{id}', [DatPhongManagementController::class, 'destroy'])->name('datphong.destroy');
 
@@ -128,4 +130,22 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/quan-ly-bang-luong', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'index'])->name('bangluong.index');
     Route::post('/quan-ly-bang-luong/tinh-luong', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'calculate'])->name('bangluong.calculate');
     Route::post('/quan-ly-bang-luong/update/{id}', [\App\Http\Controllers\Admin\BangLuongManagementController::class, 'update'])->name('bangluong.update');
+    // Nhóm route Quản lý Combo
+    Route::get('/quan-ly-combo', [\App\Http\Controllers\Admin\ComboManagementController::class, 'index'])->name('combo.index');
+    Route::post('/quan-ly-combo/store', [\App\Http\Controllers\Admin\ComboManagementController::class, 'store'])->name('combo.store');
+    Route::post('/quan-ly-combo/update/{id}', [\App\Http\Controllers\Admin\ComboManagementController::class, 'update'])->name('combo.update');
+    Route::post('/quan-ly-combo/destroy/{id}', [\App\Http\Controllers\Admin\ComboManagementController::class, 'destroy'])->name('combo.destroy');
+    // Nhóm route Quản lý Voucher
+    Route::get('/quan-ly-voucher', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'index'])->name('voucher.index');
+    Route::post('/quan-ly-voucher/store', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'store'])->name('voucher.store');
+    Route::post('/quan-ly-voucher/update/{id}', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'update'])->name('voucher.update');
+    Route::post('/quan-ly-voucher/toggle-status/{id}', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'toggleStatus'])->name('voucher.toggle');
+    Route::delete('/quan-ly-voucher/destroy/{id}', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'destroy'])->name('voucher.destroy');
+    // Nhóm route Quản lý Thanh toán & Hóa đơn
+    Route::get('/thanh-toan', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'index'])->name('thanhtoan.index');
+    Route::get('/thanh-toan/checkout/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'checkout'])->name('thanhtoan.checkout');
+    Route::post('/thanh-toan/process/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'processCheckout'])->name('thanhtoan.process');
+    Route::get('/thanh-toan/vnpay-return/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'vnpayReturn'])->name('thanhtoan.vnpay_return'); // Tuyến này hứng dữ liệu VNPay
+    Route::get('/thanh-toan/invoice/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'showInvoice'])->name('thanhtoan.invoice');
+    Route::get('/hoa-don', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'danhSachHoaDon'])->name('hoadon.index');
 });

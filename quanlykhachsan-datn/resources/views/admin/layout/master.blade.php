@@ -43,8 +43,9 @@
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.khachhang.*') ? 'active' : '' }}" href="{{ route('admin.khachhang.index') }}"><i class="bi bi-people"></i> Khách hàng</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.dichvu.*') ? 'active' : '' }}" href="{{ route('admin.dichvu.index') }}"><i class="bi bi-cup-hot"></i> Dịch vụ</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.sudungdichvu.*') ? 'active' : '' }}" href="{{ route('admin.sudungdichvu.index') }}"><i class="bi bi-cart-plus"></i> Sử dụng dịch vụ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-credit-card"></i> Thanh toán</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-box-seam"></i> Combo</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.thanhtoan.*') ? 'active' : '' }}" href="{{ route('admin.thanhtoan.index') }}"><i class="bi bi-credit-card"></i> Thanh toán</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.combo.*') ? 'active' : '' }}" href="{{ route('admin.combo.index') }}"><i class="bi bi-box-seam"></i> Combo</a></li>
+            <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.hoadon.*') ? 'active' : '' }}" href="{{ route('admin.hoadon.index') }}"><i class="bi bi-receipt"></i> Quản lý Hóa Đơn</a></li>
 
             @if(Auth::check() && strtoupper(trim(Auth::user()->role)) === 'ADMIN')
                 <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 0.75rem; color: #6c757d;">Nội bộ & Thống kê</li>
@@ -52,7 +53,7 @@
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.chamcong.*') ? 'active' : '' }}" href="{{ route('admin.chamcong.index') }}"><i class="bi bi-clock-history"></i> Chấm công</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.bangluong.*') ? 'active' : '' }}" href="{{ route('admin.bangluong.index') }}"><i class="bi bi-cash-coin"></i> Bảng lương</a></li>
                 <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-ticket-perforated"></i> Quản lý voucher</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.voucher.*') ? 'active' : '' }}" href="{{ route('admin.voucher.index') }}"><i class="bi bi-ticket-perforated"></i> Quản lý voucher</a></li>
             @endif
         </ul>
     </div>

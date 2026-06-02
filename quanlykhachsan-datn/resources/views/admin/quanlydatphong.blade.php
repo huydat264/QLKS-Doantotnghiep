@@ -200,7 +200,7 @@
                             <label class="form-label fw-bold">Trạng thái xử lý</label>
                             <select name="trang_thai" id="edit_trang_thai" class="form-select" required>
                                 <option value="Đã xác nhận">Đã xác nhận</option>
-                                <option value="Đã trả phòng">Đã trả phòng</option>
+
                                 <option value="Đã hủy">Đã hủy</option>
                             </select>
                         </div>
