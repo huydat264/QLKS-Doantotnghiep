@@ -25,6 +25,14 @@ class ComboManagementController extends Controller
 
             // Ép mảng ID dịch vụ để ném sang JS xử lý lúc Sửa
             $combo->dichvu_ids = $combo->dich_vu->pluck('id_dichvu')->toArray();
+
+            // compute availability and active flag
+            $combo->available_rooms = DB::table('phong')
+                ->where('loai_phong', $combo->loai_phong_ap_dung)
+                ->where('trang_thai', 'Trống')
+                ->count();
+
+            $combo->is_active = isset($combo->active) ? (bool)$combo->active : true;
         }
 
         // 3. Lấy dữ liệu danh mục để đổ vào Modal
@@ -46,6 +54,7 @@ class ComboManagementController extends Controller
             'quyen_loi' => 'nullable|string',
             'dieu_khoan' => 'nullable|string',
             'hinh_anh' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'active' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -70,6 +79,7 @@ class ComboManagementController extends Controller
                 'hinh_anh' => $hinhAnhPath,
                 'quyen_loi' => $request->quyen_loi,
                 'dieu_khoan' => $request->dieu_khoan,
+                'active' => $request->has('active') ? 1 : 0,
             ]);
 
             // 2. Lưu các dịch vụ đi kèm vào bảng combo_dichvu
@@ -102,6 +112,7 @@ class ComboManagementController extends Controller
             'quyen_loi' => 'nullable|string',
             'dieu_khoan' => 'nullable|string',
             'hinh_anh' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'active' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -132,6 +143,7 @@ class ComboManagementController extends Controller
                 'hinh_anh' => $hinhAnhPath,
                 'quyen_loi' => $request->quyen_loi,
                 'dieu_khoan' => $request->dieu_khoan,
+                'active' => $request->has('active') ? 1 : 0,
             ]);
 
             // 2. Cập nhật bảng combo_dichvu (Xóa cũ đi, thêm mới lại)
@@ -171,6 +183,24 @@ class ComboManagementController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Lỗi khi xóa: ' . $e->getMessage());
+        }
+    }
+
+    // Toggle active/inactive for a combo (AJAX)
+    public function toggle(Request $request, $id)
+    {
+        try {
+            $combo = DB::table('combo')->where('id_combo', $id)->first();
+            if (!$combo) {
+                return response()->json(['success' => false, 'message' => 'Combo không tồn tại'], 404);
+            }
+
+            $new = (isset($combo->active) && $combo->active) ? 0 : 1;
+            DB::table('combo')->where('id_combo', $id)->update(['active' => $new]);
+
+            return response()->json(['success' => true, 'active' => (bool)$new]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

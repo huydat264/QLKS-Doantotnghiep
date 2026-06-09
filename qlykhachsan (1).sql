@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 22, 2026 lúc 11:35 PM
+-- Thời gian đã tạo: Th6 02, 2026 lúc 03:21 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -35,9 +35,17 @@ CREATE TABLE `bangluong` (
   `so_ngay_cong` int(11) DEFAULT 0,
   `thuong` decimal(15,2) DEFAULT 0.00,
   `phat` decimal(15,2) DEFAULT 0.00,
+  `thue_tncn` decimal(15,2) DEFAULT 0.00,
   `luong_co_ban` decimal(15,2) NOT NULL,
   `tong_luong` decimal(15,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `bangluong`
+--
+
+INSERT INTO `bangluong` (`id_bangluong`, `id_nhanvien`, `thang`, `nam`, `so_ngay_cong`, `thuong`, `phat`, `thue_tncn`, `luong_co_ban`, `tong_luong`) VALUES
+(7, 16, 5, 2026, 31, 0.00, 0.00, 0.00, 5000000.00, 5961538.00);
 
 -- --------------------------------------------------------
 
@@ -54,6 +62,13 @@ CREATE TABLE `chamcong` (
   `so_ngay_nghi_khong_phep` int(11) DEFAULT 0,
   `so_ngay_nghi_co_phep` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `chamcong`
+--
+
+INSERT INTO `chamcong` (`id_chamcong`, `id_nhanvien`, `thang`, `nam`, `so_ngay_di_lam`, `so_ngay_nghi_khong_phep`, `so_ngay_nghi_co_phep`) VALUES
+(12, 16, 5, 2026, 31, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -82,7 +97,7 @@ INSERT INTO `combo` (`id_combo`, `ten_combo`, `mo_ta`, `gia_combo`, `so_dem_luu_
 (1, 'Combo Nghỉ dưỡng 2N1Đ', '1 đêm nghỉ + buffet sáng + hồ bơi miễn phí', 1200000.00, 1, 1000000.00, 'https://images.pexels.com/photos/14746040/pexels-photo-14746040.jpeg', 'Standard', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\n- Miễn phí buffet bữa sáng mỗi ngày.\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\n- Yêu cầu thanh toán trước 100% khi xác nhận.\n- Không hoàn hủy trong các ngày lễ Tết.\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.'),
 (2, 'Combo Gia đình 3N2Đ', '2 đêm nghỉ + ăn sáng + vé vui chơi', 2500000.00, 2, 1200000.00, 'https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg', 'Deluxe', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\n- Miễn phí buffet bữa sáng mỗi ngày.\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\n- Yêu cầu thanh toán trước 100% khi xác nhận.\n- Không hoàn hủy trong các ngày lễ Tết.\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.'),
 (3, 'Combo Couple Romantic', 'Trang trí phòng + rượu vang + 1 đêm nghỉ', 1800000.00, 1, 1500000.00, 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg', 'Suite', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\n- Miễn phí buffet bữa sáng mỗi ngày.\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\n- Yêu cầu thanh toán trước 100% khi xác nhận.\n- Không hoàn hủy trong các ngày lễ Tết.\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.'),
-(4, 'Combo Công tác tiết kiệm', 'Phòng nghỉ + ăn sáng + wifi tốc độ cao', 900000.00, 1, 800000.00, 'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg', 'Standard', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\n- Miễn phí buffet bữa sáng mỗi ngày.\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\n- Yêu cầu thanh toán trước 100% khi xác nhận.\n- Không hoàn hủy trong các ngày lễ Tết.\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.'),
+(4, 'Combo Công tác', 'Phòng nghỉ + ăn sáng + wifi tốc độ cao', 1600000.00, 2, 800000.00, 'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg', 'Standard', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\r\n- Miễn phí buffet bữa sáng mỗi ngày.\r\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\r\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\r\n- Yêu cầu thanh toán trước 100% khi xác nhận.\r\n- Không hoàn hủy trong các ngày lễ Tết.\r\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.'),
 (5, 'Combo Nghỉ dưỡng cao cấp 4N3Đ', '3 đêm nghỉ + buffet + spa + đưa đón sân bay', 4500000.00, 3, 2000000.00, 'https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg', 'Suite', '- Trải nghiệm số đêm lưu trú trọn gói phòng sang trọng.\n- Miễn phí buffet bữa sáng mỗi ngày.\n- Miễn phí sử dụng hồ bơi vô cực và phòng gym.\n- Nước uống chào mừng khi nhận phòng.', '- Giá đã bao gồm thuế VAT và phí dịch vụ.\n- Yêu cầu thanh toán trước 100% khi xác nhận.\n- Không hoàn hủy trong các ngày lễ Tết.\n- Trẻ em đi kèm tính phí theo quy định của khách sạn.');
 
 -- --------------------------------------------------------
@@ -122,11 +137,12 @@ CREATE TABLE `datphong` (
 
 INSERT INTO `datphong` (`id_datphong`, `id_khachhang`, `id_phong`, `id_combo`, `id_voucher`, `ngay_dat`, `ngay_nhan`, `ngay_tra`, `loai_hinh_dat`, `tong_tien_phai_tra`, `trang_thai`) VALUES
 (68, 33, 1, NULL, NULL, '2026-05-20', '2026-05-20', '2026-05-21', 'LẺ', 500000.00, 'Đã hủy'),
-(73, 33, 2, NULL, NULL, '2026-05-20', '2026-05-20', '2026-05-21', 'LẺ', 500000.00, 'Đã xác nhận'),
+(73, 33, 2, NULL, NULL, '2026-05-20', '2026-05-20', '2026-05-22', 'LẺ', 1000000.00, 'Đã xác nhận'),
 (74, 33, 4, NULL, NULL, '2026-05-20', '2026-05-20', '2026-05-21', 'LẺ', 1450000.00, 'Đã xác nhận'),
 (75, 33, NULL, 2, NULL, '2026-05-20', '2026-05-20', '2026-05-21', 'COMBO', 2500000.00, 'Đã xác nhận'),
 (76, 33, NULL, 1, NULL, '2026-05-20', '2026-05-20', '2026-05-21', 'COMBO', 1200000.00, 'Đã xác nhận'),
-(77, 33, 3, NULL, NULL, '2026-05-22', '2026-05-22', '2026-05-24', 'LẺ', 1200000.00, 'Đã hủy');
+(77, 33, 3, NULL, NULL, '2026-05-22', '2026-05-22', '2026-05-24', 'LẺ', 1200000.00, 'Đã hủy'),
+(78, 33, 8, NULL, NULL, '2026-05-23', '2026-05-23', '2026-05-24', 'LẺ', 3350000.00, 'Đã thanh toán');
 
 -- --------------------------------------------------------
 
@@ -182,7 +198,8 @@ INSERT INTO `hoadon` (`id_hoadon`, `id_datphong`, `tong_tien`, `ngay_xuat`) VALU
 (60, 73, 500000.00, '2026-05-20'),
 (61, 74, 1450000.00, '2026-05-20'),
 (62, 75, 2500000.00, '2026-05-20'),
-(63, 76, 1200000.00, '2026-05-20');
+(63, 76, 1200000.00, '2026-05-20'),
+(64, 78, 3350000.00, '2026-05-23');
 
 -- --------------------------------------------------------
 
@@ -218,7 +235,7 @@ INSERT INTO `khachhang` (`id_khachhang`, `tai_khoan_khachhang_id`, `ho_ten`, `ng
 
 CREATE TABLE `nhanvien` (
   `id_nhanvien` int(11) NOT NULL,
-  `tai_khoan_nhanvien_id` int(11) NOT NULL,
+  `tai_khoan_nhanvien_id` int(11) DEFAULT NULL,
   `ho_ten` varchar(100) NOT NULL,
   `chuc_vu` varchar(50) DEFAULT NULL,
   `luong_co_ban` decimal(15,2) NOT NULL,
@@ -226,6 +243,13 @@ CREATE TABLE `nhanvien` (
   `so_dien_thoai` varchar(15) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `nhanvien`
+--
+
+INSERT INTO `nhanvien` (`id_nhanvien`, `tai_khoan_nhanvien_id`, `ho_ten`, `chuc_vu`, `luong_co_ban`, `ngay_vao_lam`, `so_dien_thoai`, `email`) VALUES
+(16, NULL, 'Dương Đức Nguyễn', 'Nhân Viên Lễ Tân', 5000000.00, '2026-05-15', '0123456789', 'duongg@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -265,7 +289,7 @@ INSERT INTO `phong` (`id_phong`, `so_phong`, `loai_phong`, `gia_phong`, `so_luon
 (6, '106', 'Deluxe', 1000000.00, 3, 'Trống', 'Phòng cao cấp tiện nghi, giường lớn, phù hợp nghỉ dưỡng dài ngày.', 'https://statics.vinpearl.com/gia-phong-vinpearl-ha-long-03.jpg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7', 0, NULL, NULL),
 (7, '201', 'Suite', 3200000.00, 4, 'Trống', 'Suite cao cấp - VIP: diện tích ~70 m², phòng khách + bếp nhỏ, bàn ăn, bồn tắm jacuzzi + vòi sen đứng, nhiều view đẹp, tiện ích đặc biệt (welcome amenities, đôi giày đi trong nhà,…)', 'https://images.pexels.com/photos/7005295/pexels-photo-7005295.jpeg', '2,090 foot vuông / 194 mét vuông', 'Hướng biển ngoạn mục', 2, 'Dịch vụ quản gia (GEM) phục vụ theo yêu cầu\r\nHệ thống âm thanh BOSE cao cấp\r\nĐiện thoại gọi quốc tế trực tiếp (IDD)\r\nMáy pha Espresso chuyên dụng\r\nTủ lạnh hai cánh kiểu Mỹ\r\nHồ bơi vô cực riêng tư\r\nTủ rượu mini', 'Tầm nhìn hướng biển ngoạn mục trọn vẹn\r\nBiệt thự thiết kế không gian mở\r\nHai phòng ngủ chính với giường King\r\nPhòng tắm ngoài trời hòa mình với thiên nhiên\r\nSân hiên riêng có khu vực BBQ và ghế tắm nắng\r\nLối đi riêng thẳng ra bãi biển riêng tư', 0, NULL, NULL),
 (8, '202', 'Suite', 2800000.00, 4, 'Trống', 'Suite sang trọng hơn, ban công rộng hoặc cửa sổ panorama, decor sang trọng, có thêm bàn ăn nhỏ nếu có thể, dịch vụ ưu tiên.', 'https://www.hotelscombined.com.au/himg/3f/97/5c/ice-18471-106990353-583520.jpg', '2,090 foot vuông / 194 mét vuông', 'Hướng biển ngoạn mục', 2, 'Dịch vụ quản gia (GEM) phục vụ theo yêu cầu\r\nHệ thống âm thanh BOSE cao cấp\r\nĐiện thoại gọi quốc tế trực tiếp (IDD)\r\nMáy pha Espresso chuyên dụng\r\nTủ lạnh hai cánh kiểu Mỹ\r\nHồ bơi vô cực riêng tư\r\nTủ rượu mini', 'Tầm nhìn hướng biển ngoạn mục trọn vẹn\r\nBiệt thự thiết kế không gian mở\r\nHai phòng ngủ chính với giường King\r\nPhòng tắm ngoài trời hòa mình với thiên nhiên\r\nSân hiên riêng có khu vực BBQ và ghế tắm nắng\r\nLối đi riêng thẳng ra bãi biển riêng tư', 0, NULL, NULL),
-(9, '203', 'Standard', 670000.00, 2, 'Đã đặt', 'Standard có ban công nhỏ / cửa sổ lớn đón sáng, nội thất gỗ/laminate, phong cách hiện đại.', 'https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img/https://neworienthoteldanang.com/wp-content/uploads/2023/09/stay9.jpg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng', 0, NULL, NULL),
+(9, '203', 'Standard', 670000.00, 2, 'Trống', 'Standard có ban công nhỏ / cửa sổ lớn đón sáng, nội thất gỗ/laminate, phong cách hiện đại.', 'https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img/https://neworienthoteldanang.com/wp-content/uploads/2023/09/stay9.jpg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng', 0, NULL, NULL),
 (10, '204', 'Standard', 700000.00, 2, 'Trống', 'Phòng Standard lớn hơn (~20-22 m²), view hướng đường/nội khu đẹp hơn, bộ đồ uống nóng lạnh miễn phí.', 'https://dulichsaigon.edu.vn/wp-content/uploads/2025/01/8-cac-loai-phong-trong-khach-san.jpg', '300 foot vuông / 28 mét vuông', 'Hướng vườn', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi màn hình phẳng\r\nĐiều hòa nhiệt độ\r\nPhòng tắm vòi sen đứng\r\nMinibar cơ bản\r\nMáy sấy tóc', 'Tầm nhìn hướng vườn xanh mát\r\nGiường King hoặc 2 giường đơn\r\nKhông gian ấm cúng phù hợp cho cặp đôi\r\nBan công nhỏ riêng biệt\r\nKhông hút thuốc trong phòng', 0, NULL, NULL),
 (11, '205', 'Deluxe', 1590000.00, 3, 'Trống', 'Reluxe VIP với phòng khách riêng, thiết kế đẳng cấp, decor cao cấp hơn, có tiện nghi cộng thêm như dịch vụ đặt thức ăn phòng hoặc minibar cao cấp.', 'https://noithattamviet.com.vn/public/images/products/combo-noi-that-phong-ngu-master-go-cong-nghiep-cpn-37-1744164932.jpg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7', 0, NULL, NULL),
 (12, '301', 'Deluxe', 990000.00, 3, 'Trống', 'Phòng Reluxe (~28-30 m²), giường Queen size, thiết kế nội thất cao cấp hơn, có minibar, TV lớn, phòng tắm đôi (vòi sen & bồn tắm nếu có).', 'https://images.pexels.com/photos/7018391/pexels-photo-7018391.jpeg', '550 foot vuông / 51 mét vuông', 'Hướng biển một phần', 1, 'Wi-Fi tốc độ cao miễn phí\r\nTivi LCD 42 inch\r\nBồn tắm nằm và phòng tắm đứng\r\nDụng cụ pha trà và cà phê\r\nÁo choàng tắm và dép đi trong nhà\r\nKét sắt an toàn', 'Ban công rộng rãi với ghế tắm nắng\r\nKhu vực tiếp khách riêng biệt\r\nBồn tắm thư giãn sang trọng\r\nDịch vụ dọn phòng 2 lần/ngày\r\nPhục vụ ăn tại phòng 24/7', 0, NULL, NULL),
@@ -299,7 +323,9 @@ CREATE TABLE `sudungdichvu` (
 
 INSERT INTO `sudungdichvu` (`id_sudungdv`, `id_datphong`, `id_dichvu`, `so_luong`, `ngay_su_dung`, `thanh_tien`) VALUES
 (45, 68, 1, 2, '2026-05-22', 600000.00),
-(46, 68, 2, 1, '2026-05-22', 250000.00);
+(46, 68, 2, 1, '2026-05-22', 250000.00),
+(47, 78, 1, 1, NULL, 300000.00),
+(48, 78, 2, 1, NULL, 250000.00);
 
 -- --------------------------------------------------------
 
@@ -325,8 +351,9 @@ INSERT INTO `taikhoan` (`id_taikhoan`, `username`, `password`, `role`, `trang_th
 (30, 'testdangky', '$2y$12$uz0buX/W4inUq71hk.nJ6uEyp3FUEvcjC9pwHoFCFUZ/JJVkYkyKa', 'USER', 'ACTIVE', '2026-04-22 22:20:12'),
 (31, 'Test1', '$2y$12$z504nTGgRbDsGYUiwclxP.wdsT.J4vf/DEopNG2r701jpU4n6F4Ty', 'USER', 'ACTIVE', '2026-04-22 22:30:31'),
 (32, 'test2', '$2y$12$9r4jePluRgizRIEJAi.WgOVELPMFtvHNo2vPVMfmtwXiplA9IAY82', 'USER', 'ACTIVE', '2026-04-22 22:58:08'),
-(33, 'nhanvien1', '$2y$10$0zwaFFDMw/gy18szM1fSZ.ZfDKHNocL.bSn.JyIoR2PezwamFB7DG', 'NHANVIEN', 'ACTIVE', '2026-05-21 18:39:38'),
-(34, 'admin1', '$2y$12$IAXVkPBdHDyfvt7WZbv6F.6464y3l1/dlbx6/tWfN/Qa.C8RqCR1K', 'ADMIN', 'ACTIVE', '2026-05-21 18:39:38');
+(33, 'nhanvien1', '$2y$12$Sm3HVm9TOWDNu1ElbLZBOu3Y6GcaYxRTsM8QuwWW7eq3Y5UeKN3y2', 'NHANVIEN', 'ACTIVE', '2026-05-21 18:39:38'),
+(34, 'admin1', '$2y$12$IAXVkPBdHDyfvt7WZbv6F.6464y3l1/dlbx6/tWfN/Qa.C8RqCR1K', 'ADMIN', 'ACTIVE', '2026-05-21 18:39:38'),
+(35, 'tmq', '$2y$12$e245J3EYFIP5ZNU1YvYiQes98iZ8ScdPaz.z66NPfikjQu4.xsm0e', 'USER', 'ACTIVE', '2026-05-23 23:18:58');
 
 -- --------------------------------------------------------
 
@@ -343,7 +370,7 @@ CREATE TABLE `thanhtoan` (
   `vnp_response_code` varchar(50) DEFAULT NULL,
   `hinh_thuc` enum('Tiền mặt','Chuyển khoản','VNPAY') DEFAULT NULL,
   `ghi_chu` text DEFAULT NULL,
-  `loai_thanh_toan` enum('Đặt cọc 30%','Thanh toán trọn gói Combo','Tiền gia hạn phòng','Thanh toán phần còn lại','Thu tiền bồi thường (hư hại)') NOT NULL
+  `loai_thanh_toan` enum('Đặt cọc 30%','Thanh toán phần còn lại') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -355,7 +382,9 @@ INSERT INTO `thanhtoan` (`id_thanhtoan`, `id_datphong`, `ngay_thanh_toan`, `so_t
 (59, 73, '2026-05-20 16:03:55', 150000.00, '15548858', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%'),
 (60, 74, '2026-05-20 16:33:47', 435000.00, '15548908', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%'),
 (61, 75, '2026-05-20 19:16:03', 750000.00, '15548996', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%'),
-(62, 76, '2026-05-20 19:24:42', 360000.00, '15549001', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%');
+(62, 76, '2026-05-20 19:24:42', 360000.00, '15549001', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%'),
+(63, 78, '2026-05-23 23:26:46', 1005000.00, '15553190', '00', 'VNPAY', 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công', 'Đặt cọc 30%'),
+(64, 78, '2026-06-02 00:54:18', 2895000.00, '15565392', '00', 'VNPAY', 'Thanh toán trả phòng. ', 'Thanh toán phần còn lại');
 
 -- --------------------------------------------------------
 
@@ -369,8 +398,18 @@ CREATE TABLE `voucher` (
   `loai_voucher` enum('PHONG','DICH_VU','ALL') NOT NULL,
   `muc_giam` decimal(15,2) NOT NULL,
   `is_percent` tinyint(1) DEFAULT 0,
-  `ngay_het_han` date NOT NULL
+  `ngay_het_han` date NOT NULL,
+  `id_khachhang` int(10) UNSIGNED DEFAULT NULL,
+  `trang_thai` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1: đang hoạt động/phát hành, 0: đã tắt/khóa'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `voucher`
+--
+
+INSERT INTO `voucher` (`id_voucher`, `ma_code`, `loai_voucher`, `muc_giam`, `is_percent`, `ngay_het_han`, `id_khachhang`, `trang_thai`) VALUES
+(1, 'KMTRMX2NQL', 'PHONG', 100000.00, 0, '2026-06-03', NULL, 1),
+(2, 'KM130GLA4Q', 'ALL', 18.00, 1, '2026-06-04', NULL, 1);
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -474,7 +513,8 @@ ALTER TABLE `thanhtoan`
 --
 ALTER TABLE `voucher`
   ADD PRIMARY KEY (`id_voucher`),
-  ADD UNIQUE KEY `ma_code` (`ma_code`);
+  ADD UNIQUE KEY `ma_code` (`ma_code`),
+  ADD KEY `voucher_id_khachhang_index` (`id_khachhang`);
 
 --
 -- AUTO_INCREMENT cho các bảng đã đổ
@@ -484,13 +524,13 @@ ALTER TABLE `voucher`
 -- AUTO_INCREMENT cho bảng `bangluong`
 --
 ALTER TABLE `bangluong`
-  MODIFY `id_bangluong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_bangluong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT cho bảng `chamcong`
 --
 ALTER TABLE `chamcong`
-  MODIFY `id_chamcong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_chamcong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT cho bảng `combo`
@@ -502,7 +542,7 @@ ALTER TABLE `combo`
 -- AUTO_INCREMENT cho bảng `datphong`
 --
 ALTER TABLE `datphong`
-  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id_datphong` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT cho bảng `dichvu`
@@ -514,7 +554,7 @@ ALTER TABLE `dichvu`
 -- AUTO_INCREMENT cho bảng `hoadon`
 --
 ALTER TABLE `hoadon`
-  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id_hoadon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT cho bảng `khachhang`
@@ -526,7 +566,7 @@ ALTER TABLE `khachhang`
 -- AUTO_INCREMENT cho bảng `nhanvien`
 --
 ALTER TABLE `nhanvien`
-  MODIFY `id_nhanvien` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_nhanvien` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT cho bảng `phong`
@@ -538,25 +578,25 @@ ALTER TABLE `phong`
 -- AUTO_INCREMENT cho bảng `sudungdichvu`
 --
 ALTER TABLE `sudungdichvu`
-  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id_sudungdv` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT cho bảng `taikhoan`
 --
 ALTER TABLE `taikhoan`
-  MODIFY `id_taikhoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id_taikhoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT cho bảng `thanhtoan`
 --
 ALTER TABLE `thanhtoan`
-  MODIFY `id_thanhtoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id_thanhtoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT cho bảng `voucher`
 --
 ALTER TABLE `voucher`
-  MODIFY `id_voucher` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_voucher` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Các ràng buộc cho các bảng đã đổ

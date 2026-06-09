@@ -173,26 +173,29 @@
                 </ul>
 
                 <a href="#" class="design-link">Xem quy định áp dụng ></a>
+                @php
+                    $isComboAvailable = ($combo->available_rooms ?? null) !== null ? (($combo->available_rooms ?? 0) > 0 && ($combo->is_active ?? true)) : true;
+                @endphp
                 @auth
-    @if($phong->trang_thai === 'Trống')
-        <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
-           class="btn-booking">
-           ĐẶT PHÒNG NGAY
-        </a>
-    @else
-        <a href="javascript:void(0)"
-           class="btn-booking"
-           style="background-color: #ccc; color: #666; cursor: not-allowed; pointer-events: none;"
-           title="Phòng này đã được đặt hoặc không khả dụng"> HẾT PHÒNG
-        </a>
-    @endif
-@else
-    <a href="javascript:void(0)"
-       class="btn-booking"
-       data-bs-toggle="modal"
-       data-bs-target="#loginModal"> ĐẶT PHÒNG NGAY
-    </a>
-@endauth
+                    @if(isset($combo) && isset($isComboAvailable) ? $isComboAvailable : ($phong->trang_thai === 'Trống'))
+                        <a href="{{ route('booking.check', ['type' => (isset($combo) ? 'combo' : 'phong'), 'id' => (isset($combo) ? $combo->id_combo : $phong->id_phong)]) }}"
+                           class="btn-booking">
+                           ĐẶT PHÒNG NGAY
+                        </a>
+                    @else
+                        <a href="javascript:void(0)"
+                           class="btn-booking"
+                           style="background-color: #ccc; color: #666; cursor: not-allowed; pointer-events: none;"
+                           title="Đang tạm thời hết phòng hoặc Combo bị vô hiệu"> HẾT PHÒNG
+                        </a>
+                    @endif
+                @else
+                    <a href="javascript:void(0)"
+                       class="btn-booking"
+                       data-bs-toggle="modal"
+                       data-bs-target="#loginModal"> ĐẶT PHÒNG NGAY
+                    </a>
+                @endauth
             </div>
         </div>
 

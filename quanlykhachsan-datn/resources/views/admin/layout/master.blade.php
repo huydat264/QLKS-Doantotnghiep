@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>HotelManager - @yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -47,12 +48,13 @@
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.combo.*') ? 'active' : '' }}" href="{{ route('admin.combo.index') }}"><i class="bi bi-box-seam"></i> Combo</a></li>
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.hoadon.*') ? 'active' : '' }}" href="{{ route('admin.hoadon.index') }}"><i class="bi bi-receipt"></i> Quản lý Hóa Đơn</a></li>
 
+             <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 0.75rem; color: #6c757d;">Admin</li>
             @if(Auth::check() && strtoupper(trim(Auth::user()->role)) === 'ADMIN')
-                <li class="nav-item mt-3 mb-1 px-3 text-uppercase" style="font-size: 0.75rem; color: #6c757d;">Nội bộ & Thống kê</li>
+
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.nhanvien.*') ? 'active' : '' }}" href="{{ route('admin.nhanvien.index') }}"><i class="bi bi-person-badge"></i> Nhân viên</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.chamcong.*') ? 'active' : '' }}" href="{{ route('admin.chamcong.index') }}"><i class="bi bi-clock-history"></i> Chấm công</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.bangluong.*') ? 'active' : '' }}" href="{{ route('admin.bangluong.index') }}"><i class="bi bi-cash-coin"></i> Bảng lương</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.baocao.*') ? 'active' : '' }}" href="{{ route('admin.baocao.index') }}"><i class="bi bi-graph-up-arrow"></i> Báo cáo thống kê</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('admin.voucher.*') ? 'active' : '' }}" href="{{ route('admin.voucher.index') }}"><i class="bi bi-ticket-perforated"></i> Quản lý voucher</a></li>
             @endif
         </ul>

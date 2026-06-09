@@ -119,7 +119,11 @@
                     <div class="border-bottom py-2">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold small text-dark"><i class="bi {{ $tb['icon'] }} me-1"></i> {{ $tb['tieu_de'] }}</span>
-                            <small class="text-muted" style="font-size: 0.7rem;">{{ $tb['thoi_gian_str'] }}</small>
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                <span class="log-age" data-time="{{ $tb['thoi_gian'] }}">{{ $tb['thoi_gian_str'] }}</span>
+                                &nbsp;&middot;&nbsp;
+                                <span class="log-time" data-time="{{ $tb['thoi_gian'] }}">{{ \Carbon\Carbon::parse($tb['thoi_gian'])->format('d/m/Y H:i:s') }}</span>
+                            </small>
                         </div>
                         <p class="text-secondary mb-0 small" style="font-size: 0.8rem; line-height: 1.4;">{{ $tb['noi_dung'] }}</p>
                     </div>
@@ -224,16 +228,28 @@
         const rawLabels = {!! json_encode($pieLabels) !!};
         const rawValues = {!! json_encode($pieValues) !!};
 
-        if (rawLabels.length === 0) {
-            new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Tháng này chưa có doanh thu dịch vụ'],
-                    datasets: [{ data: [1], backgroundColor: ['#e2e8f0'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        function formatRelativeTime(seconds) {
+            if (seconds < 5) return 'Vừa xong';
+            if (seconds < 60) return `${seconds} giây trước`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`;
+            const days = Math.floor(seconds / 86400);
+            return days === 1 ? 'Hôm qua' : `${days} ngày trước`;
+        }
+
+        function refreshLiveLogAges() {
+            document.querySelectorAll('.log-age').forEach(el => {
+                const timestamp = el.dataset.time;
+                if (!timestamp) return;
+                const diffSeconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+                el.textContent = formatRelativeTime(Math.max(diffSeconds, 0));
             });
-        } else {
+        }
+
+        refreshLiveLogAges();
+        setInterval(refreshLiveLogAges, 1000);
+
+        if (rawLabels.length === 0) {
             // Định dạng format tiền VNĐ cho nhãn text hiển thị
             const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
 

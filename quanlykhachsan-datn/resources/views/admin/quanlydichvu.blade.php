@@ -10,6 +10,8 @@
     .btn-rounded { border-radius: 8px !important; font-weight: 600; font-size: 0.85rem; }
     .img-thumbnail-custom { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .text-truncate-custom { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+    .alert-card { border-radius: 18px; background: #f8fafc; border: 1px solid rgba(59, 130, 246, 0.12); }
+    .alert-card .bi { font-size: 1.5rem; }
 </style>
 
 <div class="card card-custom p-4">
@@ -29,6 +31,23 @@
             </button>
         </div>
     </div>
+
+    @if(session('success') || session('error'))
+        <div class="mb-4">
+            <div class="alert alert-{{ session('success') ? 'success' : 'danger' }} alert-dismissible fade show shadow-sm border-0 rounded-4 alert-card" role="alert">
+                <div class="d-flex align-items-start gap-3">
+                    <div>
+                        <i class="bi bi-{{ session('success') ? 'check-circle-fill text-success' : 'x-circle-fill text-danger' }}"></i>
+                    </div>
+                    <div>
+                        <strong>{{ session('success') ? 'Thành công!' : 'Lỗi!' }}</strong>
+                        <div class="mt-1">{{ session('success') ?? session('error') }}</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
 
     <div class="table-responsive rounded-3 border">
         <table class="table table-hover mb-0 align-middle">
@@ -182,18 +201,41 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body text-center p-4">
+                <div class="text-warning mb-3" style="font-size: 3rem;"><i class="bi bi-exclamation-circle-fill"></i></div>
+                <h6 class="fw-bold text-dark mb-2" id="confirmDeleteTitle">Xác nhận xóa dịch vụ</h6>
+                <p class="text-secondary small mb-4" id="confirmDeleteMessage">Bạn chắc chắn muốn xóa dịch vụ này?</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light btn-rounded px-4 w-50 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-dark btn-rounded px-4 w-50 fw-bold" id="btnConfirmDelete">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        let confirmDeleteCallback = null;
+
         function triggerConfirmation(title, message, callbackAction) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ title: title, text: message, icon: 'warning', showCancelButton: true, confirmButtonText: 'Đồng ý', cancelButtonText: 'Hủy' }).then((result) => {
-                    if (result.isConfirmed) { callbackAction(); }
-                });
-            } else {
-                if (confirm(`${title}\n\n${message}`)) { callbackAction(); }
-            }
+            $('#confirmDeleteTitle').text(title);
+            $('#confirmDeleteMessage').text(message);
+            confirmDeleteCallback = callbackAction;
+            $('#confirmDeleteModal').modal('show');
         }
+
+        $('#btnConfirmDelete').click(function() {
+            $('#confirmDeleteModal').modal('hide');
+            if (typeof confirmDeleteCallback === 'function') {
+                confirmDeleteCallback();
+                confirmDeleteCallback = null;
+            }
+        });
 
         // Bật Modal Sửa
         $('.btn-edit').click(function() {
@@ -218,12 +260,13 @@
         // Xóa dịch vụ
         $('.btn-delete').click(function() {
             let url = $(this).data('url');
+            let serviceName = $(this).data('name');
             let tempForm = $('<form>', { 'action': url, 'method': 'POST' })
                 .append($('<input>', { 'type': 'hidden', 'name': '_token', 'value': '{{ csrf_token() }}' }))
                 .append($('<input>', { 'type': 'hidden', 'name': '_method', 'value': 'DELETE' }));
 
             $('body').append(tempForm);
-            triggerConfirmation(`Xóa bỏ ${$(this).data('name')}?`, 'Hành động này sẽ gỡ bỏ dịch vụ.', function() { tempForm.submit(); });
+            triggerConfirmation(`Xóa dịch vụ "${serviceName}"?`, 'Hành động này sẽ gỡ bỏ dịch vụ và không thể hoàn tác.', function() { tempForm.submit(); });
         });
     });
 </script>

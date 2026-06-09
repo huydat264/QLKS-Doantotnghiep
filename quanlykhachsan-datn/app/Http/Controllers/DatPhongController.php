@@ -333,8 +333,27 @@ class DatPhongController extends Controller
                         $datPhongData['id_phong'] = $booking_id;
                         $datPhongData['id_combo'] = null;
                     } else {
-                        $datPhongData['id_phong'] = null;
+                        // For COMBO bookings: try to allocate a random available room
                         $datPhongData['id_combo'] = $booking_id;
+                        $datPhongData['id_phong'] = null;
+
+                        try {
+                            $combo = \App\Models\Combo::find($booking_id);
+                            if ($combo) {
+                                $availableRoom = DB::table('phong')
+                                    ->where('loai_phong', $combo->loai_phong_ap_dung)
+                                    ->where('trang_thai', 'Trống')
+                                    ->inRandomOrder()
+                                    ->first();
+
+                                if ($availableRoom) {
+                                    $datPhongData['id_phong'] = $availableRoom->id_phong;
+                                }
+                            }
+                        } catch (\Exception $allocEx) {
+                            // Allocation failed — leave id_phong as null and continue booking
+                            Log::warning('Room allocation for combo booking failed: ' . $allocEx->getMessage());
+                        }
                     }
 
                     $id_datphong = DB::table('datphong')->insertGetId($datPhongData);
@@ -356,7 +375,7 @@ class DatPhongController extends Controller
                     $id_hoadon = DB::table('hoadon')->insertGetId([
                         'id_datphong' => $id_datphong,
                         'tong_tien'   => $tong_thanh_toan,
-                        'ngay_xuat'   => Carbon::now()->toDateString()
+                        'ngay_xuat'   => Carbon::now()
                     ]);
 
                     //  Lưu Lịch sử Thanh toán vào bảng thanhtoan
@@ -371,10 +390,15 @@ class DatPhongController extends Controller
                         'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công'
                     ]);
 
-                    //  Cập nhật sơ đồ phòng
+                    //  Cập nhật sơ đồ phòng: nếu là đặt lẻ cập nhật phòng theo booking_id;
+                    //  nếu là COMBO và đã cấp phát được phòng, cập nhật trạng thái phòng đó.
                     if ($type == 'phong') {
                         DB::table('phong')
                             ->where('id_phong', $booking_id)
+                            ->update(['trang_thai' => 'Đã đặt']);
+                    } elseif (!empty($datPhongData['id_phong'])) {
+                        DB::table('phong')
+                            ->where('id_phong', $datPhongData['id_phong'])
                             ->update(['trang_thai' => 'Đã đặt']);
                     }
 

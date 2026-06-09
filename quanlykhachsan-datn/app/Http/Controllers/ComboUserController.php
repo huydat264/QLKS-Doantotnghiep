@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Combo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ComboUserController extends Controller
 {
@@ -17,6 +18,17 @@ class ComboUserController extends Controller
                 $query->where('gia_combo', '<=', $request->input('gia_max'));
             })
             ->get();
+
+        // Compute availability per combo
+        foreach ($combos as $combo) {
+            $combo->available_rooms = DB::table('phong')
+                ->where('loai_phong', $combo->loai_phong_ap_dung)
+                ->where('trang_thai', 'Trống')
+                ->count();
+
+            // handle optional active flag (if migration applied)
+            $combo->is_active = isset($combo->active) ? (bool)$combo->active : true;
+        }
 
         return view('user.combouser', compact('combos'));
     }

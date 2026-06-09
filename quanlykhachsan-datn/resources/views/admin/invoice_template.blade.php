@@ -9,7 +9,7 @@
         body { background-color: #f8f9fa; font-family: 'Arial', sans-serif; }
         .invoice-container { max-width: 800px; margin: 40px auto; background: #fff; padding: 40px; box-shadow: 0 0 15px rgba(0,0,0,0.1); border-radius: 8px; }
         .invoice-header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-        .invoice-title { letter-spacing: 2px; text-transform: uppercase; font-weight: 800; }
+        .invoice-title { font-family: 'Times New Roman', Times, serif; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; }
         .table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
 
         /* Ẩn nút khi bấm in */
@@ -23,9 +23,16 @@
 <body>
 
 <div class="container">
-    <div class="text-end mt-3 no-print">
-        <a href="{{ route('admin.thanhtoan.checkout', $datPhong->id_datphong) }}">Thanh toán</a>
-        <button onclick="window.print()" class="btn btn-primary fw-bold"><i class="bi bi-printer"></i> IN HÓA ĐƠN</button>
+    <div class="no-print mt-3">
+        <div class="row align-items-center">
+            <div class="col-4 text-start">
+                <a href="{{ route('admin.hoadon.index') }}" class="btn btn-outline-secondary fw-bold border">&larr; Quay lại</a>
+            </div>
+            <div class="col-4 text-center">
+                <button onclick="window.print()" class="btn btn-primary fw-bold"><i class="bi bi-printer"></i> IN HÓA ĐƠN</button>
+            </div>
+            <div class="col-4"></div>
+        </div>
     </div>
 
     <div class="invoice-container">

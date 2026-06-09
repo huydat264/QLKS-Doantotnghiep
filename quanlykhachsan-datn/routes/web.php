@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\KhachHangManagementController;
 use App\Http\Controllers\Admin\DichVuManagementController;
 use App\Http\Controllers\Admin\SuDungDichVuManagementController;
 use App\Http\Controllers\Admin\ThanhToanManagementController;
+use App\Http\Controllers\Admin\BaoCaoThongKeController;
 use App\Http\Controllers\Admin\ComboManagementController;
 use App\Http\Controllers\Admin\NhanVienManagementController;
 use App\Http\Controllers\Admin\ChamCongManagementController;
@@ -135,6 +136,7 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/quan-ly-combo/store', [\App\Http\Controllers\Admin\ComboManagementController::class, 'store'])->name('combo.store');
     Route::post('/quan-ly-combo/update/{id}', [\App\Http\Controllers\Admin\ComboManagementController::class, 'update'])->name('combo.update');
     Route::post('/quan-ly-combo/destroy/{id}', [\App\Http\Controllers\Admin\ComboManagementController::class, 'destroy'])->name('combo.destroy');
+    Route::post('/quan-ly-combo/toggle/{id}', [\App\Http\Controllers\Admin\ComboManagementController::class, 'toggle'])->name('combo.toggle');
     // Nhóm route Quản lý Voucher
     Route::get('/quan-ly-voucher', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'index'])->name('voucher.index');
     Route::post('/quan-ly-voucher/store', [\App\Http\Controllers\Admin\VoucherManagementController::class, 'store'])->name('voucher.store');
@@ -148,4 +150,8 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/thanh-toan/vnpay-return/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'vnpayReturn'])->name('thanhtoan.vnpay_return'); // Tuyến này hứng dữ liệu VNPay
     Route::get('/thanh-toan/invoice/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'showInvoice'])->name('thanhtoan.invoice');
     Route::get('/hoa-don', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'danhSachHoaDon'])->name('hoadon.index');
+    // Phân hệ Báo cáo Thống kê & Dự báo
+    Route::get('/baocao-thongke', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'index'])->name('baocao.index');
+    Route::get('/baocao-thongke/data-so-sanh', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getComparisonData'])->name('baocao.comparison');
+    Route::get('/baocao-thongke/du-bao', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getForecastData'])->name('baocao.forecast');
 });

@@ -45,7 +45,7 @@
                     <td class="fw-bold text-success text-end">{{ number_format($hd->tong_tien, 0, ',', '.') }} đ</td>
                     <td class="text-center">
                         <a href="{{ route('admin.thanhtoan.invoice', $hd->id_datphong) }}" class="btn btn-sm btn-outline-primary btn-rounded" target="_blank">
-                            <i class="bi bi-printer"></i> Xem / In lại
+                            <i class="bi bi-printer"></i> Xem / In hoá đơn
                         </a>
                     </td>
                 </tr>

@@ -42,6 +42,21 @@
     .modal-content-custom { border-radius: 18px; border: none; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
     .modal-header-blue { background-color: #2563eb; color: white; border-top-left-radius: 18px; border-top-right-radius: 18px; }
     .modal-header-red { background-color: #dc2626; color: white; border-top-left-radius: 18px; border-top-right-radius: 18px; }
+    .table-scroll-wrapper { position: relative; border-radius: 14px; overflow: hidden; }
+    .table-scrollbar { overflow-x: auto; overflow-y: hidden; }
+    .table-scrollbar.top-scrollbar { margin-bottom: 10px; height: 10px; border-radius: 999px; background: #f8fafc; }
+    .table-scrollbar.bottom-scrollbar { max-width: 100%; height: auto; }
+    .table-scrollbar .scrollbar-content { height: 1px; }
+    .table-scrollbar::-webkit-scrollbar { height: 10px; }
+    .table-scrollbar::-webkit-scrollbar-track { background: transparent; border-radius: 999px; }
+    .table-scrollbar::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.5); border-radius: 999px; min-height: 30px; border: 2px solid #f8fafc; }
+    .table-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.75); }
+    .table-responsive { overflow-x: auto; overflow-y: hidden; border-radius: 14px; }
+    .table-responsive { scrollbar-color: rgba(37, 99, 235, 0.55) #f8fafc; scrollbar-width: thin; }
+    .table-responsive::-webkit-scrollbar { height: 10px; }
+    .table-responsive::-webkit-scrollbar-track { background: #f8fafc; border-radius: 999px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.55); border-radius: 999px; min-height: 30px; border: 2px solid #f8fafc; }
+    .table-responsive::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.75); }
 </style>
 
 <div class="card card-custom p-4">
@@ -60,8 +75,12 @@
         </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+    <div class="table-scroll-wrapper">
+        <div class="table-scrollbar top-scrollbar">
+            <div class="scrollbar-content"></div>
+        </div>
+        <div class="table-responsive bottom-scrollbar">
+            <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th width="40" class="text-center"><input type="checkbox" id="selectAllRooms" class="form-check-input" style="width:18px; height:18px;"></th>
@@ -179,8 +198,8 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
-</div>
 
 <div class="modal fade" id="editRoomModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -324,6 +343,13 @@
 <script>
     $(document).ready(function() {
         let activeFormToSubmit = null;
+        let $topScrollbar = $('.top-scrollbar');
+        let $tableContainer = $('.bottom-scrollbar');
+
+        function syncTableScrollbars() {
+            let $table = $tableContainer.find('table');
+            $topScrollbar.find('.scrollbar-content').width($table.outerWidth() || 0);
+        }
 
         function triggerConfirmation(title, message, callbackAction) {
             $('#confirmTitle').text(title);
@@ -331,6 +357,17 @@
             $('#confirmActionModal').modal('show');
             activeFormToSubmit = callbackAction;
         }
+
+        $topScrollbar.on('scroll', function() {
+            $tableContainer.scrollLeft($(this).scrollLeft());
+        });
+
+        $tableContainer.on('scroll', function() {
+            $topScrollbar.scrollLeft($(this).scrollLeft());
+        });
+
+        $(window).on('resize', syncTableScrollbars);
+        setTimeout(syncTableScrollbars, 50);
 
         $('#btnConfirmExecute').click(function() {
             $('#confirmActionModal').modal('hide');

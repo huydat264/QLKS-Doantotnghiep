@@ -103,7 +103,7 @@
                     <div class="text-end mt-4">
                         <a href="javascript:history.back()" class="btn btn-secondary px-4 me-2">Quay lại</a>
                         <button type="submit" class="btn btn-success px-5 fw-bold fs-5 shadow-sm" onclick="return confirm('Xác nhận thu tiền và trả phòng?')">
-                            <i class="bi bi-check-circle me-2"></i> HOÀN TẤT THANH TOÁN
+                            <i class="bi bi-check-circle me-2"></i> XÁC NHẬN THANH TOÁN
                         </button>
                     </div>
                 </form>

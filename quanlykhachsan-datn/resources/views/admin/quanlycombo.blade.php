@@ -36,6 +36,7 @@
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
+                        <th>Trạng thái</th>
                     <th>Mã Combo</th>
                     <th>Ảnh</th>
                     <th>Tên Combo</th>
@@ -51,6 +52,15 @@
             <tbody>
                 @foreach($combos as $cb)
                 <tr>
+                    <td>
+                        @if(isset($cb->is_active) && !$cb->is_active)
+                            <span class="badge bg-secondary">Vô hiệu</span>
+                        @elseif(isset($cb->available_rooms) && $cb->available_rooms == 0)
+                            <span class="badge bg-danger">Hết phòng</span>
+                        @else
+                            <span class="badge bg-success">Hoạt động</span>
+                        @endif
+                    </td>
                     <td class="fw-bold text-primary">CB-{{ $cb->id_combo }}</td>
                     <td>
                         @if($cb->hinh_anh)
@@ -97,6 +107,10 @@
                             data-hinhanh="{{ $cb->hinh_anh ? asset($cb->hinh_anh) : '' }}"
                             data-dichvu='@json($cb->dichvu_ids)'>
                             Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary btn-rounded btn-toggle-active ms-1"
+                            data-id="{{ $cb->id_combo }}">
+                            {{ (isset($cb->is_active) && !$cb->is_active) ? 'Kích hoạt' : 'Vô hiệu' }}
                         </button>
                         <form action="{{ route('admin.combo.destroy', $cb->id_combo) }}" method="POST" class="d-inline">
                             @csrf
@@ -160,6 +174,13 @@
                 <div class="col-md-6">
                     <label class="form-label fw-bold text-danger">Điều khoản áp dụng</label>
                     <textarea name="dieu_khoan" class="form-control" rows="2" placeholder="Ví dụ: Không áp dụng hoàn huỷ phòng, không sử dụng đồng thời khuyến mãi khác..."></textarea>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="active" id="create_active" checked>
+                        <label class="form-check-label">Kích hoạt Combo (cho phép đặt phòng)</label>
+                    </div>
                 </div>
 
                 <div class="col-md-12 mt-3">
@@ -264,6 +285,12 @@
                         @endforeach
                     </div>
                 </div>
+                <div class="col-md-12 mt-2">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="active" id="edit_active">
+                        <label class="form-check-label">Kích hoạt Combo (cho phép đặt phòng)</label>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -330,6 +357,40 @@
         attachServiceToggle('#createComboModal');
         attachServiceToggle('#editComboModal');
 
+            // Toggle active via AJAX
+            document.querySelectorAll('.btn-toggle-active').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let id = this.dataset.id;
+                    let el = this;
+                    fetch("{{ url('/admin/quan-ly-combo/toggle') }}/" + id, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    }).then(r => r.json()).then(js => {
+                        if (js.success) {
+                            // Update badge in the same table row
+                            let row = el.closest('tr');
+                            let badgeCell = row.querySelector('td:first-child');
+                            if (badgeCell) {
+                                if (js.active) {
+                                    badgeCell.innerHTML = '<span class="badge bg-success">Hoạt động</span>';
+                                    el.textContent = 'Vô hiệu';
+                                } else {
+                                    badgeCell.innerHTML = '<span class="badge bg-secondary">Vô hiệu</span>';
+                                    el.textContent = 'Kích hoạt';
+                                }
+                            }
+                        } else {
+                            alert('Không thể thay đổi trạng thái: ' + (js.message || 'Lỗi'));
+                        }
+                    }).catch(e => { alert('Lỗi mạng hoặc máy chủ'); });
+                });
+            });
+
         // --- 2. Xử lý logic Đổ dữ liệu vào Modal Sửa ---
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -341,6 +402,12 @@
                 document.getElementById('edit_mo_ta').value = this.dataset.mota || '';
                 document.getElementById('edit_quyen_loi').value = this.dataset.quyenloi || '';
                 document.getElementById('edit_dieu_khoan').value = this.dataset.dieukhoan || '';
+
+                // active flag
+                try {
+                    let isActive = (typeof this.dataset.active !== 'undefined') ? (this.dataset.active === '1' || this.dataset.active === 'true') : true;
+                    document.getElementById('edit_active').checked = isActive;
+                } catch (e) {}
 
                 // Hiển thị preview hình ảnh hiện tại
                 let previewArea = document.getElementById('img_preview_area');

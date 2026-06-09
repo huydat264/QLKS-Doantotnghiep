@@ -45,36 +45,36 @@ $doanhThuHomNay = ThanhToan::whereDate('ngay_thanh_toan', $today)
         // Thao tác 1: Nhân viên đặt phòng hoặc cập nhật trạng thái đơn đặt
         $logsDatPhong = DatPhong::with('khachhang')
             ->orderBy('ngay_dat', 'desc')
-            ->limit(3)
+            ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
                     'icon' => 'bi-calendar-check-fill text-primary',
                     'tieu_de' => 'Thao tác Đặt phòng',
                     'noi_dung' => 'Xử lý đơn #' . $item->id_datphong . ' cho khách ' . ($item->khachhang->ho_ten ?? 'Ẩn danh') . ' (Trạng thái: ' . $item->trang_thai . ')',
-                    'thoi_gian' => Carbon::parse($item->ngay_dat)
+                    'thoi_gian' => Carbon::parse($item->ngay_dat)->startOfDay()->toDateTimeString()
                 ];
             });
 
         // Thao tác 2: Nhân viên nhập thông tin / gọi thêm dịch vụ cho khách
         $logsDichVu = DB::table('sudungdichvu')
             ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->select('dichvu.ten_dich_vu', 'sudungdichvu.so_luong', 'sudungdichvu.id_sudungdv')
+            ->select('dichvu.ten_dich_vu', 'sudungdichvu.so_luong', 'sudungdichvu.id_sudungdv', 'sudungdichvu.ngay_su_dung')
             ->orderBy('sudungdichvu.id_sudungdv', 'desc')
-            ->limit(3)
+            ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
                     'icon' => 'bi-box-seam-fill text-info',
                     'tieu_de' => 'Thao tác Dịch vụ',
                     'noi_dung' => 'Nhân viên thêm dịch vụ: ' . $item->ten_dich_vu . ' (Số lượng: ' . $item->so_luong . ')',
-                    'thoi_gian' => Carbon::now()->subSeconds($item->id_sudungdv)
+                    'thoi_gian' => Carbon::parse($item->ngay_su_dung)->startOfDay()->toDateTimeString()
                 ];
             });
 
         // Thao tác 3: Nhân viên thực hiện thanh toán hóa đơn / Checkout xuất phòng
         $logsThanhToan = ThanhToan::orderBy('ngay_thanh_toan', 'desc')
-            ->limit(3)
+            ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
@@ -91,7 +91,7 @@ $doanhThuHomNay = ThanhToan::whereDate('ngay_thanh_toan', $today)
             ->merge($logsDichVu)
             ->merge($logsThanhToan)
             ->sortByDesc('thoi_gian')
-            ->take(5)
+            ->take(10)
             ->map(function($item) {
                 $item['thoi_gian_str'] = Carbon::parse($item['thoi_gian'])->diffForHumans();
                 return $item;

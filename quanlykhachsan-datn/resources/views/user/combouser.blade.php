@@ -333,20 +333,30 @@
                 </div>
             </div>
 
-            <div class="booking-bar mt-4">
+                <div class="booking-bar mt-4">
                 <span class="text-muted" style="font-size: 14px;">Giá trọn gói: {{ number_format($combo->gia_combo, 0, ',', '.') }} VNĐ</span>
-                @auth
-    <a href="{{ route('booking.check', ['type' => 'combo', 'id' => $combo->id_combo]) }}"
-       class="btn btn-book text-decoration-none">
-       ĐẶT PHÒNG
-    </a>
-@else
-    <a href="javascript:void(0)"
-       class="btn btn-book text-decoration-none"
-       data-bs-toggle="modal"
-       data-bs-target="#loginModal"> ĐẶT PHÒNG
-    </a>
-@endauth
+                @php
+                    $isAvailable = ($combo->available_rooms ?? 0) > 0 && ($combo->is_active ?? true);
+                @endphp
+                @if(!$isAvailable)
+                    <a href="javascript:void(0)"
+                       class="btn btn-book text-decoration-none"
+                       style="background-color: #ccc; color: #666; cursor: not-allowed; pointer-events: none;"> HẾT PHÒNG
+                    </a>
+                @else
+                    @auth
+                        <a href="{{ route('booking.check', ['type' => 'combo', 'id' => $combo->id_combo]) }}"
+                           class="btn btn-book text-decoration-none">
+                           ĐẶT PHÒNG
+                        </a>
+                    @else
+                        <a href="javascript:void(0)"
+                           class="btn btn-book text-decoration-none"
+                           data-bs-toggle="modal"
+                           data-bs-target="#loginModal"> ĐẶT PHÒNG
+                        </a>
+                    @endauth
+                @endif
             </div>
         </div>
     </div>
