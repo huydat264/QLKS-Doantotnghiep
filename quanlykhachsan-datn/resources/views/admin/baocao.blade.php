@@ -121,6 +121,28 @@
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h5 class="fw-bold text-dark mb-4 text-center">Tần Suất Sử Dụng Dịch Vụ</h5>
+            <div style="height: 250px;"><canvas id="chartTanSuatDichVu"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h5 class="fw-bold text-dark mb-4 text-center">Thống Kê Khách Hàng</h5>
+            <small class="text-center text-muted d-block mb-3">(Theo {{ $kieuLoc }}: {{ $giaTriLoc }})</small>
+            <div style="height: 250px;"><canvas id="chartKhachHangTrend"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h5 class="fw-bold text-dark mb-4 text-center">Chi Phí Lương Nhân Viên</h5>
+            <small class="text-center text-muted d-block mb-3">(Theo {{ $kieuLoc }}: {{ $giaTriLoc }})</small>
+            <div style="height: 250px;"><canvas id="chartLuongTrend"></canvas></div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="modalSoSanh" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -227,14 +249,13 @@
 
         Chart.defaults.scale.grid.display = false; // Tắt toàn bộ lưới kẻ
 
-        // 1. Dòng Tiền & Khấu Hao (Hai cột song song, cho phép vẽ ngược xuống dưới mốc 0)
+        // 1. Dòng Tiền & Khấu Hao
         const d_doanhThuGoc = {!! json_encode($doanhThuData->pluck('doanh_thu_goc')) !!};
         const d_doanhThuRong = {!! json_encode($doanhThuData->pluck('doanh_thu_rong')) !!};
         const d_chiPhiLuong = {!! json_encode($doanhThuData->pluck('chi_phi_luong')) !!};
         const d_chiPhiDichVu = {!! json_encode($doanhThuData->pluck('chi_phi_dich_vu')) !!};
         const d_chiPhiVanHanh = {!! json_encode($doanhThuData->pluck('chi_phi_van_hanh')) !!};
 
-        // Tạo mảng màu động cho cột Lợi nhuận (Âm màu đỏ, Dương màu xanh)
         const bgColorsRong = d_doanhThuRong.map(value => value < 0 ? '#ef4444' : '#10b981');
         const safeNumber = value => {
             if (value === null || value === undefined || value === '') return 0;
@@ -440,6 +461,68 @@
                 }
             },
             plugins: [percentLabelPlugin]
+        });
+
+        // ================= KHU VỰC THÊM MỚI SCRIPT 2 BIỂU ĐỒ =================
+
+        // 7. Biểu đồ thống kê biến động khách hàng
+        const d_tongKhach = {!! json_encode($doanhThuData->pluck('tong_khach')) !!};
+        const d_khachMoi = {!! json_encode($doanhThuData->pluck('khach_moi')) !!};
+        new Chart(document.getElementById('chartKhachHangTrend'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($doanhThuData->pluck('thoi_gian')) !!},
+                datasets: [
+                    {
+                        label: 'Tổng số khách',
+                        data: d_tongKhach,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Khách hàng mới',
+                        data: d_khachMoi,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 8. Biểu đồ thống kê biến động Chi Phí Lương (Ăn theo kỳ lọc Tháng/Quý/Năm)
+        new Chart(document.getElementById('chartLuongTrend'), {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($doanhThuData->pluck('thoi_gian')) !!},
+                datasets: [{
+                    label: 'Chi phí lương trả cho nhân viên',
+                    data: d_chiPhiLuong,
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        ticks: { callback: value => value.toLocaleString('vi-VN') + ' đ' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => `Chi phí: ${safeNumber(context.raw).toLocaleString('vi-VN')} đ`
+                        }
+                    }
+                }
+            }
         });
 
     });

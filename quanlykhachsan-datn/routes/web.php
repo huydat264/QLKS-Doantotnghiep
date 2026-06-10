@@ -147,6 +147,7 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/thanh-toan', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'index'])->name('thanhtoan.index');
     Route::get('/thanh-toan/checkout/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'checkout'])->name('thanhtoan.checkout');
     Route::post('/thanh-toan/process/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'processCheckout'])->name('thanhtoan.process');
+    Route::post('/thanh-toan/save-tam-ung/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'saveTamUng'])->name('thanhtoan.save_tam_ung');
     Route::get('/thanh-toan/vnpay-return/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'vnpayReturn'])->name('thanhtoan.vnpay_return'); // Tuyến này hứng dữ liệu VNPay
     Route::get('/thanh-toan/invoice/{id}', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'showInvoice'])->name('thanhtoan.invoice');
     Route::get('/hoa-don', [\App\Http\Controllers\Admin\ThanhToanManagementController::class, 'danhSachHoaDon'])->name('hoadon.index');

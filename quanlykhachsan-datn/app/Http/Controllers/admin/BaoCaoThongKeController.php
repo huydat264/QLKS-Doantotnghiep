@@ -88,8 +88,8 @@ class BaoCaoThongKeController extends Controller
                 ];
             }
         } elseif ($kieuLoc == 'thang') {
-            $parts = explode('-', $giaTriLoc);
-            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, (int)$parts[1], (int)$parts[0]);
+            [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
+            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
             for ($i = 1; $i <= $daysInMonth; $i++) {
                 $thoiGian = sprintf('%02d', $i);
                 $dtGoc = $rawData[$thoiGian] ?? 0;
@@ -125,6 +125,32 @@ class BaoCaoThongKeController extends Controller
             }
         }
         $doanhThuData = collect($doanhThuData);
+
+        // ================= [THÊM MỚI] THỐNG KÊ LƯỢNG KHÁCH (TỔNG & MỚI THEO KỲ) =================
+        $qAllKhach = DB::table('datphong');
+        $this->applyDateFilter($qAllKhach, $kieuLoc, $giaTriLoc, 'ngay_nhan');
+        $rawKhach = $qAllKhach->select(DB::raw("DATE_FORMAT(ngay_nhan, '$formatGroup') as thoi_gian"), DB::raw("COUNT(DISTINCT id_khachhang) as tong_khach"))
+            ->groupBy('thoi_gian')->pluck('tong_khach', 'thoi_gian')->toArray();
+
+        // Subquery lấy ngày đặt phòng đầu tiên của mỗi khách hàng
+        $firstBookings = DB::table('datphong')
+            ->select('id_khachhang', DB::raw('MIN(ngay_nhan) as first_date'))
+            ->groupBy('id_khachhang');
+
+        $qKhachMoi = DB::table(DB::raw("({$firstBookings->toSql()}) as first_bookings"))
+            ->mergeBindings($firstBookings);
+        $this->applyDateFilter($qKhachMoi, $kieuLoc, $giaTriLoc, 'first_date');
+        $rawKhachMoi = $qKhachMoi->select(DB::raw("DATE_FORMAT(first_date, '$formatGroup') as thoi_gian"), DB::raw("COUNT(DISTINCT id_khachhang) as khach_moi"))
+            ->groupBy('thoi_gian')->pluck('khach_moi', 'thoi_gian')->toArray();
+
+        // Gắn dữ liệu khách hàng vào mảng chung để vẽ biểu đồ đồng bộ
+        $doanhThuData->transform(function ($item) use ($rawKhach, $rawKhachMoi) {
+            preg_match('/\d+/', $item->thoi_gian, $matches);
+            $key = sprintf('%02d', $matches[0] ?? 0);
+            $item->tong_khach = $rawKhach[$key] ?? 0;
+            $item->khach_moi = $rawKhachMoi[$key] ?? 0;
+            return $item;
+        });
 
         // ================= 3. TRẠNG THÁI PHÒNG (DỰA TRÊN ĐẶT PHÒNG THỰC TẾ TRONG KỲ) =================
         $bookedRoomsQuery = DB::table('datphong')->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')->select('phong.so_phong')->distinct();
@@ -364,8 +390,8 @@ class BaoCaoThongKeController extends Controller
             return $query->whereYear($dateColumn, $giaTriLoc);
         }
         if ($kieuLoc === 'thang') {
-            $parts = explode('-', $giaTriLoc);
-            return $query->whereYear($dateColumn, $parts[0])->whereMonth($dateColumn, $parts[1] ?? date('m'));
+            [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
+            return $query->whereYear($dateColumn, $year)->whereMonth($dateColumn, $month);
         }
         if ($kieuLoc === 'ngay') {
             return $query->whereDate($dateColumn, $giaTriLoc);
@@ -378,6 +404,31 @@ class BaoCaoThongKeController extends Controller
             return $query->whereYear($dateColumn, $year)->whereBetween(DB::raw("MONTH($dateColumn)"), [$startMonth, $startMonth + 2]);
         }
         return $query;
+    }
+
+    private function normalizeYearMonth($giaTriLoc)
+    {
+        if (is_string($giaTriLoc) && preg_match('/^(\d{4})-(\d{1,2})$/', $giaTriLoc, $matches)) {
+            $year = (int) $matches[1];
+            $month = (int) $matches[2];
+            if (checkdate($month, 1, $year)) {
+                return [$year, $month];
+            }
+        }
+        return [(int) date('Y'), (int) date('m')];
+    }
+
+    private function parseDateOrToday($format, $value)
+    {
+        try {
+            $date = Carbon::createFromFormat($format, $value);
+            if ($date && $date->format($format) === $value) {
+                return $date;
+            }
+        } catch (\Exception $e) {
+        }
+
+        return Carbon::today();
     }
 
     private function buildSalaryCostByPeriod($kieuLoc, $giaTriLoc)
@@ -409,9 +460,7 @@ class BaoCaoThongKeController extends Controller
                 $result[$key] = $rows[$key] ?? 0;
             }
         } elseif ($kieuLoc === 'thang') {
-            $parts = explode('-', $giaTriLoc);
-            $year = (int) $parts[0];
-            $month = (int) ($parts[1] ?? date('m'));
+            [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
             $monthlyTotal = DB::table('bangluong')
                 ->where('nam', $year)
@@ -422,7 +471,7 @@ class BaoCaoThongKeController extends Controller
                 $result[sprintf('%02d', $day)] = $dailyAvg;
             }
         } else {
-            $date = Carbon::createFromFormat('Y-m-d', $giaTriLoc);
+            $date = $this->parseDateOrToday('Y-m-d', $giaTriLoc);
             $year = $date->year;
             $month = $date->month;
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -474,9 +523,7 @@ class BaoCaoThongKeController extends Controller
                 $result[sprintf('%02d', $month)] = $rows[sprintf('%02d', $month)] ?? 0;
             }
         } elseif ($kieuLoc === 'thang') {
-            $parts = explode('-', $giaTriLoc);
-            $year = (int) $parts[0];
-            $month = (int) ($parts[1] ?? date('m'));
+            [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
             $rows = DB::table('sudungdichvu')
                 ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
@@ -491,7 +538,7 @@ class BaoCaoThongKeController extends Controller
                 $result[sprintf('%02d', $day)] = $rows[sprintf('%02d', $day)] ?? 0;
             }
         } else {
-            $date = Carbon::createFromFormat('Y-m-d', $giaTriLoc)->toDateString();
+            $date = $this->parseDateOrToday('Y-m-d', $giaTriLoc)->toDateString();
             $total = DB::table('sudungdichvu')
                 ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
                 ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
