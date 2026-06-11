@@ -77,12 +77,17 @@ class DatPhongController extends Controller
             }
             return false;
         });
+        $vouchers = DB::table('voucher')
+    ->where('trang_thai', 1)
+    ->whereNull('id_khachhang')
+    ->where('ngay_het_han', '>=', now()->toDateString())
+    ->get();
         $dvNgoaiLe = $dichVus->diff($dvLuuTru);
 
         $defaultCheckin = Carbon::today()->toDateString();
         $defaultCheckout = Carbon::today()->addDay()->toDateString();
 
-        return view('user.dichvubooking', compact('item', 'type', 'dvLuuTru', 'dvNgoaiLe', 'defaultCheckin', 'defaultCheckout'));
+        return view('user.dichvubooking', compact('vouchers','item', 'type', 'dvLuuTru', 'dvNgoaiLe', 'defaultCheckin', 'defaultCheckout'));
     }
 
     // Xử lý dữ liệu chọn ngày và dịch vụ bổ trợ
@@ -91,6 +96,7 @@ class DatPhongController extends Controller
         $request->validate([
             'ngay_nhan' => 'required|date|after_or_equal:today',
             'ngay_tra'  => 'required|date|after:ngay_nhan',
+            'id_voucher' => 'nullable|exists:voucher,id_voucher',
         ]);
 
         $ngay_nhan = \Carbon\Carbon::parse($request->ngay_nhan);
@@ -126,12 +132,14 @@ class DatPhongController extends Controller
             ];
         }
 
+        // Lưu thêm ID Voucher vào session để hàm showConfirmation tính toán lại
         session([
             'ngay_nhan'          => $request->ngay_nhan,
             'ngay_tra'           => $request->ngay_tra,
             'so_dem'             => $so_dem,
             'booking_dich_vus'   => $dich_vu_session_data,
-            'tong_tien_dich_vu'  => (int)$tong_tien_dich_vu
+            'tong_tien_dich_vu'  => (int)$tong_tien_dich_vu,
+            'applied_voucher_id' => $request->input('id_voucher'),
         ]);
 
         return redirect()->route('booking.confirm');
@@ -158,14 +166,46 @@ class DatPhongController extends Controller
             $roomTotal = $roomPrice;
         }
 
-        $totalAmount = $roomTotal + $serviceTotal;
+        $discountAmount = 0;
+        $voucher = null;
+        $appliedVoucherId = session('applied_voucher_id');
+
+        if ($appliedVoucherId) {
+            $voucher = DB::table('voucher')
+                ->where('id_voucher', $appliedVoucherId)
+                ->where('trang_thai', 1)
+                ->where('ngay_het_han', '>=', now()->toDateString())
+                ->first();
+        }
+
+        if ($voucher) {
+            $totalBeforeDiscount = $roomTotal + $serviceTotal;
+            if ($voucher->loai_voucher === 'PHONG') {
+                $discountAmount = $voucher->is_percent ? round($roomTotal * ($voucher->muc_giam / 100)) : (int)$voucher->muc_giam;
+                if ($discountAmount > $roomTotal) {
+                    $discountAmount = $roomTotal;
+                }
+            } elseif ($voucher->loai_voucher === 'DICH_VU') {
+                $discountAmount = $voucher->is_percent ? round($serviceTotal * ($voucher->muc_giam / 100)) : (int)$voucher->muc_giam;
+                if ($discountAmount > $serviceTotal) {
+                    $discountAmount = $serviceTotal;
+                }
+            } else {
+                $discountAmount = $voucher->is_percent ? round(($roomTotal + $serviceTotal) * ($voucher->muc_giam / 100)) : (int)$voucher->muc_giam;
+                if ($discountAmount > $totalBeforeDiscount) {
+                    $discountAmount = $totalBeforeDiscount;
+                }
+            }
+        }
+
+        $totalAmount = max(0, $roomTotal + $serviceTotal - $discountAmount);
         $depositAmount = (int)round($totalAmount * 0.3);
 
         session(['tong_thanh_toan' => (int)$totalAmount]);
 
         return view('user.xacnhanbooking', compact(
             'khachHang', 'item', 'type', 'bookingServices', 'serviceTotal',
-            'ngay_nhan', 'ngay_tra', 'so_dem', 'roomTotal', 'totalAmount', 'depositAmount'
+            'ngay_nhan', 'ngay_tra', 'so_dem', 'roomTotal', 'totalAmount', 'depositAmount', 'discountAmount', 'voucher'
         ));
     }
 

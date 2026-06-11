@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\NhanVienManagementController;
 use App\Http\Controllers\Admin\ChamCongManagementController;
 use App\Http\Controllers\Admin\BangLuongManagementController;
 use App\Http\Controllers\Admin\VoucherManagementController;
+use App\Http\Controllers\Admin\TaiKhoanManagementController;
+use App\Models\KhachHang;
 use App\Models\TaiKhoan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -155,4 +157,11 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/baocao-thongke', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'index'])->name('baocao.index');
     Route::get('/baocao-thongke/data-so-sanh', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getComparisonData'])->name('baocao.comparison');
     Route::get('/baocao-thongke/du-bao', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getForecastData'])->name('baocao.forecast');
-});
+    // Nhóm route Quản lý Tài khoản
+    Route::get('/quan-ly-tai-khoan', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'index'])->name('taikhoan.index');
+    Route::post('/quan-ly-tai-khoan/store', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'store'])->name('taikhoan.store');
+    Route::post('/quan-ly-tai-khoan/update/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'update'])->name('taikhoan.update');
+    Route::post('/quan-ly-tai-khoan/toggle-status/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'toggleStatus'])->name('taikhoan.toggle');
+});// Tuyến đường xem hồ sơ cá nhân của Nhân viên/Admin đang đăng nhập
+Route::get('/ho-so-ca-nhan', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'showProfile'])->name('admin.hoso');
+

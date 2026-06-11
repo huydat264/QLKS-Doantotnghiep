@@ -132,7 +132,7 @@
                                         <option value="{{ $kh->id_khachhang }}">{{ $kh->ho_ten }} ({{ $kh->so_dien_thoai }})</option>
                                     @endforeach
                                 </select>
-                                <button type="button" class="btn btn-dark" id="btn_new_customer"><i class="bi bi-person-plus"></i> Khách hàng mới</button>
+                                <a href="{{ route('admin.khachhang.index') }}" class="btn btn-dark"><i class="bi bi-person-plus"></i> Khách hàng mới</a>
                             </div>
                         </div>
                         <div class="col-md-5">
@@ -262,10 +262,6 @@
         }
 
         // Bấm nút Khách hàng mới (Tạm thời thông báo thiết lập sau)
-        $('#btn_new_customer').click(function() {
-            alert('Chức năng chuyển hướng sang form thông tin khách hàng mới sẽ được thiết lập sau theo yêu cầu của mày!');
-        });
-
         // Click Mở Modal Sửa Đơn Đặt Phòng
         $('.btn-edit').click(function() {
             let id = $(this).data('id');

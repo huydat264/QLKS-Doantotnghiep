@@ -96,6 +96,61 @@
                 </div>
 
                 <div class="col-lg-4 mt-4 mt-lg-0">
+                    <h4 class="category-title" style="margin-top: 0;">Ưu đãi & Voucher</h4>
+                    <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3">
+                        @if(isset($vouchers) && $vouchers->isNotEmpty())
+                            <div class="d-flex flex-column gap-2">
+                                <div class="p-2 border rounded service-item bg-light">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input voucher-radio" type="radio" name="id_voucher" id="voucher_none" value="" checked data-type="NONE" data-discount="0" data-percent="0" data-code="">
+                                        <label class="form-check-label fw-bold text-secondary mb-0 ms-1" for="voucher_none">
+                                            Không sử dụng mã giảm giá
+                                        </label>
+                                    </div>
+                                </div>
+
+                                @foreach($vouchers as $vc)
+                                    @php
+                                        $isCombo = session('booking_type') == 'combo';
+                                        $isDisabledPhong = ($vc->loai_voucher == 'PHONG' && $isCombo);
+                                    @endphp
+                                    <div class="p-2 border rounded service-item voucher-wrapper {{ $isDisabledPhong ? 'opacity-50 text-muted' : '' }}" id="wrapper_vc_{{ $vc->id_voucher }}" style="background: #fff;">
+                                        <div class="form-check mb-0 d-flex align-items-start justify-content-between">
+                                            <div class="d-flex align-items-start">
+                                                <input class="form-check-input voucher-radio" type="radio" name="id_voucher" id="vc_{{ $vc->id_voucher }}" value="{{ $vc->id_voucher }}"
+                                                    {{ $isDisabledPhong ? 'disabled' : '' }}
+                                                    data-type="{{ $vc->loai_voucher }}"
+                                                    data-discount="{{ $vc->muc_giam }}"
+                                                    data-percent="{{ $vc->is_percent }}"
+                                                    data-code="{{ $vc->ma_code }}">
+
+                                                <label class="form-check-label mb-0 ms-2" for="vc_{{ $vc->id_voucher }}">
+                                                    <span class="badge bg-danger-subtle text-danger fw-bold border border-danger border-dashed px-2 py-1 mb-1">{{ $vc->ma_code }}</span>
+                                                    <div class="small text-muted mb-1">
+                                                        <strong class="text-dark">
+                                                            @if($vc->loai_voucher == 'PHONG') Voucher giảm giá tiền phòng
+                                                            @elseif($vc->loai_voucher == 'DICH_VU') Voucher giảm giá tiền dịch vụ
+                                                            @else Voucher giảm giá tổng hóa đơn
+                                                            @endif
+                                                        </strong>
+                                                    </div>
+                                                    @if($isDisabledPhong)
+                                                        <div class="small text-danger fw-semibold mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Không áp dụng cho Combo</div>
+                                                    @endif
+                                                </label>
+                                            </div>
+                                            <div class="text-end text-danger fw-bold pt-1 small">
+                                                -{{ number_format($vc->muc_giam, 0, ',', '.') }}{{ $vc->is_percent ? '%' : ' đ' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Chưa có mã giảm giá nào.</p>
+                        @endif
+                    </div>
+
                     <div class="summary-sticky shadow-sm">
                         <h5 class="font-family-serif border-bottom pb-3 mb-3 text-uppercase fs-6 text-muted">Thông tin đặt phòng</h5>
                         <h3 class="font-family-serif mb-4" style="color:#673065;">{{ $item->ten_phong ?? $item->ten_combo }}</h3>
@@ -104,7 +159,11 @@
                             <p class="mb-1"><strong>Ngày đến:</strong> <span id="display-checkin">{{ date('d/m/Y', strtotime($defaultCheckin)) }}</span></p>
                             <p class="mb-1"><strong>Ngày đi:</strong> <span id="display-checkout">{{ date('d/m/Y', strtotime($defaultCheckout)) }}</span></p>
                             <p class="mb-1"><strong>Số đêm:</strong> <span id="display-nights">1</span> đêm</p>
-                        </div>
+                         </div>
+                        <div class="d-flex justify-content-between mb-2 text-danger fw-semibold" id="row_discount_display" style="display: none !important;">
+                         <span>Mã giảm giá (<span id="txt_applied_code"></span>):</span>
+                         <span>-<span id="val_discount_display">0</span> VNĐ</span>
+                         </div>
 
                         <div id="list-selected-services" class="border-top pt-2 mt-2 small text-muted">
                             </div>
@@ -135,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayNights = document.getElementById('display-nights');
 
     const checkboxes = document.querySelectorAll('.service-checkbox');
-    const serviceList = document.getElementById('list-selected-services');
+    const serviceList = document.getElementById('list-selected-services'); // Đảm bảo ID này tồn tại
     const totalDisplay = document.getElementById('total-price-display');
     const basePrice = parseInt("{{ $item->gia_hien_tai ?? $item->gia_combo }}");
 
@@ -157,28 +216,25 @@ document.addEventListener('DOMContentLoaded', function() {
         checkoutInput.min = minCheckout.toISOString().split('T')[0];
 
         const diffTime = Math.abs(checkout - checkin);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         displayCheckin.innerText = checkin.toLocaleDateString('vi-VN');
         displayCheckout.innerText = checkout.toLocaleDateString('vi-VN');
-        displayNights.innerText = diffDays;
+        displayNights.innerText = nights;
 
-        calculateTotal(diffDays);
-    }
-
-    function calculateTotal(nights) {
+        // --- LOGIC TÍNH DỊCH VỤ ---
         let extraPrice = 0;
         let html = '';
 
-        checkboxes.forEach(item => {
-            const row = item.closest('.service-item');
+        checkboxes.forEach(box => {
+            const row = box.closest('.service-item');
             const qtyWrapper = row.querySelector('.qty-input-wrapper');
             const qtyInput = row.querySelector('.qty-input');
 
-            if(item.checked) {
+            if(box.checked) {
                 qtyWrapper.style.display = 'block';
-                const name = item.getAttribute('data-name');
-                const price = parseInt(item.getAttribute('data-price'));
+                const name = box.getAttribute('data-name');
+                const price = parseInt(box.getAttribute('data-price'));
                 const qty = parseInt(qtyInput.value) || 1;
 
                 const subTotal = price * qty;
@@ -188,12 +244,81 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${subTotal.toLocaleString('vi-VN')} VNĐ</span>
                          </div>`;
             } else {
-                qtyWrapper.style.display = 'none';
+                if(qtyWrapper) qtyWrapper.style.display = 'none';
+            }
+        });
+        if(serviceList) serviceList.innerHTML = html;
+
+        // --- BỔ SUNG LOGIC VOUCHER ---
+        let roomPriceTotal = basePrice * nights;
+        let servicePriceTotal = extraPrice;
+        let totalBeforeDiscount = roomPriceTotal + servicePriceTotal;
+        let discountAmount = 0;
+
+        // 1. Kiểm tra trạng thái Voucher DICH_VU
+        const voucherRadios = document.querySelectorAll('.voucher-radio');
+        voucherRadios.forEach(radio => {
+            if (radio.getAttribute('data-type') === 'DICH_VU') {
+                const wrapper = document.getElementById('wrapper_vc_' + radio.value);
+                if (servicePriceTotal <= 0) {
+                    radio.disabled = true;
+                    if (wrapper) {
+                        wrapper.classList.add('opacity-50', 'text-muted');
+                        wrapper.style.backgroundColor = '#f8f9fa';
+                    }
+                    if (radio.checked) {
+                        document.getElementById('voucher_none').checked = true;
+                    }
+                } else {
+                    radio.disabled = false;
+                    if (wrapper) {
+                        wrapper.classList.remove('opacity-50', 'text-muted');
+                        wrapper.style.backgroundColor = '#fff';
+                    }
+                }
             }
         });
 
-        serviceList.innerHTML = html;
-        const finalTotal = (basePrice * nights) + extraPrice;
+        // 2. Tính toán giá trị giảm trừ
+        const activeVoucher = document.querySelector('.voucher-radio:checked');
+        const rowDiscount = document.getElementById('row_discount_display');
+        const txtCode = document.getElementById('txt_applied_code');
+        const valDiscount = document.getElementById('val_discount_display');
+
+        if (activeVoucher && activeVoucher.value !== '') {
+            const vcType = activeVoucher.getAttribute('data-type');
+            const vcDiscount = parseFloat(activeVoucher.getAttribute('data-discount')) || 0;
+            const vcIsPercent = parseInt(activeVoucher.getAttribute('data-percent')) || 0;
+            const vcCode = activeVoucher.getAttribute('data-code');
+
+            if (vcType === 'PHONG') {
+                discountAmount = (vcIsPercent === 1) ? roomPriceTotal * (vcDiscount / 100) : vcDiscount;
+                if (discountAmount > roomPriceTotal) discountAmount = roomPriceTotal;
+            }
+            else if (vcType === 'DICH_VU') {
+                if (servicePriceTotal > 0) {
+                    discountAmount = (vcIsPercent === 1) ? servicePriceTotal * (vcDiscount / 100) : vcDiscount;
+                    if (discountAmount > servicePriceTotal) discountAmount = servicePriceTotal;
+                }
+            }
+            else if (vcType === 'ALL') {
+                discountAmount = (vcIsPercent === 1) ? totalBeforeDiscount * (vcDiscount / 100) : vcDiscount;
+                if (discountAmount > totalBeforeDiscount) discountAmount = totalBeforeDiscount;
+            }
+
+            if (discountAmount > 0) {
+                if (rowDiscount) rowDiscount.style.setProperty('display', 'flex', 'important');
+                if (txtCode) txtCode.innerText = vcCode;
+                if (valDiscount) valDiscount.innerText = discountAmount.toLocaleString('vi-VN');
+            } else {
+                if (rowDiscount) rowDiscount.style.setProperty('display', 'none', 'important');
+            }
+        } else {
+            if (rowDiscount) rowDiscount.style.setProperty('display', 'none', 'important');
+        }
+
+        // 3. Kết xuất tổng tiền cuối cùng
+        const finalTotal = totalBeforeDiscount - discountAmount;
         totalDisplay.innerText = finalTotal.toLocaleString('vi-VN');
     }
 
@@ -206,6 +331,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = box.closest('.service-item');
         const qtyInput = row.querySelector('.qty-input');
         qtyInput.addEventListener('input', updateSummary);
+    });
+
+    // Gắn sự kiện radio voucher
+    document.querySelectorAll('.voucher-radio').forEach(radio => {
+        radio.addEventListener('change', updateSummary);
     });
 
     updateSummary(); // Chạy lần đầu

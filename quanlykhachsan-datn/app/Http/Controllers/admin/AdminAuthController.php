@@ -13,11 +13,23 @@ class AdminAuthController extends Controller
     {
         // Nếu đã đăng nhập ở guard admin thì đẩy thẳng vào trang dashboard
         if (Auth::guard('admin')->check()) {
-            $userRole = strtoupper(trim(Auth::guard('admin')->user()->role));
+            $user = Auth::guard('admin')->user();
+            $userRole = strtoupper(trim($user->role));
+            $userStatus = strtoupper(trim($user->trang_thai ?? ''));
+
+            // Nếu tài khoản đang bị khóa -> logout và hiển thị trang đăng nhập với thông báo
+            if ($userStatus === 'BLOCKED') {
+                Auth::guard('admin')->logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+                return view('admin.login')->with('error', 'Tài khoản của bạn đã bị khóa.');
+            }
+
             if ($userRole === 'ADMIN' || $userRole === 'NHANVIEN') {
                 return redirect()->route('admin.dashboard');
             }
         }
+
         return view('admin.login');
     }
 

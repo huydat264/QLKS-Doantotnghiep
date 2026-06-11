@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Auth;
 class NhanVienManagementController extends Controller
 {
     // 1. Hiển thị danh sách
@@ -82,4 +82,24 @@ class NhanVienManagementController extends Controller
         DB::table('nhanvien')->where('id_nhanvien', $id)->delete();
         return redirect()->back()->with('success', 'Đã xóa nhân viên khỏi hệ thống!');
     }
+    public function showProfile()
+{
+    // Lấy ID tài khoản đang đăng nhập từ guard admin
+    $id_taikhoan = Auth::guard('admin')->id();
+
+    // Truy vấn chính xác nhân viên sở hữu tài khoản này thông qua trường liên kết
+    $nhanVien = DB::table('nhanvien')
+        ->join('taikhoan', 'nhanvien.tai_khoan_nhanvien_id', '=', 'taikhoan.id_taikhoan')
+        ->select('nhanvien.*', 'taikhoan.username', 'taikhoan.role', 'taikhoan.trang_thai')
+        ->where('taikhoan.id_taikhoan', $id_taikhoan)
+        ->first();
+
+    // Nếu không tìm thấy (đề phòng trường hợp tài khoản ADMIN tối cao chưa gắn id_nhanvien)
+    if (!$nhanVien) {
+        return redirect()->route('admin.dashboard')->with('error', 'Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên trong hệ thống!');
+    }
+
+    // Trả về view hiển thị thông tin cá nhân
+    return view('admin.hoso', compact('nhanVien'));
+ }
 }

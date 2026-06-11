@@ -95,6 +95,12 @@
                     <span class="info-label fw-bold">Tổng tiền dịch vụ:</span>
                     <span class="info-value">{{ number_format($serviceTotal, 0, ',', '.') }} VNĐ</span>
                 </div>
+                @if(!empty($voucher) && $discountAmount > 0)
+                    <div class="info-row">
+                        <span class="info-label fw-bold">Voucher ({{ $voucher->ma_code }}):</span>
+                        <span class="info-value text-danger">-{{ number_format($discountAmount, 0, ',', '.') }} VNĐ</span>
+                    </div>
+                @endif
             @else
                 <p class="text-muted small mb-0 italic text-center">Quý khách không sử dụng thêm dịch vụ bổ sung.</p>
             @endif
@@ -104,7 +110,10 @@
             <h3 class="font-family-serif mb-2" style="font-size: 22px; color: #444;">Tổng chi phí dự kiến</h3>
 
             <div class="price-breakdown mb-3">
-                (Tiền lưu trú: {{ number_format($roomTotal, 0, ',', '.') }}đ + Dịch vụ: {{ number_format($serviceTotal, 0, ',', '.') }}đ)
+                (Tiền lưu trú: {{ number_format($roomTotal, 0, ',', '.') }}đ + Dịch vụ: {{ number_format($serviceTotal, 0, ',', '.') }}đ
+                @if(!empty($voucher) && $discountAmount > 0)
+                    - Giảm giá: {{ number_format($discountAmount, 0, ',', '.') }}đ
+                @endif)
             </div>
 
             <div class="fw-bold mb-2" style="font-size: 18px; color: #555;">

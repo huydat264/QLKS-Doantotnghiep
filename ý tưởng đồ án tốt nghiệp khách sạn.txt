@@ -38,16 +38,31 @@ xem xét lại bảng combo trông cứ sai sai
 Xoá dịch vụ làm bảng tbao đẹp đẹp tí
 Xem lại cái ngày lập ở chi tiết hoá đơn cọc(user) đang bị sai
 Thêm cột thuế tncn bảng bangluong trong db
+Sửa enum trong thanhtoan còn 2 giá trị cọc và thanh toán còn lại,tạm ứng đã chọn
+Bổ xung word phần xem qly hoá đơn,xem thông tin cá nhân nhân viên và quản lý tài khoản
+Xem lại gia hạn phòng nếu theo combo(Không gia hạn được vì combo có 1 hoặc dùng nguyên cả combo mới)
+xem lại thanh toán bắt buộc sau nhân phòng tránh thuê xong chạy,thanh toán dịch vụ di kèm sau(nhưng mà khó demo ) (DONE)
+Làm voucher cho từng phòng cụ thể
+Sửa cái email_xacnhan cho nó giống con người tí trông chả ra lsao tục vkl
 
+Khách hàng: 
+aplly đc voucher này,show voucher (làm hiển thị form thanh toán luôn),gửi voucher về mail người dùng
+
+Nút "hết phòng" hiện tại chưa hợp lý lắm thế khách muốn đặt trước không trùng ngày đó thì sao(thay thế bằng hiển thị bình thường đặt đc,hay lọc ngày hôm nay,
+hoặc "khoảng từ ngày a>b" mà có khách đặt thì mới hết phòng còn vào form chọn ngày chỉ cần không phải ngày đã đặt thì đặt trước được"khách đang ở đổi hoặc cút")
+
+Làm lại chi tiết phần lọc
 Hỏi ý kiến xem có nên làm thêm phòng cho khách sạn không
 
 
 Mẫu web làm theo Six Senses Con Dao: https://www.sixsenses.com/vn/hotels-resorts/asia-the-pacific/vietnam/con-dao/
 
 *****Vẽ vời biểu đồ****
--Đến sửa tt dịch vụ,chưa vẽ voucher+combo+đánh giá+erd+Lý do chọn đề tài + phân cấp chức năng
+
 -biểu đồ hoạt động phòng vẽ thêm luồng tăng giảm giá (sale)
 -sửa lại controller của toàn bộ tuần tự
+-Chưa cho vào word biểu đồ use case,trình tự hoạt động của hoá đơn và tài khoản
+-Chưa vẽ biểu đồ UML
 
 
 *******Điểm khác biệt: Hỗ trợ khách hàng quyết định,hỗ trợ chủ khách sạn quyết định hướng phát triển k dừng lại ở quản lý*********
