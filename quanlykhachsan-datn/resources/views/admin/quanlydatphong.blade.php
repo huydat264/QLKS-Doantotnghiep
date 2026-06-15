@@ -88,14 +88,18 @@
                         @endif
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary btn-rounded btn-edit"
-                                data-id="{{ $dp->id_datphong }}"
-                                data-nhan="{{ \Carbon\Carbon::parse($dp->ngay_nhan)->format('Y-m-d') }}"
-                                data-tra="{{ \Carbon\Carbon::parse($dp->ngay_tra)->format('Y-m-d') }}"
-                                data-status="{{ $dp->trang_thai }}"
-                                data-phong="{{ $dp->id_phong }}">
-                            <i class="bi bi-pencil-square"></i> Gia hạn/Sửa
-                        </button>
+                        @if($dp->trang_thai !== 'Đã thanh toán' && $dp->trang_thai !== 'Đã hủy')
+                            <button class="btn btn-sm btn-outline-primary btn-rounded btn-edit"
+                                    data-id="{{ $dp->id_datphong }}"
+                                    data-nhan="{{ \Carbon\Carbon::parse($dp->ngay_nhan)->format('Y-m-d') }}"
+                                    data-tra="{{ \Carbon\Carbon::parse($dp->ngay_tra)->format('Y-m-d') }}"
+                                    data-status="{{ $dp->trang_thai }}"
+                                    data-phong="{{ $dp->id_phong }}">
+                                <i class="bi bi-pencil-square"></i> Gia hạn/Sửa
+                            </button>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1" title="Không thể chỉnh sửa">Khóa</span>
+                        @endif
                     </td>
                 </tr>
                 @empty

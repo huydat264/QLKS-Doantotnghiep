@@ -10,7 +10,11 @@
     .qty-input-wrapper { display: none; width: 100px; }
     .service-item { transition: 0.3s; border-radius: 4px; }
     .service-item:hover { background-color: #fff; }
+    /* Tùy chỉnh giao diện Flatpickr để hợp với tông màu tím của bạn */
+    .flatpickr-day.disabled { color: #ccc !important; text-decoration: line-through; }
+    .flatpickr-day.selected { background: #673065 !important; border-color: #673065 !important; }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <div class="booking-wrapper">
     <div class="container">
@@ -27,12 +31,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3 mb-md-0">
                                 <label class="small text-uppercase fw-bold text-muted mb-2 d-block">Ngày đến</label>
-                                <input type="date" name="ngay_nhan" id="ngay_den" class="form-control border-0 p-0 fs-5 fw-bold"
+                                <input type="text" name="ngay_nhan" id="ngay_den" class="form-control border-0 p-0 fs-5 fw-bold bg-white"
                                        value="{{ $defaultCheckin }}" min="{{ $defaultCheckin }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-uppercase fw-bold text-muted mb-2 d-block">Ngày đi</label>
-                                <input type="date" name="ngay_tra" id="ngay_di" class="form-control border-0 p-0 fs-5 fw-bold"
+                                <input type="text" name="ngay_tra" id="ngay_di" class="form-control border-0 p-0 fs-5 fw-bold bg-white"
                                        value="{{ $defaultCheckout }}" min="{{ $defaultCheckout }}">
                             </div>
                         </div>
@@ -185,6 +189,8 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const checkinInput = document.getElementById('ngay_den');
@@ -198,25 +204,63 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalDisplay = document.getElementById('total-price-display');
     const basePrice = parseInt("{{ $item->gia_hien_tai ?? $item->gia_combo }}");
 
-    function updateSummary() {
-        const checkin = new Date(checkinInput.value);
-        let checkout = new Date(checkoutInput.value);
+    // Danh sách ngày bị khóa từ Server
+    const disabledDates = @json($disabledDates);
+    const isCombo = "{{ $type === 'combo' ? 'true' : 'false' }}" === "true";
+    const comboNights = parseInt("{{ $item->so_dem_luu_tru ?? 0 }}");
 
-        // Chặn ngày đi trước ngày đến
-        if (checkout <= checkin) {
-            const nextDay = new Date(checkin);
-            nextDay.setDate(nextDay.getDate() + 1);
-            checkoutInput.value = nextDay.toISOString().split('T')[0];
-            checkout = nextDay;
+    // Khởi tạo Flatpickr cho Ngày đến
+    const fpCheckin = flatpickr(checkinInput, {
+        locale: "vn",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        minDate: "today",
+        disable: disabledDates,
+        onChange: function(selectedDates, dateStr) {
+            if (isCombo && selectedDates.length > 0) {
+                // Tự động tính ngày trả dựa trên số đêm của combo
+                const checkinDate = selectedDates[0];
+                const checkoutDate = new Date(checkinDate);
+                checkoutDate.setDate(checkinDate.getDate() + comboNights);
+                fpCheckout.setDate(checkoutDate);
+            } else {
+                fpCheckout.set("minDate", dateStr); // Ngày đi không được trước ngày đến
+            }
+            updateSummary();
         }
+    });
 
-        // Cập nhật min cho ngày đi để không chọn được ngày cũ
-        const minCheckout = new Date(checkin);
-        minCheckout.setDate(minCheckout.getDate() + 1);
-        checkoutInput.min = minCheckout.toISOString().split('T')[0];
+    // Khởi tạo Flatpickr cho Ngày đi
+    const fpCheckout = flatpickr(checkoutInput, {
+        locale: "vn",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        minDate: "{{ $defaultCheckout }}",
+        disable: disabledDates,
+        clickOpens: !isCombo, // Khóa không cho mở lịch nếu là combo
+        onChange: function() {
+            updateSummary();
+        }
+    });
+
+    // Nếu là combo, làm mờ ô ngày đi để khách biết là cố định
+    if (isCombo) {
+        checkoutInput.parentElement.style.opacity = '0.7';
+        checkoutInput.style.cursor = 'not-allowed';
+    }
+
+    function updateSummary() {
+        if (!checkinInput.value || !checkoutInput.value) return;
+
+        const checkin = new Date(checkinInput.value);
+        const checkout = new Date(checkoutInput.value);
 
         const diffTime = Math.abs(checkout - checkin);
         const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (isNaN(nights) || nights <= 0) return;
 
         displayCheckin.innerText = checkin.toLocaleDateString('vi-VN');
         displayCheckout.innerText = checkout.toLocaleDateString('vi-VN');
@@ -250,7 +294,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(serviceList) serviceList.innerHTML = html;
 
         // --- BỔ SUNG LOGIC VOUCHER ---
-        let roomPriceTotal = basePrice * nights;
+        // Nếu là combo thì lấy giá trọn gói (basePrice), nếu là phòng thì nhân với số đêm
+        let roomPriceTotal = isCombo ? basePrice : (basePrice * nights);
         let servicePriceTotal = extraPrice;
         let totalBeforeDiscount = roomPriceTotal + servicePriceTotal;
         let discountAmount = 0;

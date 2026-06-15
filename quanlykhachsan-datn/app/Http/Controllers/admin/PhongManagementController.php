@@ -32,6 +32,13 @@ class PhongManagementController extends Controller
 
     public function updateRoom(Request $request, $id)
     {
+        $phong = Phong::findOrFail($id);
+
+        // Kiểm tra xem phòng có khách đặt hiện tại không
+        if ($phong->datPhongHienTai) {
+            return redirect()->back()->with('error', 'Không thể cập nhập thông tin phòng khi có khách đặt. Vui lòng giải phóng phòng trước!');
+        }
+
         $request->validate([
             'loai_phong' => 'required|string',
             'gia_phong' => 'required|numeric|min:0',
@@ -43,8 +50,6 @@ class PhongManagementController extends Controller
             'anh' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // File upload
             'anh_link' => 'nullable|url' // Chấp nhận link web dạng https://
         ]);
-
-        $phong = Phong::findOrFail($id);
 
         $phong->loai_phong = $request->loai_phong;
         $phong->gia_phong = $request->gia_phong;

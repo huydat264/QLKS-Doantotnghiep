@@ -82,6 +82,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/phong-da-dat', [App\Http\Controllers\DatPhongController::class, 'lichSuDatPhong'])->name('booking.history');
     // Route XEM CHI TIẾT ĐƠN HÀNG
     Route::get('/phong-da-dat/{id}', [App\Http\Controllers\DatPhongController::class, 'chiTietDatPhong'])->name('booking.detail');
+
+    // ✅ API: Kiểm tra tính khả dụng phòng
+    Route::get('/api/availability', [DatPhongController::class, 'getAvailability'])->name('api.availability');
+    Route::get('/api/availability-by-type', [DatPhongController::class, 'getAvailabilityByType'])->name('api.availability_by_type');
 });
 
 // ==================== ROUTE PHÍA ADMIN ====================

@@ -8,6 +8,7 @@ use App\Models\Phong;
 use App\Models\Combo;
 use App\Models\DichVu;
 use App\Mail\XacNhanDatPhong;
+use App\Services\RoomAvailabilityService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -85,9 +86,17 @@ class DatPhongController extends Controller
         $dvNgoaiLe = $dichVus->diff($dvLuuTru);
 
         $defaultCheckin = Carbon::today()->toDateString();
-        $defaultCheckout = Carbon::today()->addDay()->toDateString();
+        // Nếu là combo, mặc định ngày đi phải khớp với số đêm của combo
+        if ($type == 'combo' && isset($item->so_dem_luu_tru)) {
+            $defaultCheckout = Carbon::today()->addDays($item->so_dem_luu_tru)->toDateString();
+        } else {
+            $defaultCheckout = Carbon::today()->addDay()->toDateString();
+        }
 
-        return view('user.dichvubooking', compact('vouchers','item', 'type', 'dvLuuTru', 'dvNgoaiLe', 'defaultCheckin', 'defaultCheckout'));
+        // Lấy danh sách ngày đã bị đặt cho phòng này (nếu là đặt lẻ)
+        $disabledDates = ($type == 'phong') ? RoomAvailabilityService::getDisabledDates($id) : [];
+
+        return view('user.dichvubooking', compact('vouchers','item', 'type', 'dvLuuTru', 'dvNgoaiLe', 'defaultCheckin', 'defaultCheckout', 'disabledDates'));
     }
 
     // Xử lý dữ liệu chọn ngày và dịch vụ bổ trợ
@@ -99,12 +108,44 @@ class DatPhongController extends Controller
             'id_voucher' => 'nullable|exists:voucher,id_voucher',
         ]);
 
-        $ngay_nhan = \Carbon\Carbon::parse($request->ngay_nhan);
-        $ngay_tra = \Carbon\Carbon::parse($request->ngay_tra);
-        $so_dem = $ngay_nhan->diffInDays($ngay_tra);
+        $type = session('booking_type');
+        $booking_id = session('booking_id');
+        $ngay_nhan = $request->ngay_nhan;
+        $ngay_tra = $request->ngay_tra;
 
-        if ($so_dem <= 0) {
-            return redirect()->back()->withErrors(['date' => 'Ngày trả phòng phải sau ngày nhận phòng ít nhất 1 đêm!']);
+        $ngay_nhan_carbon = \Carbon\Carbon::parse($ngay_nhan);
+        $ngay_tra_carbon = \Carbon\Carbon::parse($ngay_tra);
+        $so_dem = $ngay_nhan_carbon->diffInDays($ngay_tra_carbon);
+
+        // ✅ KIỂM TRA XUNG ĐỘT LỊ SUẤT ĐẶT PHÒNG
+        if ($type === 'phong') {
+            // Kiểm tra phòng lẻ
+            if ($so_dem <= 0) {
+                return redirect()->back()->withErrors(['date' => 'Ngày trả phòng phải sau ngày nhận phòng ít nhất 1 đêm!']);
+            }
+            if (!RoomAvailabilityService::isRoomAvailable($booking_id, $ngay_nhan, $ngay_tra)) {
+                return redirect()->back()
+                    ->withErrors([
+                        'availability' => 'Phòng này đã được đặt trong khoảng thời gian bạn chọn.
+                                        Vui lòng chọn ngày khác hoặc chọn phòng khác!'
+                    ]);
+            }
+        } else {
+            // Kiểm tra combo - tìm phòng khả dụng
+            $combo = Combo::find($booking_id);
+            $available_room = RoomAvailabilityService::findAvailableRoomByType(
+                $combo->loai_phong_ap_dung,
+                $ngay_nhan,
+                $ngay_tra
+            );
+
+            if (!$available_room) {
+                return redirect()->back()
+                    ->withErrors([
+                        'availability' => 'Hiện không có phòng ' . $combo->loai_phong_ap_dung .
+                                        ' nào trống trong khoảng thời gian bạn chọn. Vui lòng chọn ngày khác!'
+                    ]);
+            }
         }
 
         $dichVuIds = $request->input('dich_vu', []);
@@ -134,8 +175,8 @@ class DatPhongController extends Controller
 
         // Lưu thêm ID Voucher vào session để hàm showConfirmation tính toán lại
         session([
-            'ngay_nhan'          => $request->ngay_nhan,
-            'ngay_tra'           => $request->ngay_tra,
+            'ngay_nhan'          => $ngay_nhan,
+            'ngay_tra'           => $ngay_tra,
             'so_dem'             => $so_dem,
             'booking_dich_vus'   => $dich_vu_session_data,
             'tong_tien_dich_vu'  => (int)$tong_tien_dich_vu,
@@ -355,46 +396,61 @@ class DatPhongController extends Controller
 
                 $type = session('booking_type');
                 $booking_id = session('booking_id');
+                $ngay_nhan = session('ngay_nhan');
+                $ngay_tra = session('ngay_tra');
 
                 DB::beginTransaction();
                 try {
+                    $id_phong_final = null;
+                    $id_combo_final = null;
+
+                    // ✅ CHECK XUNG ĐỘT LẦN CUỐI trước khi lưu (race condition prevention)
+                    if ($type === 'phong') {
+                        $id_phong_final = $booking_id;
+                        // Lock phòng để kiểm tra
+                        DB::table('phong')->where('id_phong', $id_phong_final)->lockForUpdate()->first();
+
+                        // Kiểm tra lần cuối xung đột
+                        if (!RoomAvailabilityService::isRoomAvailable($id_phong_final, $ngay_nhan, $ngay_tra)) {
+                            throw new \Exception(
+                                'Phòng này đã bị đặt bởi khách khác lúc bạn thanh toán. Vui lòng thử lại!'
+                            );
+                        }
+                    } else {
+                        $id_combo_final = $booking_id;
+                        $combo = \App\Models\Combo::find($id_combo_final);
+
+                        // Tìm tất cả phòng cùng loại để kiểm tra tính khả dụng
+                        $available_phong_id = RoomAvailabilityService::findAvailableRoomByType(
+                            $combo->loai_phong_ap_dung,
+                            $ngay_nhan,
+                            $ngay_tra
+                        );
+
+                        if (!$available_phong_id) {
+                            throw new \Exception(
+                                'Hiện không có phòng ' . $combo->loai_phong_ap_dung .
+                                ' nào trống. Vui lòng thử lại hoặc chọn ngày khác!'
+                            );
+                        }
+
+                        $id_phong_final = $available_phong_id;
+                        // Lock phòng đã chọn
+                        DB::table('phong')->where('id_phong', $id_phong_final)->lockForUpdate()->first();
+                    }
+
                     //  Lưu Đặt Phòng (datphong)
                     $datPhongData = [
                         'id_khachhang'  => $khachHang->id_khachhang,
-                        'ngay_dat'      => Carbon::now()->toDateString(),
-                        'ngay_nhan'     => session('ngay_nhan'),
-                        'ngay_tra'      => session('ngay_tra'),
+                        'ngay_dat'      => Carbon::now('Asia/Ho_Chi_Minh'),
+                        'ngay_nhan'     => $ngay_nhan,
+                        'ngay_tra'      => $ngay_tra,
                         'loai_hinh_dat' => ($type == 'phong') ? 'LẺ' : 'COMBO',
                         'tong_tien_phai_tra' => $tong_thanh_toan,
-                        'trang_thai'    => 'Đã xác nhận'
+                        'trang_thai'    => 'Đã xác nhận',
+                        'id_phong'      => $id_phong_final,
+                        'id_combo'      => $id_combo_final
                     ];
-
-                    if ($type == 'phong') {
-                        $datPhongData['id_phong'] = $booking_id;
-                        $datPhongData['id_combo'] = null;
-                    } else {
-                        // For COMBO bookings: try to allocate a random available room
-                        $datPhongData['id_combo'] = $booking_id;
-                        $datPhongData['id_phong'] = null;
-
-                        try {
-                            $combo = \App\Models\Combo::find($booking_id);
-                            if ($combo) {
-                                $availableRoom = DB::table('phong')
-                                    ->where('loai_phong', $combo->loai_phong_ap_dung)
-                                    ->where('trang_thai', 'Trống')
-                                    ->inRandomOrder()
-                                    ->first();
-
-                                if ($availableRoom) {
-                                    $datPhongData['id_phong'] = $availableRoom->id_phong;
-                                }
-                            }
-                        } catch (\Exception $allocEx) {
-                            // Allocation failed — leave id_phong as null and continue booking
-                            Log::warning('Room allocation for combo booking failed: ' . $allocEx->getMessage());
-                        }
-                    }
 
                     $id_datphong = DB::table('datphong')->insertGetId($datPhongData);
 
@@ -411,17 +467,17 @@ class DatPhongController extends Controller
                         }
                     }
 
-                    //  Lưu Hóa đơn (hoadon)
+                    //  Lưu Hóa đơn (hoadon) chỉ ghi số tiền thực giao dịch hiện tại
                     $id_hoadon = DB::table('hoadon')->insertGetId([
                         'id_datphong' => $id_datphong,
-                        'tong_tien'   => $tong_thanh_toan,
-                        'ngay_xuat'   => Carbon::now()
+                        'tong_tien'   => $tien_coc_he_thong,
+                        'ngay_xuat'   => Carbon::now('Asia/Ho_Chi_Minh')
                     ]);
 
                     //  Lưu Lịch sử Thanh toán vào bảng thanhtoan
                     DB::table('thanhtoan')->insert([
                         'id_datphong'        => $id_datphong,
-                        'ngay_thanh_toan'    => Carbon::now(),
+                        'ngay_thanh_toan'    => Carbon::now('Asia/Ho_Chi_Minh'),
                         'so_tien'            => $tien_coc_he_thong,
                         'hinh_thuc'          => 'VNPAY',
                         'loai_thanh_toan'    => 'Đặt cọc 30%',
@@ -430,50 +486,72 @@ class DatPhongController extends Controller
                         'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công'
                     ]);
 
-                    //  Cập nhật sơ đồ phòng: nếu là đặt lẻ cập nhật phòng theo booking_id;
-                    //  nếu là COMBO và đã cấp phát được phòng, cập nhật trạng thái phòng đó.
-                    if ($type == 'phong') {
-                        DB::table('phong')
-                            ->where('id_phong', $booking_id)
-                            ->update(['trang_thai' => 'Đã đặt']);
-                    } elseif (!empty($datPhongData['id_phong'])) {
-                        DB::table('phong')
-                            ->where('id_phong', $datPhongData['id_phong'])
-                            ->update(['trang_thai' => 'Đã đặt']);
-                    }
+                    // ✅ KHÔNG CẬP NHẬT TRẠNG THÁI PHÒNG - phòng vẫn 'Trống' trong DB
+                    // Tính khả dụng dựa vào bảng datphong, không dùng trạng thái phòng
+                    // Điều này cho phép đặt phòng ngày khác mà không bị khoá
 
                     DB::commit();
 
-                    $item = ($type == 'phong') ? \App\Models\Phong::find($booking_id) : \App\Models\Combo::find($booking_id);
+                    $item = ($type == 'phong') ? \App\Models\Phong::find($id_phong_final) : \App\Models\Combo::find($id_combo_final);
                     $selectedDichVus = !empty($sessionDichVus) ? \App\Models\DichVu::whereIn('id_dichvu', array_keys($sessionDichVus))->get() : collect([]);
 
                     $donDat = DB::table('datphong')
                         ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
+                        ->leftJoin('phong', 'datphong.id_phong', '=', 'phong.id_phong')
+                        ->leftJoin('combo', 'datphong.id_combo', '=', 'combo.id_combo')
                         ->where('datphong.id_datphong', $id_datphong)
                         ->select(
                             'datphong.*',
                             'khachhang.ho_ten',
                             'khachhang.email',
+                            'phong.so_phong',
+                            'phong.loai_phong',
+                            'combo.ten_combo',
                             'datphong.tong_tien_phai_tra as tong_tien'
                         )
                         ->first();
 
+                    $serviceTotal = !empty($sessionDichVus) ? array_sum(array_column($sessionDichVus, 'thanh_tien')) : 0;
+                    $tienCoc = $tien_coc_he_thong;
+                    $soTienConLai = max(0, $tong_thanh_toan - $tienCoc);
+
+                    if ($type === 'phong') {
+                        $itemAmount = $item ? ((int)$item->gia_hien_tai * Carbon::parse($ngay_nhan)->diffInDays(Carbon::parse($ngay_tra))) : 0;
+                    } else {
+                        $itemAmount = $item ? (int)$item->gia_combo : 0;
+                    }
+
+                    if ($donDat) {
+                        $donDat->tong_tien_phong_combo = $itemAmount;
+                        $donDat->tong_tien_dich_vu = $serviceTotal;
+                        $donDat->tong_tien_tam_tinh = $tong_thanh_toan;
+                        $donDat->tien_coc = $tienCoc;
+                        $donDat->so_tien_con_lai = $soTienConLai;
+                    }
+
                     try {
-    Mail::to($khachHang->email)->send(new XacNhanDatPhong($donDat));
-} catch (\Exception $mailEx) {
-    Log::error("KHÔNG GỬI ĐƯỢC MAIL XÁC NHẬN (ID Đơn: $id_datphong): " . $mailEx->getMessage());
-}
+                        Mail::to($khachHang->email)->send(new XacNhanDatPhong($donDat));
+                    } catch (\Exception $mailEx) {
+                        Log::error("KHÔNG GỬI ĐƯỢC MAIL XÁC NHẬN (ID Đơn: $id_datphong): " . $mailEx->getMessage());
+                    }
 
                     $sess = session();
                     if ($sess) {
-                        $sess->forget(['booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem', 'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan']);
+                        $sess->forget(['booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem', 'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan', 'applied_voucher_id']);
                     }
 
                     return view('user.phieuxacnhan', compact('khachHang', 'item', 'type', 'selectedDichVus', 'tien_coc_he_thong'));
 
                 } catch (\Exception $e) {
                     DB::rollBack();
-                    dd('LỖI LƯU DATABASE: ' . $e->getMessage() . ' - Tại dòng: ' . $e->getLine());
+                    Log::error('LỖI LƯU DATABASE: ' . $e->getMessage() . ' - Tại dòng: ' . $e->getLine());
+
+                    // Trả về trang thanh toán với thông báo lỗi
+                    return redirect()->route('booking.payment')
+                        ->withErrors([
+                            'booking_error' => 'Lỗi khi xử lý đơn đặt phòng: ' . $e->getMessage() .
+                                             '. Vui lòng liên hệ với hỗ trợ khách hàng!'
+                        ]);
                 }
             }
             dd('LỖI GIAO DỊCH VNPAY: Mã lỗi ' . $request->input('vnp_ResponseCode'));
@@ -537,5 +615,83 @@ class DatPhongController extends Controller
         $soDem = $ngayNhan->diffInDays($ngayTra);
 
         return view('user.chitiet_datphong', compact('donDat', 'dichVuDaDung', 'giaoDich', 'soDem'));
+    }
+
+    // ✅ API: Kiểm tra tính khả dụng phòng và lấy lịch đã book
+    public function getAvailability(Request $request)
+    {
+        $id_phong = $request->input('id_phong');
+        $ngay_nhan = $request->input('ngay_nhan');
+        $ngay_tra = $request->input('ngay_tra');
+
+        if (!$id_phong) {
+            return response()->json(['error' => 'ID phòng không hợp lệ'], 400);
+        }
+
+        // Lấy lịch đã book
+        $bookedDates = RoomAvailabilityService::getBookedDatesJSON($id_phong);
+
+        // Kiểm tra xung đột nếu user đã chọn ngày
+        $isAvailable = true;
+        if ($ngay_nhan && $ngay_tra) {
+            $isAvailable = RoomAvailabilityService::isRoomAvailable(
+                $id_phong,
+                $ngay_nhan,
+                $ngay_tra
+            );
+        }
+
+        return response()->json([
+            'available' => $isAvailable,
+            'booked_dates' => json_decode($bookedDates, true),
+            'disabled_dates' => RoomAvailabilityService::getDisabledDates($id_phong)
+        ]);
+    }
+
+    // ✅ API: Lấy lịch đã book cho 1 loại phòng (dùng cho combo)
+    public function getAvailabilityByType(Request $request)
+    {
+        $loai_phong = $request->input('loai_phong');
+        $ngay_nhan = $request->input('ngay_nhan');
+        $ngay_tra = $request->input('ngay_tra');
+
+        if (!$loai_phong) {
+            return response()->json(['error' => 'Loại phòng không hợp lệ'], 400);
+        }
+
+        // Lấy tất cả các phòng có loại này
+        $phongs = DB::table('phong')
+            ->where('loai_phong', $loai_phong)
+            ->where('trang_thai', '!=', 'Bảo trì')
+            ->get();
+
+        $bookingData = [];
+        $hasAvailable = false;
+
+        foreach ($phongs as $phong) {
+            $isAvailable = !$ngay_nhan || !$ngay_tra ||
+                          RoomAvailabilityService::isRoomAvailable(
+                              $phong->id_phong,
+                              $ngay_nhan,
+                              $ngay_tra
+                          );
+
+            if ($isAvailable && !$hasAvailable) {
+                $hasAvailable = true;
+            }
+
+            $bookingData[] = [
+                'id_phong' => $phong->id_phong,
+                'so_phong' => $phong->so_phong,
+                'available' => $isAvailable,
+                'disabled_dates' => RoomAvailabilityService::getDisabledDates($phong->id_phong)
+            ];
+        }
+
+        return response()->json([
+            'loai_phong' => $loai_phong,
+            'has_available' => $hasAvailable,
+            'rooms' => $bookingData
+        ]);
     }
 }

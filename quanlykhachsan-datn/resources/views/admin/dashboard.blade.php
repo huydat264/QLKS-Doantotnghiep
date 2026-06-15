@@ -68,7 +68,7 @@
 <div class="row g-3 mb-4">
     <div class="col-xl-6 col-lg-12">
         <div class="card card-custom p-4 h-100">
-            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-building"></i> Tình trạng phòng theo tầng</h5>
+            <h5 class="fw-bold text-dark mb-4"><i class="bi bi-building"></i> Tình trạng phòng theo tầng hôm nay</h5>
             <div class="scroll-box pe-1">
                 @foreach($phongs as $tang => $danhSachPhong)
                     <div class="mb-4">
@@ -76,9 +76,10 @@
                         <div class="row g-2">
                             @foreach($danhSachPhong as $phong)
                                 <div class="col-md-3 col-sm-4 col-6">
-                                    <div class="room-box {{ $phong->trang_thai == 'Trống' ? 'room-trong' : 'room-da-dat' }}">
-                                        <div>P.{{ $phong->so_phong }}</div>
-                                        <small style="font-size: 0.75rem; font-weight: normal;">{{ $phong->loai_phong }}</small>
+                                    <div class="room-box {{ !$phong->is_occupied ? 'room-trong' : 'room-da-dat' }}"
+                                         title="{{ $phong->khach_hien_tai ? 'Khách: ' . $phong->khach_hien_tai : 'Phòng trống' }}">
+                                        <div class="fw-bold">P.{{ $phong->so_phong }}</div>
+                                        <div class="text-truncate small px-1" style="font-size: 0.7rem;">{{ $phong->khach_hien_tai ?? $phong->loai_phong }}</div>
                                     </div>
                                 </div>
                             @endforeach

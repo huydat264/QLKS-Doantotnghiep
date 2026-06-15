@@ -146,7 +146,8 @@ class ThanhToanManagementController extends Controller
             session(["checkout_info_{$id}" => [
                 'so_tien' => $tongThanhToanCuoi,
                 'ghi_chu' => $ghiChu,
-                'tong_hoadon' => $tongHoaDonInvoice // Truyền tổng invoice qua session
+                'invoice_amount' => $tongThanhToanCuoi,
+                'total_bill' => $tongHoaDonInvoice
             ]]);
 
             $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -204,7 +205,7 @@ class ThanhToanManagementController extends Controller
             // 1. Lưu giao dịch thanh toán
             DB::table('thanhtoan')->insert([
                 'id_datphong' => $id,
-                'ngay_thanh_toan' => Carbon::now(),
+                'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
                 'so_tien' => $tongThanhToanCuoi,
                 'hinh_thuc' => $request->hinh_thuc,
                 'ghi_chu' => $ghiChu,
@@ -214,8 +215,8 @@ class ThanhToanManagementController extends Controller
             // 2. TẠO HÓA ĐƠN ĐỂ IN
             DB::table('hoadon')->insert([
                 'id_datphong' => $id,
-                'tong_tien' => $tongHoaDonInvoice,
-                'ngay_xuat' => Carbon::now()
+                'tong_tien' => $tongThanhToanCuoi,
+                'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh')
             ]);
 
             // 3. ĐỔI TRẠNG THÁI (Fix lỗi: Không dùng 'Hoàn thành' mà dùng 'Đã thanh toán' theo ENUM)
@@ -223,6 +224,13 @@ class ThanhToanManagementController extends Controller
             DB::table('phong')->where('id_phong', $datPhong->id_phong)->update(['trang_thai' => 'Trống']);
 
             DB::commit();
+
+            // Clear booking session khi thanh toán thành công
+            session()->forget([
+                'booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem',
+                'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan', 'applied_voucher_id'
+            ]);
+
             return redirect()->route('admin.thanhtoan.invoice', $id)->with('success', 'Đã thu tiền mặt và xuất hoá đơn thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -283,7 +291,7 @@ class ThanhToanManagementController extends Controller
                     // VNPay cũng phải xuất hóa đơn
                     DB::table('hoadon')->insert([
                         'id_datphong' => $id,
-                        'tong_tien' => $checkoutData['tong_hoadon'],
+                        'tong_tien' => $checkoutData['invoice_amount'],
                         'ngay_xuat' => Carbon::now()
                     ]);
 
@@ -292,6 +300,12 @@ class ThanhToanManagementController extends Controller
 
                     DB::commit();
                     session()->forget("checkout_info_{$id}");
+
+                    // Clear booking session khi thanh toán thành công
+                    session()->forget([
+                        'booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem',
+                        'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan', 'applied_voucher_id'
+                    ]);
 
                     return redirect()->route('admin.thanhtoan.invoice', $id)->with('success', 'Thanh toán VNPay và xuất hóa đơn thành công!');
                 } catch (\Exception $e) {
@@ -337,7 +351,15 @@ class ThanhToanManagementController extends Controller
             ->join('datphong', 'hoadon.id_datphong', '=', 'datphong.id_datphong')
             ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
             ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select('hoadon.*', 'datphong.id_datphong', 'phong.so_phong as ten_phong', 'khachhang.ho_ten', 'khachhang.so_dien_thoai');
+            ->select(
+                'hoadon.*',
+                'datphong.id_datphong',
+                'phong.so_phong as ten_phong',
+                'khachhang.ho_ten',
+                'khachhang.so_dien_thoai',
+                DB::raw('(SELECT t.loai_thanh_toan FROM thanhtoan t WHERE t.id_datphong = hoadon.id_datphong AND t.so_tien = hoadon.tong_tien AND DATE(t.ngay_thanh_toan) = DATE(hoadon.ngay_xuat) ORDER BY ABS(TIMESTAMPDIFF(SECOND, t.ngay_thanh_toan, hoadon.ngay_xuat)) LIMIT 1) as payment_type'),
+                DB::raw('(SELECT t.so_tien FROM thanhtoan t WHERE t.id_datphong = hoadon.id_datphong AND t.so_tien = hoadon.tong_tien AND DATE(t.ngay_thanh_toan) = DATE(hoadon.ngay_xuat) ORDER BY ABS(TIMESTAMPDIFF(SECOND, t.ngay_thanh_toan, hoadon.ngay_xuat)) LIMIT 1) as paid_amount')
+            );
 
         if (!empty($search)) {
             $query->where(function($q) use ($search) {
@@ -408,7 +430,7 @@ class ThanhToanManagementController extends Controller
                 // Tạo hoá đơn
                 DB::table('hoadon')->insert([
                     'id_datphong' => $phong->id_datphong,
-                    'tong_tien' => $tongHoaDon,
+                    'tong_tien' => $tongThuCuoi,
                     'ngay_xuat' => Carbon::now()
                 ]);
 

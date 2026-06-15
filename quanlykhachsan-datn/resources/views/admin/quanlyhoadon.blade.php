@@ -6,7 +6,7 @@
 <div class="card border-0 shadow-sm rounded-4 p-4">
     <div class="row mb-4 align-items-center">
         <div class="col-md-5">
-            <h4 class="fw-bold mb-1">Lịch sử Hóa đơn</h4>
+            <h4 class="fw-bold mb-1">Lịch sử Hóa Đơn</h4>
             <p class="text-muted mb-0">Danh sách toàn bộ hóa đơn đã thanh toán thành công.</p>
         </div>
         <div class="col-md-7 text-end">
@@ -29,7 +29,8 @@
                     <th>Điện thoại</th>
                     <th>Phòng</th>
                     <th>Ngày xuất</th>
-                    <th class="text-end">Tổng tiền</th>
+                    <th>Loại thanh toán</th>
+                    <th class="text-end">Số tiền</th>
                     <th class="text-center">Hành động</th>
                 </tr>
             </thead>
@@ -42,7 +43,8 @@
                     <td>{{ $hd->so_dien_thoai }}</td>
                     <td><span class="badge bg-secondary">Phòng {{ $hd->ten_phong }}</span></td>
                     <td>{{ \Carbon\Carbon::parse($hd->ngay_xuat)->format('d/m/Y H:i') }}</td>
-                    <td class="fw-bold text-success text-end">{{ number_format($hd->tong_tien, 0, ',', '.') }} đ</td>
+                    <td>{{ $hd->payment_type ?? 'Hoá đơn' }}</td>
+                    <td class="fw-bold text-success text-end">{{ number_format($hd->paid_amount ?? $hd->tong_tien, 0, ',', '.') }} đ</td>
                     <td class="text-center">
                         <a href="{{ route('admin.thanhtoan.invoice', $hd->id_datphong) }}" class="btn btn-sm btn-outline-primary btn-rounded" target="_blank">
                             <i class="bi bi-printer"></i> Xem / In hoá đơn

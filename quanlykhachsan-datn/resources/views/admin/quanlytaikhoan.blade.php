@@ -47,7 +47,12 @@
                     <tbody>
                         @forelse($taiKhoanNoiBo as $tk)
                         <tr>
-                            <td class="fw-bold text-dark">{{ $tk->username }}</td>
+                            <td class="fw-bold text-dark">
+                                {{ $tk->username }}
+                                @if(!empty($tk->linked_phone))
+                                    <div class="small text-muted">SĐT: {{ $tk->linked_phone }}</div>
+                                @endif
+                            </td>
                             <td>
                                 <span class="badge {{ $tk->role == 'ADMIN' ? 'bg-danger' : 'bg-primary' }}">{{ $tk->role }}</span>
                             </td>
@@ -61,7 +66,7 @@
                                         <i class="bi {{ $tk->trang_thai == 'ACTIVE' ? 'bi-lock-fill' : 'bi-unlock-fill' }}"></i>
                                     </button>
                                 </form>
-                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $tk->id_taikhoan }}" data-vaitro="{{ $tk->role }}" data-idnhanvien="{{ $tk->linked_id ?? '' }}" data-nvname="{{ $tk->linked_name ?? '' }}" data-bs-toggle="modal" data-bs-target="#modalEditAccount">
+                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $tk->id_taikhoan }}" data-vaitro="{{ $tk->role }}" data-idnhanvien="{{ $tk->linked_id ?? '' }}" data-nvname="{{ $tk->linked_name ?? '' }}" data-nvphone="{{ $tk->linked_phone ?? '' }}" data-idkhachhang="{{ $tk->linked_id ?? '' }}" data-khname="{{ $tk->linked_name ?? '' }}" data-khphone="{{ $tk->linked_phone ?? '' }}" data-bs-toggle="modal" data-bs-target="#modalEditAccount">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                             </td>
@@ -89,7 +94,12 @@
                     <tbody>
                         @forelse($taiKhoanUser as $tk)
                         <tr>
-                            <td class="fw-bold text-dark">{{ $tk->username }}</td>
+                            <td class="fw-bold text-dark">
+                                {{ $tk->username }}
+                                @if(!empty($tk->linked_phone))
+                                    <div class="small text-muted">SĐT: {{ $tk->linked_phone }}</div>
+                                @endif
+                            </td>
                             <td><span class="badge bg-secondary">{{ $tk->role }}</span></td>
                             <td>
                                 <span class="badge {{ $tk->trang_thai == 'ACTIVE' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }}">{{ $tk->trang_thai == 'ACTIVE' ? 'Hoạt động' : 'Bị khóa' }}</span>
@@ -101,7 +111,7 @@
                                         <i class="bi {{ $tk->trang_thai == 'ACTIVE' ? 'bi-lock-fill' : 'bi-unlock-fill' }}"></i>
                                     </button>
                                 </form>
-                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $tk->id_taikhoan }}" data-vaitro="{{ $tk->role }}" data-idnhanvien="{{ $tk->linked_id ?? '' }}" data-nvname="{{ $tk->linked_name ?? '' }}" data-bs-toggle="modal" data-bs-target="#modalEditAccount">
+                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $tk->id_taikhoan }}" data-vaitro="{{ $tk->role }}" data-idnhanvien="{{ $tk->linked_id ?? '' }}" data-nvname="{{ $tk->linked_name ?? '' }}" data-nvphone="{{ $tk->linked_phone ?? '' }}" data-idkhachhang="{{ $tk->linked_id ?? '' }}" data-khname="{{ $tk->linked_name ?? '' }}" data-khphone="{{ $tk->linked_phone ?? '' }}" data-bs-toggle="modal" data-bs-target="#modalEditAccount">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                             </td>
@@ -154,6 +164,18 @@
     </select>
     <small class="text-muted d-block mt-1">* Hệ thống tự động lọc những nhân viên chưa có bất kỳ tài khoản nào.</small>
 </div>
+
+                    <!-- Chọn Khách hàng (dành cho role USER) -->
+                    <div class="mb-3 d-none" id="group_chon_khach_hang">
+                        <label class="form-label fw-bold text-success"><i class="bi bi-person"></i> Gán cho Khách hàng</label>
+                        <select name="id_khachhang" id="id_khachhang" class="form-select border-success">
+                            <option value="">-- Chọn Khách hàng chưa có tài khoản --</option>
+                            @foreach($danhSachKhachHang as $kh)
+                                <option value="{{ $kh->id_khachhang }}">KH-{{ $kh->id_khachhang }} | {{ $kh->ho_ten }} ({{ $kh->so_dien_thoai ?? 'Chưa cập nhật' }})</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted d-block mt-1">Gán tài khoản USER cho hồ sơ khách hàng.</small>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -190,6 +212,16 @@
                             @endforeach
                         </select>
                         <small class="text-muted d-block mt-1">* Hệ thống tự động lọc những nhân viên chưa có bất kỳ tài khoản nào.</small>
+                    </div>
+                    <div class="mb-3 d-none" id="group_chon_khach_hang_edit">
+                        <label class="form-label fw-bold text-success"><i class="bi bi-person"></i> Chọn Khách hàng</label>
+                        <select name="id_khachhang" id="edit_id_khachhang" class="form-select border-success">
+                            <option value="">-- Chọn Khách hàng chưa có tài khoản --</option>
+                            @foreach($danhSachKhachHang as $kh)
+                                <option value="{{ $kh->id_khachhang }}">KH-{{ $kh->id_khachhang }} | {{ $kh->ho_ten }} ({{ $kh->so_dien_thoai ?? 'Chưa cập nhật' }})</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted d-block mt-1">Chọn khách hàng để gán tài khoản USER.</small>
                     </div>
                 <div class="mb-3 p-3 bg-light rounded-3 border border-danger">
                     <label class="form-label fw-bold text-danger mb-1"><i class="bi bi-key"></i> Mật khẩu mới</label>
@@ -243,7 +275,8 @@
                     if (!selectEditNv.querySelector(`option[value="${idNhanVien}"]`)) {
                         const opt = document.createElement('option');
                         opt.value = idNhanVien;
-                        opt.text = `NV-${idNhanVien} | ${nvName}`;
+                        const nvPhone = this.getAttribute('data-nvphone') || '';
+                        opt.text = nvPhone ? `NV-${idNhanVien} | ${nvName} (${nvPhone})` : `NV-${idNhanVien} | ${nvName}`;
                         selectEditNv.insertBefore(opt, selectEditNv.children[1] || null);
                     }
                     selectEditNv.value = idNhanVien;
@@ -257,6 +290,37 @@
                     groupEdit.classList.add('d-none');
                     selectEditNv.removeAttribute('required');
                 }
+                // Handle customer selection for USER role
+                const groupEditKh = document.getElementById('group_chon_khach_hang_edit');
+                const selectEditKh = document.getElementById('edit_id_khachhang');
+                const idKh = this.getAttribute('data-idkhachhang') || this.getAttribute('data-idkh') || '';
+                // Reset customer select
+                if (selectEditKh) selectEditKh.value = '';
+                if (vaitro === 'USER') {
+                    if (groupEditKh) {
+                        groupEditKh.classList.remove('d-none');
+                        selectEditKh.setAttribute('required', 'required');
+                    }
+                    // If there is a linked customer for this account, ensure option exists and select it
+                    const idKhach = this.getAttribute('data-idkhachhang');
+                    const khName = this.getAttribute('data-khname');
+                    const khPhone = this.getAttribute('data-khphone') || '';
+                    if (idKhach) {
+                        if (!selectEditKh.querySelector(`option[value="${idKhach}"]`)) {
+                            const opt = document.createElement('option');
+                            opt.value = idKhach;
+                            opt.text = khPhone ? `KH-${idKhach} | ${khName} (${khPhone})` : `KH-${idKhach} | ${khName}`;
+                            selectEditKh.insertBefore(opt, selectEditKh.children[1] || null);
+                        }
+                        selectEditKh.value = idKhach;
+                    }
+                } else {
+                    if (groupEditKh) {
+                        groupEditKh.classList.add('d-none');
+                        selectEditKh.removeAttribute('required');
+                        if (selectEditKh) selectEditKh.value = '';
+                    }
+                }
             });
         });
     });
@@ -265,6 +329,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectVaiTro = document.querySelector('#modalAddAccount select[name="vai_tro"]');
     const groupChonNhanVien = document.getElementById('group_chon_nhan_vien');
     const inputNhanVien = document.getElementById('id_nhanvien');
+    const groupChonKhachHang = document.getElementById('group_chon_khach_hang');
+    const inputKhachHang = document.getElementById('id_khachhang');
 
     if (selectVaiTro) {
         selectVaiTro.addEventListener('change', function() {
@@ -272,11 +338,48 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.value === 'ADMIN' || this.value === 'NHANVIEN') {
                 groupChonNhanVien.classList.remove('d-none');
                 inputNhanVien.setAttribute('required', 'required'); // Bắt buộc chọn
+                // Hide customer group
+                if (groupChonKhachHang) {
+                    groupChonKhachHang.classList.add('d-none');
+                    inputKhachHang.removeAttribute('required');
+                    inputKhachHang.value = '';
+                }
             } else {
                 // Nếu chọn USER thì ẩn đi và loại bỏ thuộc tính required
                 groupChonNhanVien.classList.add('d-none');
                 inputNhanVien.removeAttribute('required');
                 inputNhanVien.value = ""; // Reset giá trị về rỗng
+                // Show customer group for USER
+                if (groupChonKhachHang) {
+                    groupChonKhachHang.classList.remove('d-none');
+                    inputKhachHang.setAttribute('required', 'required');
+                }
+            }
+        });
+        // Trigger initial state
+        selectVaiTro.dispatchEvent(new Event('change'));
+    }
+});
+// Edit modal: toggle groups when role changed by user
+document.addEventListener('DOMContentLoaded', function() {
+    const editVaiTro = document.getElementById('edit_vaitro');
+    const groupChonNhanVienEdit = document.getElementById('group_chon_nhan_vien_edit');
+    const selectEditNv = document.getElementById('edit_id_nhanvien');
+    const groupChonKhachHangEdit = document.getElementById('group_chon_khach_hang_edit');
+    const selectEditKh = document.getElementById('edit_id_khachhang');
+
+    if (editVaiTro) {
+        editVaiTro.addEventListener('change', function() {
+            if (this.value === 'ADMIN' || this.value === 'NHANVIEN') {
+                if (groupChonNhanVienEdit) groupChonNhanVienEdit.classList.remove('d-none');
+                if (selectEditNv) selectEditNv.setAttribute('required', 'required');
+                if (groupChonKhachHangEdit) groupChonKhachHangEdit.classList.add('d-none');
+                if (selectEditKh) { selectEditKh.removeAttribute('required'); selectEditKh.value = ''; }
+            } else {
+                if (groupChonNhanVienEdit) groupChonNhanVienEdit.classList.add('d-none');
+                if (selectEditNv) { selectEditNv.removeAttribute('required'); selectEditNv.value = ''; }
+                if (groupChonKhachHangEdit) groupChonKhachHangEdit.classList.remove('d-none');
+                if (selectEditKh) selectEditKh.setAttribute('required', 'required');
             }
         });
     }

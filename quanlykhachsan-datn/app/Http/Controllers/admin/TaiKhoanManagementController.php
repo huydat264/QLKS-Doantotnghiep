@@ -17,17 +17,17 @@ class TaiKhoanManagementController extends Controller
         $taiKhoanNoiBo = DB::table('taikhoan as t')
             ->leftJoin('nhanvien as nv', 'nv.tai_khoan_nhanvien_id', '=', 't.id_taikhoan')
             ->whereIn('t.role', ['ADMIN', 'NHANVIEN'])
-            ->select('t.*', 'nv.id_nhanvien as linked_id', 'nv.ho_ten as linked_name')
+            ->select('t.*', 'nv.id_nhanvien as linked_id', 'nv.ho_ten as linked_name', 'nv.so_dien_thoai as linked_phone')
             ->orderBy('t.id_taikhoan', 'desc')
-            ->paginate(10, ['t.*', 'nv.id_nhanvien', 'nv.ho_ten'], 'page_noibo');
+            ->paginate(10, ['t.*', 'nv.id_nhanvien', 'nv.ho_ten', 'nv.so_dien_thoai'], 'page_noibo');
 
         // Bảng 2: Khách hàng (Phân trang riêng) - GIỮ NGUYÊN
         $taiKhoanUser = DB::table('taikhoan as t')
-            ->leftJoin('nhanvien as nv', 'nv.tai_khoan_nhanvien_id', '=', 't.id_taikhoan')
+            ->leftJoin('khachhang as kh', 'kh.tai_khoan_khachhang_id', '=', 't.id_taikhoan')
             ->where('t.role', 'USER')
-            ->select('t.*', 'nv.id_nhanvien as linked_id', 'nv.ho_ten as linked_name')
+            ->select('t.*', 'kh.id_khachhang as linked_id', 'kh.ho_ten as linked_name', 'kh.so_dien_thoai as linked_phone')
             ->orderBy('t.id_taikhoan', 'desc')
-            ->paginate(10, ['t.*', 'nv.id_nhanvien', 'nv.ho_ten'], 'page_user');
+            ->paginate(10, ['t.*', 'kh.id_khachhang', 'kh.ho_ten', 'kh.so_dien_thoai'], 'page_user');
 
         // THÊM: Lấy danh sách nhân viên chưa được cấp tài khoản để đổ vào dropdown select
         // Điều kiện whereNull đảm bảo nhân viên nào đã có tài khoản rồi sẽ không xuất hiện lại
@@ -36,8 +36,13 @@ class TaiKhoanManagementController extends Controller
             ->whereNull('tai_khoan_nhanvien_id')
             ->get();
 
+        // THÊM: Lấy danh sách Khách hàng chưa được gán tài khoản
+        $danhSachKhachHang = DB::table('khachhang')
+            ->whereNull('tai_khoan_khachhang_id')
+            ->get();
+
         // Trỏ thẳng view vào thư mục admin và compact thêm biến danh sách nhân viên
-        return view('admin.quanlytaikhoan', compact('taiKhoanNoiBo', 'taiKhoanUser', 'danhSachNhanVien'));
+        return view('admin.quanlytaikhoan', compact('taiKhoanNoiBo', 'taiKhoanUser', 'danhSachNhanVien', 'danhSachKhachHang'));
     }
 
     // 2. Thêm tài khoản mới (Dùng chung) - ĐÃ THÊM LOGIC RÀNG BUỘC NHÂN VIÊN
@@ -67,6 +72,17 @@ class TaiKhoanManagementController extends Controller
                 ]);
         }
 
+        // THÊM: Nếu vai trò là USER và chọn Khách hàng thì gán liên kết
+        if ($request->vai_tro === 'USER' && $request->filled('id_khachhang')) {
+            $kh = DB::table('khachhang')->where('id_khachhang', $request->id_khachhang)->first();
+            if ($kh && $kh->tai_khoan_khachhang_id) {
+                // Khách hàng đã có tài khoản khác
+                return back()->with('error', 'Khách hàng bạn chọn đã được gán tài khoản khác.');
+            }
+            // Gán khách hàng với tài khoản mới
+            DB::table('khachhang')->where('id_khachhang', $request->id_khachhang)->update(['tai_khoan_khachhang_id' => $id_taikhoan]);
+        }
+
         return back()->with('success', 'Thêm tài khoản thành công!');
     }
 
@@ -77,6 +93,7 @@ class TaiKhoanManagementController extends Controller
             'vai_tro' => 'required|in:ADMIN,NHANVIEN,USER',
             'mat_khau' => 'nullable|min:6',
             'id_nhanvien' => 'nullable|integer',
+            'id_khachhang' => 'nullable|integer',
         ]);
 
         $updateData = [
@@ -107,9 +124,29 @@ class TaiKhoanManagementController extends Controller
                 // Gán nhân viên được chọn với tài khoản hiện tại
                 DB::table('nhanvien')->where('id_nhanvien', $selectedNv)->update(['tai_khoan_nhanvien_id' => $id]);
             }
+            // Nếu chuyển role sang ADMIN/NHANVIEN thì chắc chắn không còn liên kết khách hàng
+            DB::table('khachhang')->where('tai_khoan_khachhang_id', $id)->update(['tai_khoan_khachhang_id' => null]);
         } else {
             // Nếu chuyển về USER thì hủy gán nhân viên (nếu có)
             DB::table('nhanvien')->where('tai_khoan_nhanvien_id', $id)->update(['tai_khoan_nhanvien_id' => null]);
+            // Xử lý gán Khách hàng ↔ Tài khoản
+            $selectedKh = $request->input('id_khachhang');
+            if ($selectedKh) {
+                // Kiểm tra khách hàng có đang bị gán cho tài khoản khác không
+                $existingKh = DB::table('khachhang')->where('id_khachhang', $selectedKh)->first();
+                if ($existingKh && $existingKh->tai_khoan_khachhang_id && $existingKh->tai_khoan_khachhang_id != $id) {
+                    return back()->with('error', 'Khách hàng này đã có tài khoản khác. Vui lòng chọn khách hàng khác.');
+                }
+
+                // Hủy gán trước đó tất cả khách hàng đang gán với tài khoản này
+                DB::table('khachhang')->where('tai_khoan_khachhang_id', $id)->update(['tai_khoan_khachhang_id' => null]);
+
+                // Gán khách hàng được chọn với tài khoản hiện tại
+                DB::table('khachhang')->where('id_khachhang', $selectedKh)->update(['tai_khoan_khachhang_id' => $id]);
+            } else {
+                // Nếu không chọn khách hàng thì đảm bảo tài khoản này không còn liên kết nào
+                DB::table('khachhang')->where('tai_khoan_khachhang_id', $id)->update(['tai_khoan_khachhang_id' => null]);
+            }
         }
 
         return back()->with('success', 'Cập nhật tài khoản thành công!');

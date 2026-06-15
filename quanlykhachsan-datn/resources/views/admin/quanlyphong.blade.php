@@ -137,8 +137,7 @@
                     <td>
                         @if($phong->trang_thai == 'Trống')
                             <span class="badge bg-success-subtle text-success px-2 py-1">Trống</span>
-                        @elseif($phong->trang_thai == 'Đã đặt')
-                            <span class="badge bg-danger-subtle text-danger px-2 py-1">Đã đặt</span>
+
                         @else
                             <span class="badge bg-warning-subtle text-warning px-2 py-1">Bảo trì</span>
                         @endif
@@ -161,19 +160,25 @@
 
                     <td>
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-outline-blue btn-rounded btn-action-custom btn-edit-room"
-                                    data-id="{{ $phong->id_phong }}"
-                                    data-so="{{ $phong->so_phong }}"
-                                    data-loai="{{ $phong->loai_phong }}"
-                                    data-gia="{{ $phong->gia_phong }}"
-                                    data-trangthai="{{ $phong->trang_thai }}"
-                                    data-nguoi="{{ $phong->so_luong_nguoi }}"
-                                    data-mota="{{ $phong->mo_ta }}"
-                                    data-tiennghi="{{ $phong->tien_nghi }}"
-                                    data-thongtin="{{ $phong->thong_tin_quan_trong }}"
-                                    data-anh="{{ $phong->anh }}">
-                                <i class="bi bi-pencil-square me-1"></i> Sửa
-                            </button>
+                            @if($phong->datPhongHienTai)
+                                <button type="button" class="btn btn-outline-secondary btn-rounded btn-action-custom" disabled title="Không thể chỉnh sửa khi có khách đặt phòng">
+                                    <i class="bi bi-pencil-square me-1"></i> Sửa
+                                </button>
+                            @else
+                                <button type="button" class="btn btn-outline-blue btn-rounded btn-action-custom btn-edit-room"
+                                        data-id="{{ $phong->id_phong }}"
+                                        data-so="{{ $phong->so_phong }}"
+                                        data-loai="{{ $phong->loai_phong }}"
+                                        data-gia="{{ $phong->gia_phong }}"
+                                        data-trangthai="{{ $phong->trang_thai }}"
+                                        data-nguoi="{{ $phong->so_luong_nguoi }}"
+                                        data-mota="{{ $phong->mo_ta }}"
+                                        data-tiennghi="{{ $phong->tien_nghi }}"
+                                        data-thongtin="{{ $phong->thong_tin_quan_trong }}"
+                                        data-anh="{{ $phong->anh }}">
+                                    <i class="bi bi-pencil-square me-1"></i> Sửa
+                                </button>
+                            @endif
 
                             @if($phong->datPhongHienTai)
                                 <button type="button" class="btn btn-outline-danger btn-rounded btn-action-custom btn-clear-customer"
@@ -242,7 +247,7 @@
                             <label class="form-label fw-bold small text-secondary">Trạng thái phòng</label>
                             <select name="trang_thai" id="edit_trang_thai" class="form-select form-select-custom" required>
                                 <option value="Trống">Trống (Sẵn sàng đón khách)</option>
-                                <option value="Đã đặt">Đã đặt (Đang có khách)</option>
+
                                 <option value="Bảo trì">Bảo trì (Tạm khóa sửa chữa)</option>
                             </select>
                         </div>

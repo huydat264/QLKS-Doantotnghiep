@@ -394,8 +394,9 @@
 
                 @if($phong->trang_thai === 'Trống')
                     @auth
-                        <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
-                            class="btn btn-book text-decoration-none">
+                        <a href="javascript:void(0)"
+                            class="btn btn-book text-decoration-none"
+                            onclick="viewBookingCalendar({{ $phong->id_phong }}, '{{ $phong->so_phong }}', '{{ $phong->loai_phong }}')">
                             ĐẶT PHÒNG
                         </a>
                     @else
@@ -520,7 +521,64 @@
 </section>
 
 <!-- SCRIPT HIỆU ỨNG CUỘN -->
+<script src="{{ asset('js/room-availability.js') }}"></script>
 <script>
+    const checker = new RoomAvailabilityChecker({ apiBaseUrl: '/api' });
+
+    // Modal hiển thị lịch đã book
+    async function viewBookingCalendar(roomId, roomNumber, roomType) {
+        try {
+            // Lấy lịch đã book
+            const availability = await checker.fetchRoomAvailability(roomId);
+
+            // Hiển thị modal
+            const modalHTML = `
+                <div class="modal fade" id="bookingCalendarModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Lịch đặt phòng - ${roomType} (Phòng ${roomNumber})</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <strong>Lịch phòng trống:</strong> Bạn có thể đặt những khoảng thời gian <span class="text-success"><strong>không có</strong></span> trong danh sách dưới.
+                                </div>
+                                <h6 class="mb-3">Lịch đã được đặt:</h6>
+                                ${availability.bookedDates.length > 0 ? checker.getBookingCalendarHTML() : '<p class="text-muted">Phòng hiện trống, chưa có lịch đặt.</p>'}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                <a href="{{ route('booking.check', ['type' => 'phong', 'id' => 'ROOM_ID']) }}"
+                                   class="btn btn-primary"
+                                   id="bookNowBtn"
+                                   onclick="this.href = this.href.replace('ROOM_ID', ${roomId})">
+                                    Đặt phòng
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Xóa modal cũ nếu tồn tại
+            const oldModal = document.getElementById('bookingCalendarModal');
+            if (oldModal) {
+                oldModal.remove();
+            }
+
+            // Thêm modal mới
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('bookingCalendarModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Lỗi khi tải lịch phòng. Vui lòng thử lại!');
+        }
+    }
+
     function reveal() {
         var reveals = document.querySelectorAll(".reveal");
         for (var i = 0; i < reveals.length; i++) {
