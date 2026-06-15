@@ -48,8 +48,9 @@ class DatPhongManagementController extends Controller
             'ngay_tra' => 'required|date|after:ngay_nhan',
         ]);
 
-        // Tính tiền tổng
-        $tongTien = $this->calculateRoomPrice($request->id_phong, $request->ngay_nhan, $request->ngay_tra);
+        // Tính tiền tổng (ủy nhiệm cho model Phong)
+        $phong = Phong::findOrFail($request->id_phong);
+        $tongTien = $phong->calculatePriceForPeriod($request->ngay_nhan, $request->ngay_tra);
 
         DatPhong::create([
             'id_khachhang' => $request->id_khachhang,
@@ -78,8 +79,9 @@ class DatPhongManagementController extends Controller
 
         $datPhong = DatPhong::findOrFail($id);
 
-        // Tính lại tiền phòng dựa trên cấu hình ngày mới
-        $tongTienMoi = $this->calculateRoomPrice($datPhong->id_phong, $request->ngay_nhan, $request->ngay_tra);
+        // Tính lại tiền phòng dựa trên cấu hình ngày mới (ủy nhiệm cho model Phong)
+        $phong = Phong::findOrFail($datPhong->id_phong);
+        $tongTienMoi = $phong->calculatePriceForPeriod($request->ngay_nhan, $request->ngay_tra);
 
         $datPhong->update([
             'ngay_nhan' => Carbon::parse($request->ngay_nhan)->startOfDay(),
@@ -121,7 +123,8 @@ class DatPhongManagementController extends Controller
             return response()->json(['success' => false, 'price' => 0]);
         }
 
-        $tongTien = $this->calculateRoomPrice($idPhong, $ngayNhan, $ngayTra);
+        $phong = Phong::findOrFail($idPhong);
+        $tongTien = $phong->calculatePriceForPeriod($ngayNhan, $ngayTra);
 
         return response()->json([
             'success' => true,
@@ -130,40 +133,5 @@ class DatPhongManagementController extends Controller
         ]);
     }
 
-    // Hàm lõi tính toán chi phí phòng (Thuật toán quét cấu hình Sale theo từng ngày)
-    private function calculateRoomPrice($idPhong, $ngayNhan, $ngayTra)
-    {
-        $phong = Phong::findOrFail($idPhong);
-        $start = Carbon::parse($ngayNhan)->startOfDay();
-        $end = Carbon::parse($ngayTra)->startOfDay();
-
-        $soDem = $start->diffInDays($end);
-        if ($soDem <= 0) $soDem = 1; // Tính tối thiểu 1 đêm
-
-        $tongTien = 0;
-        $giaGoc = $phong->gia_phong;
-
-        // Quét từng đêm xem đêm nào được sale, đêm nào giữ giá gốc
-        for ($i = 0; $i < $soDem; $i++) {
-            $currentDay = $start->copy()->addDays($i);
-
-            // Kiểm tra xem ngày hiện tại có nằm trong chu kỳ sale không
-            $isSale = false;
-            if ($phong->giam_gia_percent > 0 && $phong->sale_tu_ngay && $phong->sale_den_ngay) {
-                $saleTu = Carbon::parse($phong->sale_tu_ngay)->startOfDay();
-                $saleDen = Carbon::parse($phong->sale_den_ngay)->endOfDay();
-                if ($currentDay->between($saleTu, $saleDen)) {
-                    $isSale = true;
-                }
-            }
-
-            if ($isSale) {
-                $tongTien += $giaGoc * (1 - ($phong->giam_gia_percent / 100));
-            } else {
-                $tongTien += $giaGoc;
-            }
-        }
-
-        return $tongTien;
-    }
+    // Price calculation moved to Phong model as calculatePriceForPeriod()
 }

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\BangLuong;
+use App\Models\ChamCong;
+use App\Models\NhanVien;
 use Illuminate\Support\Facades\DB;
 
 class BangLuongManagementController extends Controller
@@ -41,24 +44,33 @@ class BangLuongManagementController extends Controller
         $thangLoc = $request->input('thangLoc');
         $namLoc = $request->input('namLoc');
 
-        $query = DB::table('bangluong')
-            ->join('nhanvien', 'bangluong.id_nhanvien', '=', 'nhanvien.id_nhanvien')
-            ->select('bangluong.*', 'nhanvien.ho_ten', 'nhanvien.chuc_vu');
+        $query = BangLuong::with('nhanvien')->select(
+            'id_bangluong',
+            'id_nhanvien',
+            'thang',
+            'nam',
+            'so_ngay_cong',
+            'thuong',
+            'phat',
+            'thue_tncn',
+            'luong_co_ban',
+            'tong_luong'
+        );
 
         // Chỉ lọc nếu có cả tham số thangLoc và namLoc
         if (!empty($thangLoc) && !empty($namLoc)) {
-            $query->where('bangluong.thang', $thangLoc)
-                  ->where('bangluong.nam', $namLoc);
+            $query->where('thang', $thangLoc)
+                  ->where('nam', $namLoc);
         } else {
             // Nếu không có bộ lọc, mặc định hiển thị tháng/năm hiện tại cho giao diện
             $thangLoc = date('m');
             $namLoc = date('Y');
         }
 
-        $danhSachBangLuong = $query->orderBy('bangluong.nam', 'desc')
-                                    ->orderBy('bangluong.thang', 'desc')
-                                    ->orderBy('bangluong.id_bangluong', 'desc')
-                                    ->paginate(20);
+        $danhSachBangLuong = $query->orderBy('nam', 'desc')
+                        ->orderBy('thang', 'desc')
+                        ->orderBy('id_bangluong', 'desc')
+                        ->paginate(20);
 
         return view('admin.quanlybangluong', compact('danhSachBangLuong', 'thangLoc', 'namLoc'));
     }
@@ -74,7 +86,7 @@ class BangLuongManagementController extends Controller
         $thang = $request->thang;
         $nam = $request->nam;
 
-        $danhSachChamCong = DB::table('chamcong')->where('thang', $thang)->where('nam', $nam)->get();
+        $danhSachChamCong = ChamCong::where('thang', $thang)->where('nam', $nam)->get();
 
         if ($danhSachChamCong->isEmpty()) {
             return redirect()->back()->with('error', "Tháng $thang/$nam chưa có dữ liệu chấm công nào!");
@@ -82,11 +94,10 @@ class BangLuongManagementController extends Controller
 
         $count = 0;
         foreach ($danhSachChamCong as $cc) {
-            $nhanVien = DB::table('nhanvien')->where('id_nhanvien', $cc->id_nhanvien)->first();
+            $nhanVien = NhanVien::find($cc->id_nhanvien);
             if (!$nhanVien) continue;
 
-            $daTonTai = DB::table('bangluong')
-                ->where('id_nhanvien', $cc->id_nhanvien)
+            $daTonTai = BangLuong::where('id_nhanvien', $cc->id_nhanvien)
                 ->where('thang', $thang)
                 ->where('nam', $nam)
                 ->exists();
@@ -107,7 +118,7 @@ class BangLuongManagementController extends Controller
                 // Tổng thực nhận: Theo ý mày là TỔNG không trừ thuế ở đây
                 $tongLuongThucNhan = $luongChinh + $thuong - $phat;
 
-                DB::table('bangluong')->insert([
+                BangLuong::create([
                     'id_nhanvien' => $nhanVien->id_nhanvien,
                     'thang' => $thang,
                     'nam' => $nam,
@@ -141,7 +152,7 @@ class BangLuongManagementController extends Controller
 
         DB::beginTransaction();
         try {
-            $bangLuong = DB::table('bangluong')->where('id_bangluong', $id)->first();
+            $bangLuong = BangLuong::find($id);
             if (!$bangLuong) throw new \Exception("Không tìm thấy bảng lương.");
 
             $luongCoBanMoi = $request->luong_co_ban;
@@ -157,7 +168,7 @@ class BangLuongManagementController extends Controller
             $tongLuongThucNhan = $luongChinhMoi + $thuong - $phat;
 
             // Cập nhật vào bảng Lương
-            DB::table('bangluong')->where('id_bangluong', $id)->update([
+            $bangLuong->update([
                 'luong_co_ban' => $luongCoBanMoi,
                 'thuong' => $thuong,
                 'phat' => $phat,
@@ -166,8 +177,7 @@ class BangLuongManagementController extends Controller
             ]);
 
             // Cập nhật Lương Cơ Bản mới vào thẳng bảng Nhân viên
-            DB::table('nhanvien')
-                ->where('id_nhanvien', $bangLuong->id_nhanvien)
+            NhanVien::where('id_nhanvien', $bangLuong->id_nhanvien)
                 ->update(['luong_co_ban' => $luongCoBanMoi]);
 
             DB::commit();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\NhanVien;
 use Illuminate\Support\Facades\Auth;
 class NhanVienManagementController extends Controller
 {
@@ -12,7 +13,7 @@ class NhanVienManagementController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $query = DB::table('nhanvien');
+        $query = NhanVien::query();
 
         if (!empty($search)) {
             $query->where(function($q) use ($search) {
@@ -39,7 +40,7 @@ class NhanVienManagementController extends Controller
             'email' => 'required|email|max:100',
         ]);
 
-        DB::table('nhanvien')->insert([
+        NhanVien::create([
             'ho_ten' => $request->ho_ten,
             'chuc_vu' => $request->chuc_vu,
             'luong_co_ban' => $request->luong_co_ban,
@@ -64,7 +65,8 @@ class NhanVienManagementController extends Controller
             'email' => 'required|email|max:100',
         ]);
 
-        DB::table('nhanvien')->where('id_nhanvien', $id)->update([
+        $nhanVien = NhanVien::findOrFail($id);
+        $nhanVien->update([
             'ho_ten' => $request->ho_ten,
             'chuc_vu' => $request->chuc_vu,
             'luong_co_ban' => $request->luong_co_ban,
@@ -79,7 +81,7 @@ class NhanVienManagementController extends Controller
     // 4. Xóa
     public function destroy($id)
     {
-        DB::table('nhanvien')->where('id_nhanvien', $id)->delete();
+        NhanVien::destroy($id);
         return redirect()->back()->with('success', 'Đã xóa nhân viên khỏi hệ thống!');
     }
     public function showProfile()
@@ -88,11 +90,19 @@ class NhanVienManagementController extends Controller
     $id_taikhoan = Auth::guard('admin')->id();
 
     // Truy vấn chính xác nhân viên sở hữu tài khoản này thông qua trường liên kết
-    $nhanVien = DB::table('nhanvien')
-        ->join('taikhoan', 'nhanvien.tai_khoan_nhanvien_id', '=', 'taikhoan.id_taikhoan')
-        ->select('nhanvien.*', 'taikhoan.username', 'taikhoan.role', 'taikhoan.trang_thai')
-        ->where('taikhoan.id_taikhoan', $id_taikhoan)
-        ->first();
+        $nhanVien = NhanVien::whereHas('taiKhoan', function ($query) use ($id_taikhoan) {
+                $query->where('id_taikhoan', $id_taikhoan);
+            })
+            ->with(['taiKhoan' => function ($query) use ($id_taikhoan) {
+                $query->where('id_taikhoan', $id_taikhoan);
+            }])
+            ->first();
+
+        if ($nhanVien) {
+            $nhanVien->username = $nhanVien->taiKhoan?->username;
+            $nhanVien->role = $nhanVien->taiKhoan?->role;
+            $nhanVien->trang_thai = $nhanVien->taiKhoan?->trang_thai;
+        }
 
     // Nếu không tìm thấy (đề phòng trường hợp tài khoản ADMIN tối cao chưa gắn id_nhanvien)
     if (!$nhanVien) {

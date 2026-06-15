@@ -3,10 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\BangLuong;
+use App\Models\ChamCong;
+use App\Models\Combo;
+use App\Models\DatPhong;
+use App\Models\DichVu;
+use App\Models\HoaDon;
 use App\Models\KhachHang;
 use App\Models\Phong;
-use App\Models\Combo;
-use App\Models\DichVu;
+use App\Models\SuDungDichVu;
+use App\Models\ThanhToan;
+use App\Models\Voucher;
 use App\Mail\XacNhanDatPhong;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Support\Facades\Auth;
@@ -78,11 +85,10 @@ class DatPhongController extends Controller
             }
             return false;
         });
-        $vouchers = DB::table('voucher')
-    ->where('trang_thai', 1)
-    ->whereNull('id_khachhang')
-    ->where('ngay_het_han', '>=', now()->toDateString())
-    ->get();
+        $vouchers = Voucher::where('trang_thai', 1)
+            ->whereNull('id_khachhang')
+            ->where('ngay_het_han', '>=', now()->toDateString())
+            ->get();
         $dvNgoaiLe = $dichVus->diff($dvLuuTru);
 
         $defaultCheckin = Carbon::today()->toDateString();
@@ -212,8 +218,7 @@ class DatPhongController extends Controller
         $appliedVoucherId = session('applied_voucher_id');
 
         if ($appliedVoucherId) {
-            $voucher = DB::table('voucher')
-                ->where('id_voucher', $appliedVoucherId)
+            $voucher = Voucher::where('id_voucher', $appliedVoucherId)
                 ->where('trang_thai', 1)
                 ->where('ngay_het_han', '>=', now()->toDateString())
                 ->first();
@@ -408,7 +413,7 @@ class DatPhongController extends Controller
                     if ($type === 'phong') {
                         $id_phong_final = $booking_id;
                         // Lock phòng để kiểm tra
-                        DB::table('phong')->where('id_phong', $id_phong_final)->lockForUpdate()->first();
+                        Phong::where('id_phong', $id_phong_final)->lockForUpdate()->first();
 
                         // Kiểm tra lần cuối xung đột
                         if (!RoomAvailabilityService::isRoomAvailable($id_phong_final, $ngay_nhan, $ngay_tra)) {
@@ -418,7 +423,7 @@ class DatPhongController extends Controller
                         }
                     } else {
                         $id_combo_final = $booking_id;
-                        $combo = \App\Models\Combo::find($id_combo_final);
+                        $combo = Combo::find($id_combo_final);
 
                         // Tìm tất cả phòng cùng loại để kiểm tra tính khả dụng
                         $available_phong_id = RoomAvailabilityService::findAvailableRoomByType(
@@ -436,7 +441,7 @@ class DatPhongController extends Controller
 
                         $id_phong_final = $available_phong_id;
                         // Lock phòng đã chọn
-                        DB::table('phong')->where('id_phong', $id_phong_final)->lockForUpdate()->first();
+                        Phong::where('id_phong', $id_phong_final)->lockForUpdate()->first();
                     }
 
                     //  Lưu Đặt Phòng (datphong)
@@ -452,30 +457,31 @@ class DatPhongController extends Controller
                         'id_combo'      => $id_combo_final
                     ];
 
-                    $id_datphong = DB::table('datphong')->insertGetId($datPhongData);
+$datPhongModel = DatPhong::create($datPhongData);
+                        $id_datphong = $datPhongModel->id_datphong;
 
                     //  Lưu Sử dụng Dịch vụ (sudungdichvu)
                     $sessionDichVus = session('booking_dich_vus', []);
                     if (!empty($sessionDichVus)) {
                         foreach ($sessionDichVus as $dv) {
-                            DB::table('sudungdichvu')->insert([
+                            SuDungDichVu::create([
                                 'id_datphong' => $id_datphong,
                                 'id_dichvu'   => $dv['id_dichvu'],
                                 'so_luong'    => $dv['so_luong'],
-                                'thanh_tien'  => $dv['thanh_tien']
+                                'thanh_tien'  => $dv['thanh_tien'],
                             ]);
                         }
                     }
 
                     //  Lưu Hóa đơn (hoadon) chỉ ghi số tiền thực giao dịch hiện tại
-                    $id_hoadon = DB::table('hoadon')->insertGetId([
+                    $hoaDon = HoaDon::create([
                         'id_datphong' => $id_datphong,
                         'tong_tien'   => $tien_coc_he_thong,
-                        'ngay_xuat'   => Carbon::now('Asia/Ho_Chi_Minh')
+                        'ngay_xuat'   => Carbon::now('Asia/Ho_Chi_Minh'),
                     ]);
 
                     //  Lưu Lịch sử Thanh toán vào bảng thanhtoan
-                    DB::table('thanhtoan')->insert([
+                    ThanhToan::create([
                         'id_datphong'        => $id_datphong,
                         'ngay_thanh_toan'    => Carbon::now('Asia/Ho_Chi_Minh'),
                         'so_tien'            => $tien_coc_he_thong,
@@ -483,7 +489,7 @@ class DatPhongController extends Controller
                         'loai_thanh_toan'    => 'Đặt cọc 30%',
                         'vnp_transaction_no' => $request->input('vnp_TransactionNo'),
                         'vnp_response_code'  => $request->input('vnp_ResponseCode'),
-                        'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công'
+                        'ghi_chu'            => 'Thanh toán VNPay (cổng thanh toán) - cọc 30% thành công',
                     ]);
 
                     // ✅ KHÔNG CẬP NHẬT TRẠNG THÁI PHÒNG - phòng vẫn 'Trống' trong DB
@@ -495,21 +501,17 @@ class DatPhongController extends Controller
                     $item = ($type == 'phong') ? \App\Models\Phong::find($id_phong_final) : \App\Models\Combo::find($id_combo_final);
                     $selectedDichVus = !empty($sessionDichVus) ? \App\Models\DichVu::whereIn('id_dichvu', array_keys($sessionDichVus))->get() : collect([]);
 
-                    $donDat = DB::table('datphong')
-                        ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-                        ->leftJoin('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-                        ->leftJoin('combo', 'datphong.id_combo', '=', 'combo.id_combo')
-                        ->where('datphong.id_datphong', $id_datphong)
-                        ->select(
-                            'datphong.*',
-                            'khachhang.ho_ten',
-                            'khachhang.email',
-                            'phong.so_phong',
-                            'phong.loai_phong',
-                            'combo.ten_combo',
-                            'datphong.tong_tien_phai_tra as tong_tien'
-                        )
-                        ->first();
+                    $donDat = DatPhong::with(['khachhang', 'phong', 'combo'])
+                        ->find($id_datphong);
+
+                    if ($donDat && $donDat->phong) {
+                        $donDat->so_phong = $donDat->phong->so_phong;
+                        $donDat->loai_phong = $donDat->phong->loai_phong;
+                    }
+
+                    if ($donDat && $donDat->combo) {
+                        $donDat->ten_combo = $donDat->combo->ten_combo;
+                    }
 
                     $serviceTotal = !empty($sessionDichVus) ? array_sum(array_column($sessionDichVus, 'thanh_tien')) : 0;
                     $tienCoc = $tien_coc_he_thong;
@@ -569,13 +571,20 @@ class DatPhongController extends Controller
             return view('user.lichsu_datphong', compact('danhSachDat'));
         }
 
-        $danhSachDat = DB::table('datphong')
-            ->leftJoin('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->leftJoin('combo', 'datphong.id_combo', '=', 'combo.id_combo')
-            ->where('datphong.id_khachhang', $khachHang->id_khachhang)
-            ->orderBy('datphong.id_datphong', 'desc')
-            ->select('datphong.*', 'phong.so_phong', 'phong.loai_phong', 'combo.ten_combo')
-            ->get();
+        $danhSachDat = DatPhong::with(['phong', 'combo'])
+            ->where('id_khachhang', $khachHang->id_khachhang)
+            ->orderByDesc('id_datphong')
+            ->get()
+            ->map(function ($booking) {
+                if ($booking->phong) {
+                    $booking->so_phong = $booking->phong->so_phong;
+                    $booking->loai_phong = $booking->phong->loai_phong;
+                }
+                if ($booking->combo) {
+                    $booking->ten_combo = $booking->combo->ten_combo;
+                }
+                return $booking;
+            });
 
         return view('user.lichsu_datphong', compact('danhSachDat'));
     }
@@ -588,27 +597,31 @@ class DatPhongController extends Controller
             return redirect()->route('home')->with('error', 'Không tìm thấy hồ sơ khách hàng.');
         }
 
-        $donDat = DB::table('datphong')
-            ->leftJoin('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->leftJoin('combo', 'datphong.id_combo', '=', 'combo.id_combo')
-            ->where('datphong.id_datphong', $id)
-            ->where('datphong.id_khachhang', $khachHang->id_khachhang)
-            ->select('datphong.*', 'phong.so_phong', 'phong.loai_phong', 'phong.gia_phong', 'combo.ten_combo', 'combo.gia_combo')
+        $donDat = DatPhong::with(['phong', 'combo'])
+            ->where('id_datphong', $id)
+            ->where('id_khachhang', $khachHang->id_khachhang)
             ->first();
 
         if (!$donDat) {
             return redirect()->route('booking.history')->with('error', 'Đơn đặt phòng không tồn tại hoặc bạn không có quyền xem.');
         }
 
-        $dichVuDaDung = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->where('sudungdichvu.id_datphong', $id)
-            ->select('sudungdichvu.*', 'dichvu.ten_dich_vu')
+        if ($donDat->phong) {
+            $donDat->so_phong = $donDat->phong->so_phong;
+            $donDat->loai_phong = $donDat->phong->loai_phong;
+            $donDat->gia_phong = $donDat->phong->gia_phong;
+        }
+
+        if ($donDat->combo) {
+            $donDat->ten_combo = $donDat->combo->ten_combo;
+            $donDat->gia_combo = $donDat->combo->gia_combo;
+        }
+
+        $dichVuDaDung = SuDungDichVu::with('dichvu')
+            ->where('id_datphong', $id)
             ->get();
 
-        $giaoDich = DB::table('thanhtoan')
-            ->where('id_datphong', $id)
-            ->first();
+        $giaoDich = ThanhToan::where('id_datphong', $id)->first();
 
         $ngayNhan = \Carbon\Carbon::parse($donDat->ngay_nhan);
         $ngayTra = \Carbon\Carbon::parse($donDat->ngay_tra);
@@ -660,8 +673,7 @@ class DatPhongController extends Controller
         }
 
         // Lấy tất cả các phòng có loại này
-        $phongs = DB::table('phong')
-            ->where('loai_phong', $loai_phong)
+        $phongs = Phong::where('loai_phong', $loai_phong)
             ->where('trang_thai', '!=', 'Bảo trì')
             ->get();
 

@@ -59,21 +59,11 @@ class PhongManagementController extends Controller
         $phong->tien_nghi = $request->tien_nghi;
         $phong->thong_tin_quan_trong = $request->thong_tin_quan_trong;
 
-        // LOGIC XỬ LÝ ẢNH THÔNG MINH (Ưu tiên File máy -> Link web)
+        // LOGIC XỬ LÝ ẢNH: ủy nhiệm cho model xử lý thay thế/ lưu ảnh
         if ($request->hasFile('anh')) {
-            // Xóa file cũ trong storage (nếu có và nó k phải link ngoài)
-            if ($phong->anh && !filter_var($phong->anh, FILTER_VALIDATE_URL) && Storage::disk('public')->exists($phong->anh)) {
-                Storage::disk('public')->delete($phong->anh);
-            }
-            $phong->anh = $request->file('anh')->store('phong', 'public');
-
+            $phong->replaceImage($request->file('anh'));
         } elseif ($request->filled('anh_link')) {
-            // Nếu người dùng dán link thay vì upload
-            // Vẫn xóa file cũ đi cho đỡ nặng máy chủ
-            if ($phong->anh && !filter_var($phong->anh, FILTER_VALIDATE_URL) && Storage::disk('public')->exists($phong->anh)) {
-                Storage::disk('public')->delete($phong->anh);
-            }
-            $phong->anh = $request->anh_link;
+            $phong->replaceImage($request->anh_link);
         }
 
         $phong->save();

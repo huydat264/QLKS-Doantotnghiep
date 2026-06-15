@@ -76,8 +76,8 @@
                         <td><span class="badge bg-primary px-2 py-1" style="border-radius: 6px;">Phòng {{ $item->so_phong }}</span></td>
                         <td><strong>{{ $item->ten_dich_vu }}</strong></td>
                         <td class="fw-bold">{{ $item->so_luong }}</td>
-                        <td>{{ number_format($item->gia_dich_vu, 0, ',', '.') }} đ</td>
-                        <td class="text-danger fw-bold">{{ number_format($item->so_luong * $item->gia_dich_vu, 0, ',', '.') }} đ</td>
+                        <td>{{ number_format($item->gia, 0, ',', '.') }} đ</td>
+                        <td class="text-danger fw-bold">{{ number_format($item->so_luong * $item->gia, 0, ',', '.') }} đ</td>
                         <td class="text-center">
                                 <button class="btn btn-warning btn-sm btn-rounded btn-edit"
                                     data-id="{{ $item->id_sudungdv }}"

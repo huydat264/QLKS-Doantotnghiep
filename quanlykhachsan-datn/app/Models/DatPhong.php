@@ -42,6 +42,21 @@ class DatPhong extends Model
         return $this->belongsTo(Combo::class, 'id_combo', 'id_combo');
     }
 
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class, 'id_voucher', 'id_voucher');
+    }
+
+    public function suDungDichVus()
+    {
+        return $this->hasMany(SuDungDichVu::class, 'id_datphong', 'id_datphong');
+    }
+
+    public function hoaDons()
+    {
+        return $this->hasMany(HoaDon::class, 'id_datphong', 'id_datphong');
+    }
+
     public function thanhToan()
     {
         return $this->hasMany(ThanhToan::class, 'id_datphong', 'id_datphong');

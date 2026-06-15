@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\ChamCong;
+use App\Models\NhanVien;
 
 class ChamCongManagementController extends Controller
 {
@@ -14,16 +15,21 @@ class ChamCongManagementController extends Controller
         $search = $request->input('search');
 
         // Join bảng chamcong với nhanvien để lấy tên nhân viên hiển thị
-        $query = DB::table('chamcong')
-            ->join('nhanvien', 'chamcong.id_nhanvien', '=', 'nhanvien.id_nhanvien')
-            ->select('chamcong.*', 'nhanvien.ho_ten', 'nhanvien.chuc_vu');
+        $query = ChamCong::with('nhanvien')->select(
+            'id_chamcong',
+            'id_nhanvien',
+            'thang',
+            'nam',
+            'so_ngay_di_lam',
+            'so_ngay_nghi_khong_phep',
+            'so_ngay_nghi_co_phep'
+        );
 
         if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('nhanvien.ho_ten', 'LIKE', "%{$search}%")
-                  ->orWhere('chamcong.thang', 'LIKE', "%{$search}%")
-                  ->orWhere('chamcong.nam', 'LIKE', "%{$search}%");
-            });
+            $query->whereHas('nhanvien', function ($q) use ($search) {
+                $q->where('ho_ten', 'LIKE', "%{$search}%");
+            })->orWhere('thang', 'LIKE', "%{$search}%")
+              ->orWhere('nam', 'LIKE', "%{$search}%");
         }
 
         $danhSachChamCong = $query->orderBy('chamcong.nam', 'desc')
@@ -32,7 +38,7 @@ class ChamCongManagementController extends Controller
                                   ->paginate(20);
 
         // Lấy danh sách nhân viên đang làm việc để đổ vào Select Box lúc Thêm mới
-        $danhSachNhanVien = DB::table('nhanvien')->select('id_nhanvien', 'ho_ten', 'chuc_vu')->get();
+        $danhSachNhanVien = NhanVien::select('id_nhanvien', 'ho_ten', 'chuc_vu')->get();
 
         return view('admin.quanlychamcong', compact('danhSachChamCong', 'search', 'danhSachNhanVien'));
     }
@@ -50,8 +56,7 @@ class ChamCongManagementController extends Controller
         ]);
 
         // Logic chặn chấm công trùng lặp: Kiểm tra xem nhân viên này đã có điểm danh trong tháng/năm này chưa
-        $isExist = DB::table('chamcong')
-            ->where('id_nhanvien', $request->id_nhanvien)
+        $isExist = ChamCong::where('id_nhanvien', $request->id_nhanvien)
             ->where('thang', $request->thang)
             ->where('nam', $request->nam)
             ->exists();
@@ -60,7 +65,7 @@ class ChamCongManagementController extends Controller
             return redirect()->back()->with('error', 'Nhân viên này đã được chấm công trong tháng ' . $request->thang . '/' . $request->nam . ' rồi!');
         }
 
-        DB::table('chamcong')->insert([
+        ChamCong::create([
             'id_nhanvien' => $request->id_nhanvien,
             'thang' => $request->thang,
             'nam' => $request->nam,
@@ -84,10 +89,9 @@ class ChamCongManagementController extends Controller
         ]);
 
         // Kiểm tra trùng tháng/năm với bản ghi khác của cùng nhân viên đó (Trừ chính nó ra)
-        $chamCongHienTai = DB::table('chamcong')->where('id_chamcong', $id)->first();
+        $chamCongHienTai = ChamCong::findOrFail($id);
 
-        $isExist = DB::table('chamcong')
-            ->where('id_nhanvien', $chamCongHienTai->id_nhanvien)
+        $isExist = ChamCong::where('id_nhanvien', $chamCongHienTai->id_nhanvien)
             ->where('thang', $request->thang)
             ->where('nam', $request->nam)
             ->where('id_chamcong', '!=', $id)
@@ -97,7 +101,7 @@ class ChamCongManagementController extends Controller
             return redirect()->back()->with('error', 'Lỗi: Bị trùng với một bản ghi chấm công khác của tháng ' . $request->thang . '/' . $request->nam);
         }
 
-        DB::table('chamcong')->where('id_chamcong', $id)->update([
+        $chamCongHienTai->update([
             'thang' => $request->thang,
             'nam' => $request->nam,
             'so_ngay_di_lam' => $request->so_ngay_di_lam,

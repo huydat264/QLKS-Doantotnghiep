@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\DichVu;
+use App\Models\SuDungDichVu;
 use Illuminate\Support\Facades\Storage;
 
 class DichVuManagementController extends Controller
@@ -15,7 +16,7 @@ class DichVuManagementController extends Controller
         $search = $request->input('search');
 
         // Bổ sung mo_ta, hinh_anh, gia_von
-        $query = DB::table('dichvu')->select('id_dichvu', 'ten_dich_vu', 'gia_von', 'gia', 'mo_ta', 'hinh_anh');
+        $query = DichVu::select('id_dichvu', 'ten_dich_vu', 'gia_von', 'gia', 'mo_ta', 'hinh_anh');
 
         if (!empty($search)) {
             $query->where('ten_dich_vu', 'LIKE', "%{$search}%");
@@ -46,7 +47,7 @@ class DichVuManagementController extends Controller
             $imgPath = $request->hinh_anh_link;
         }
 
-        DB::table('dichvu')->insert([
+        DichVu::create([
             'ten_dich_vu' => $request->ten_dich_vu,
             'gia_von' => $request->gia_von,
             'gia' => $request->gia,
@@ -69,7 +70,7 @@ class DichVuManagementController extends Controller
             'hinh_anh_link' => 'nullable|url'
         ]);
 
-        $dichVuCu = DB::table('dichvu')->where('id_dichvu', $id)->first();
+        $dichVuCu = DichVu::findOrFail($id);
         $imgPath = $dichVuCu->hinh_anh;
 
         // Xử lý ghi đè ảnh
@@ -86,7 +87,7 @@ class DichVuManagementController extends Controller
             $imgPath = $request->hinh_anh_link;
         }
 
-        DB::table('dichvu')->where('id_dichvu', $id)->update([
+        $dichVuCu->update([
             'ten_dich_vu' => $request->ten_dich_vu,
             'gia_von' => $request->gia_von,
             'gia' => $request->gia,
@@ -100,19 +101,19 @@ class DichVuManagementController extends Controller
     // 4. Xóa
     public function destroy($id)
     {
-        $isUsed = DB::table('sudungdichvu')->where('id_dichvu', $id)->exists();
+        $isUsed = SuDungDichVu::where('id_dichvu', $id)->exists();
 
         if ($isUsed) {
             return redirect()->back()->with('error', 'Không thể xóa vì dịch vụ này đã có khách hàng sử dụng!');
         }
 
         // Lấy thông tin xóa luôn cả ảnh rác trên máy chủ
-        $dichVu = DB::table('dichvu')->where('id_dichvu', $id)->first();
+        $dichVu = DichVu::findOrFail($id);
         if ($dichVu->hinh_anh && !filter_var($dichVu->hinh_anh, FILTER_VALIDATE_URL) && Storage::disk('public')->exists($dichVu->hinh_anh)) {
             Storage::disk('public')->delete($dichVu->hinh_anh);
         }
 
-        DB::table('dichvu')->where('id_dichvu', $id)->delete();
+        $dichVu->delete();
         return redirect()->back()->with('success', 'Đã xóa dịch vụ thành công!');
     }
 }

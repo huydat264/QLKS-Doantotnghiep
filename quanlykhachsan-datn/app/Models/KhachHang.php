@@ -30,4 +30,9 @@ class KhachHang extends Model
 
         return $this->belongsTo(DangkyDangnhapModel::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
     }
+
+    public function taiKhoan()
+    {
+        return $this->belongsTo(TaiKhoan::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
+    }
 }

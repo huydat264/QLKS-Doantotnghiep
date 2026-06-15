@@ -74,8 +74,8 @@
                     @foreach($danhSachBangLuong as $bl)
                         <tr>
                             <td>
-                                <div class="fw-bold text-dark">{{ $bl->ho_ten }}</div>
-                                <small class="text-muted">{{ $bl->chuc_vu }}</small>
+                                <div class="fw-bold text-dark">{{ $bl->nhanvien->ho_ten }}</div>
+                                <small class="text-muted">{{ $bl->nhanvien->chuc_vu }}</small>
                             </td>
                             <td class="text-center">
                                 <span class="badge badge-time px-2 py-1">T{{ $bl->thang }}/{{ $bl->nam }}</span>
@@ -93,7 +93,7 @@
                             <td class="text-center">
                                 <button class="btn btn-sm btn-outline-warning btn-rounded btn-edit"
                                         data-id="{{ $bl->id_bangluong }}"
-                                        data-hoten="{{ $bl->ho_ten }}"
+                                        data-hoten="{{ $bl->nhanvien->ho_ten }}"
                                         data-thang="{{ $bl->thang }}"
                                         data-nam="{{ $bl->nam }}"
                                         data-ngaycong="{{ $bl->so_ngay_cong }}"

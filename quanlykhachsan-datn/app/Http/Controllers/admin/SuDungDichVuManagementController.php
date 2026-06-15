@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+
+use App\Models\SuDungDichVu;
+use App\Models\DichVu;
+use App\Models\DatPhong;
 
 class SuDungDichVuManagementController extends Controller
 {
@@ -15,16 +18,20 @@ class SuDungDichVuManagementController extends Controller
         $search = $request->input('search');
 
         // Truy vấn danh sách kết hợp bảng dịch vụ, đặt phòng và phòng để lấy thông tin chi tiết
-        $query = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->select(
-                'sudungdichvu.*',
-                'dichvu.ten_dich_vu',
-                'dichvu.gia as gia_dich_vu',
-                'phong.so_phong'
-            );
+        $query = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+                              ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+                              ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
+                              ->select(
+                                  'sudungdichvu.id_sudungdv',
+                                  'sudungdichvu.id_datphong',
+                                  'sudungdichvu.id_dichvu',
+                                  'sudungdichvu.so_luong',
+                                  'sudungdichvu.ngay_su_dung',
+                                  'sudungdichvu.thanh_tien',
+                                  'dichvu.ten_dich_vu',
+                                  'dichvu.gia',
+                                  'phong.so_phong'
+                              );
 
         // Hỗ trợ tìm kiếm theo Số phòng hoặc Tên dịch vụ
         if (!empty($search)) {
@@ -39,13 +46,15 @@ class SuDungDichVuManagementController extends Controller
         $danhSachSuDung = $query->orderBy('sudungdichvu.id_sudungdv', 'desc')->paginate(20);
 
         // Lấy dữ liệu bổ trợ cho các Form Modal Thêm/Sửa
-        $danhSachDichVu = DB::table('dichvu')->select('id_dichvu', 'ten_dich_vu', 'gia')->get();
+        $danhSachDichVu = DichVu::select('id_dichvu', 'ten_dich_vu', 'gia')->get();
 
         // Lấy danh sách các đơn đặt phòng hiện tại kèm số phòng tương ứng để gán dịch vụ
-        $danhSachDatPhong = DB::table('datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->select('datphong.id_datphong', 'phong.so_phong')
-            ->get();
+        $danhSachDatPhong = DatPhong::with('phong')->get()->map(function ($datPhong) {
+            return (object)[
+                'id_datphong' => $datPhong->id_datphong,
+                'so_phong' => $datPhong->phong?->so_phong,
+            ];
+        });
 
         return view('admin.quanlysudungdichvu', compact('danhSachSuDung', 'search', 'danhSachDichVu', 'danhSachDatPhong'));
     }
@@ -65,10 +74,10 @@ class SuDungDichVuManagementController extends Controller
         ]);
 
         // Lấy giá dịch vụ để tính thành tiền (bảng 'dichvu' dùng cột 'gia')
-        $gia = DB::table('dichvu')->where('id_dichvu', $request->id_dichvu)->value('gia');
+        $gia = DichVu::where('id_dichvu', $request->id_dichvu)->value('gia');
         $thanhTien = ($gia ? $gia : 0) * $request->so_luong;
 
-        DB::table('sudungdichvu')->insert([
+        SuDungDichVu::create([
             'id_datphong' => $request->id_datphong,
             'id_dichvu' => $request->id_dichvu,
             'so_luong' => $request->so_luong,
@@ -94,10 +103,11 @@ class SuDungDichVuManagementController extends Controller
         ]);
 
         // Tính lại thành tiền khi sửa (lấy giá hiện tại của dịch vụ)
-        $gia = DB::table('dichvu')->where('id_dichvu', $request->id_dichvu)->value('gia');
+        $gia = DichVu::where('id_dichvu', $request->id_dichvu)->value('gia');
         $thanhTien = ($gia ? $gia : 0) * $request->so_luong;
 
-        DB::table('sudungdichvu')->where('id_sudungdv', $id)->update([
+        $suDung = SuDungDichVu::findOrFail($id);
+        $suDung->update([
             'id_datphong' => $request->id_datphong,
             'id_dichvu' => $request->id_dichvu,
             'so_luong' => $request->so_luong,

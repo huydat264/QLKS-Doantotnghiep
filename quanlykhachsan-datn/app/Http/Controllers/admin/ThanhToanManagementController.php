@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\DatPhong;
+use App\Models\HoaDon;
+use App\Models\KhachHang;
+use App\Models\Phong;
+use App\Models\SuDungDichVu;
+use App\Models\ThanhToan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,13 +19,18 @@ class ThanhToanManagementController extends Controller
     // 0. Hiển thị danh sách các phòng chờ thanh toán
     public function index(Request $request)
     {
-        $danhSachChoThanhToan = DB::table('datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select('datphong.*', 'datphong.tong_tien_phai_tra as tong_tien', 'phong.so_phong as ten_phong', 'khachhang.ho_ten', 'khachhang.so_dien_thoai')
-            ->where('datphong.trang_thai', 'Đã xác nhận')
-            ->orderBy('datphong.id_datphong', 'desc')
+        $danhSachChoThanhToan = DatPhong::with(['phong', 'khachhang'])
+            ->where('trang_thai', 'Đã xác nhận')
+            ->orderByDesc('id_datphong')
             ->paginate(15);
+
+        $danhSachChoThanhToan->getCollection()->transform(function ($booking) {
+            $booking->tong_tien = $booking->tong_tien_phai_tra;
+            $booking->ten_phong = $booking->phong?->so_phong;
+            $booking->ho_ten = $booking->khachhang?->ho_ten;
+            $booking->so_dien_thoai = $booking->khachhang?->so_dien_thoai;
+            return $booking;
+        });
 
         return view('admin.quanlythanhtoan', compact('danhSachChoThanhToan'));
     }
@@ -27,34 +38,30 @@ class ThanhToanManagementController extends Controller
     // 1. Hiển thị màn hình tính tiền Checkout
     public function checkout($id)
     {
-        $datPhong = DB::table('datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select('datphong.*', 'datphong.tong_tien_phai_tra as tong_tien', 'phong.so_phong as ten_phong', 'khachhang.ho_ten', 'khachhang.so_dien_thoai')
-            ->where('datphong.id_datphong', $id)
-            ->first();
+        $datPhong = DatPhong::with(['phong', 'khachhang'])->find($id);
 
-        if (!$datPhong) return redirect()->back()->with('error', 'Không tìm thấy thông tin đặt phòng!');
+        if (!$datPhong) {
+            return redirect()->back()->with('error', 'Không tìm thấy thông tin đặt phòng!');
+        }
 
-        $tienCoc = DB::table('thanhtoan')
-            ->where('id_datphong', $id)
+        $tienCoc = ThanhToan::where('id_datphong', $id)
             ->where('loai_thanh_toan', 'like', '%cọc%')
             ->sum('so_tien');
-        // Lấy giá trị tạm ứng đã chọn (từ bản ghi "Tạm ứng đã chọn")
-        $tienTamUngCo = DB::table('thanhtoan')
-            ->where('id_datphong', $id)
+
+        $tienTamUngCo = ThanhToan::where('id_datphong', $id)
             ->where('loai_thanh_toan', 'Tạm ứng đã chọn')
             ->sum('so_tien');
-        $tongTienPhong = $datPhong->tong_tien ?? 0;
+
+        $tongTienPhong = $datPhong->tong_tien_phai_tra ?? 0;
         $tienPhongConLai = $tongTienPhong - $tienCoc;
 
-        $dichVus = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->where('sudungdichvu.id_datphong', $id)
-            ->select('sudungdichvu.*', 'dichvu.ten_dich_vu', 'dichvu.gia as don_gia')
+        $dichVus = SuDungDichVu::with('dichvu')
+            ->where('id_datphong', $id)
             ->get();
 
-        $tongTienDichVu = $dichVus->sum(function($dv) { return $dv->so_luong * $dv->don_gia; });
+        $tongTienDichVu = $dichVus->sum(function ($dv) {
+            return $dv->so_luong * ($dv->dichvu->gia ?? 0);
+        });
 
         return view('admin.checkout_detail', compact('datPhong', 'tienCoc', 'tienTamUngCo', 'tongTienPhong', 'tienPhongConLai', 'dichVus', 'tongTienDichVu'));
     }
@@ -71,16 +78,14 @@ class ThanhToanManagementController extends Controller
         DB::beginTransaction();
         try {
             // Xóa bản ghi tạm ứng cũ nếu có (loại "Tạm ứng đã chọn")
-            DB::table('thanhtoan')
-                ->where('id_datphong', $id)
+            ThanhToan::where('id_datphong', $id)
                 ->where('loai_thanh_toan', 'Tạm ứng đã chọn')
                 ->delete();
 
-            // Lưu giá trị tạm ứng mới
             if ($tienNew > 0) {
-                DB::table('thanhtoan')->insert([
+                ThanhToan::create([
                     'id_datphong' => $id,
-                    'ngay_thanh_toan' => Carbon::now(),
+                    'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
                     'so_tien' => $tienNew,
                     'hinh_thuc' => 'Tiền mặt',
                     'ghi_chu' => 'Giá trị tạm ứng được khóa cho checkout',
@@ -109,21 +114,23 @@ class ThanhToanManagementController extends Controller
         $tienTamUng = $request->tien_tam_ung ?? 0;
         $ghiChuBoiThuong = $request->ghi_chu_boi_thuong ?? '';
 
-        // Tính toán lại server-side cho an toàn
-        $datPhong = DB::table('datphong')
-            ->select('datphong.*', 'datphong.tong_tien_phai_tra as tong_tien')
-            ->where('id_datphong', $id)
-            ->first();
-        $tienCoc = DB::table('thanhtoan')
-            ->where('id_datphong', $id)
+        $datPhong = DatPhong::find($id);
+        if (!$datPhong) {
+            return redirect()->back()->with('error', 'Không tìm thấy thông tin đặt phòng!');
+        }
+
+        $tienCoc = ThanhToan::where('id_datphong', $id)
             ->where('loai_thanh_toan', 'like', '%cọc%')
             ->sum('so_tien');
-        $tongTienDichVu = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->where('sudungdichvu.id_datphong', $id)
-            ->sum(DB::raw('sudungdichvu.so_luong * dichvu.gia'));
 
-        $tienPhongConLai = ($datPhong->tong_tien ?? 0) - $tienCoc;
+        $tongTienDichVu = SuDungDichVu::with('dichvu')
+            ->where('id_datphong', $id)
+            ->get()
+            ->sum(function ($dv) {
+                return $dv->so_luong * ($dv->dichvu->gia ?? 0);
+            });
+
+        $tienPhongConLai = ($datPhong->tong_tien_phai_tra ?? 0) - $tienCoc;
 
         // Trừ tiền tạm ứng ra khỏi tổng cần thu cuối
         $tongThanhToanCuoi = $tienPhongConLai + $tongTienDichVu + $tienBoiThuong - $tienTamUng;
@@ -202,8 +209,7 @@ class ThanhToanManagementController extends Controller
         // ---------- NẾU CHỌN TIỀN MẶT ----------
         DB::beginTransaction();
         try {
-            // 1. Lưu giao dịch thanh toán
-            DB::table('thanhtoan')->insert([
+            ThanhToan::create([
                 'id_datphong' => $id,
                 'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
                 'so_tien' => $tongThanhToanCuoi,
@@ -212,20 +218,19 @@ class ThanhToanManagementController extends Controller
                 'loai_thanh_toan' => 'Thanh toán phần còn lại',
             ]);
 
-            // 2. TẠO HÓA ĐƠN ĐỂ IN
-            DB::table('hoadon')->insert([
+            HoaDon::create([
                 'id_datphong' => $id,
                 'tong_tien' => $tongThanhToanCuoi,
-                'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh')
+                'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh'),
             ]);
 
-            // 3. ĐỔI TRẠNG THÁI (Fix lỗi: Không dùng 'Hoàn thành' mà dùng 'Đã thanh toán' theo ENUM)
-            DB::table('datphong')->where('id_datphong', $id)->update(['trang_thai' => 'Đã thanh toán']);
-            DB::table('phong')->where('id_phong', $datPhong->id_phong)->update(['trang_thai' => 'Trống']);
+            $datPhong->update(['trang_thai' => 'Đã thanh toán']);
+            if ($datPhong->phong) {
+                $datPhong->phong->update(['trang_thai' => 'Trống']);
+            }
 
             DB::commit();
 
-            // Clear booking session khi thanh toán thành công
             session()->forget([
                 'booking_type', 'booking_id', 'ngay_nhan', 'ngay_tra', 'so_dem',
                 'booking_dich_vus', 'tong_tien_dich_vu', 'tong_thanh_toan', 'applied_voucher_id'
@@ -275,11 +280,14 @@ class ThanhToanManagementController extends Controller
 
                 DB::beginTransaction();
                 try {
-                    $datPhong = DB::table('datphong')->where('id_datphong', $id)->first();
+                    $datPhong = DatPhong::find($id);
+                    if (!$datPhong) {
+                        throw new \Exception('Không tìm thấy thông tin đặt phòng');
+                    }
 
-                    DB::table('thanhtoan')->insert([
+                    ThanhToan::create([
                         'id_datphong' => $id,
-                        'ngay_thanh_toan' => Carbon::now(),
+                        'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
                         'so_tien' => $checkoutData['so_tien'],
                         'hinh_thuc' => 'VNPAY',
                         'ghi_chu' => $checkoutData['ghi_chu'],
@@ -288,15 +296,16 @@ class ThanhToanManagementController extends Controller
                         'vnp_response_code' => $request->vnp_ResponseCode,
                     ]);
 
-                    // VNPay cũng phải xuất hóa đơn
-                    DB::table('hoadon')->insert([
+                    HoaDon::create([
                         'id_datphong' => $id,
                         'tong_tien' => $checkoutData['invoice_amount'],
-                        'ngay_xuat' => Carbon::now()
+                        'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh'),
                     ]);
 
-                    DB::table('datphong')->where('id_datphong', $id)->update(['trang_thai' => 'Đã thanh toán']);
-                    DB::table('phong')->where('id_phong', $datPhong->id_phong)->update(['trang_thai' => 'Trống']);
+                    $datPhong->update(['trang_thai' => 'Đã thanh toán']);
+                    if ($datPhong->phong) {
+                        $datPhong->phong->update(['trang_thai' => 'Trống']);
+                    }
 
                     DB::commit();
                     session()->forget("checkout_info_{$id}");
@@ -321,56 +330,60 @@ class ThanhToanManagementController extends Controller
         }
     }
 
-    // 4. Hiển thị Giao diện Hóa Đơn (Giữ nguyên)
+    // 4. Hiển thị Giao diện Hóa Đơn
     public function showInvoice($id)
     {
-        $datPhong = DB::table('datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select('datphong.*', 'phong.so_phong as ten_phong', 'khachhang.ho_ten', 'khachhang.so_dien_thoai', 'khachhang.dia_chi')
-            ->where('datphong.id_datphong', $id)
-            ->first();
+        $datPhong = DatPhong::with(['phong', 'khachhang'])->find($id);
 
-        $dichVus = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->where('sudungdichvu.id_datphong', $id)
-            ->select('sudungdichvu.*', 'dichvu.ten_dich_vu', 'dichvu.gia as don_gia')
+        if (!$datPhong) {
+            return redirect()->back()->with('error', 'Không tìm thấy thông tin đặt phòng!');
+        }
+
+        $dichVus = SuDungDichVu::with('dichvu')
+            ->where('id_datphong', $id)
             ->get();
 
-        $thanhToans = DB::table('thanhtoan')->where('id_datphong', $id)->get();
+        $thanhToans = ThanhToan::where('id_datphong', $id)->get();
 
         return view('admin.invoice_template', compact('datPhong', 'dichVus', 'thanhToans'));
     }
 
-    // 5. Hiển thị danh sách Lịch sử Hóa Đơn (Giữ nguyên)
+    // 5. Hiển thị danh sách Lịch sử Hóa Đơn
     public function danhSachHoaDon(Request $request)
     {
         $search = $request->input('search');
 
-        $query = DB::table('hoadon')
-            ->join('datphong', 'hoadon.id_datphong', '=', 'datphong.id_datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
-            ->join('khachhang', 'datphong.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select(
-                'hoadon.*',
-                'datphong.id_datphong',
-                'phong.so_phong as ten_phong',
-                'khachhang.ho_ten',
-                'khachhang.so_dien_thoai',
-                DB::raw('(SELECT t.loai_thanh_toan FROM thanhtoan t WHERE t.id_datphong = hoadon.id_datphong AND t.so_tien = hoadon.tong_tien AND DATE(t.ngay_thanh_toan) = DATE(hoadon.ngay_xuat) ORDER BY ABS(TIMESTAMPDIFF(SECOND, t.ngay_thanh_toan, hoadon.ngay_xuat)) LIMIT 1) as payment_type'),
-                DB::raw('(SELECT t.so_tien FROM thanhtoan t WHERE t.id_datphong = hoadon.id_datphong AND t.so_tien = hoadon.tong_tien AND DATE(t.ngay_thanh_toan) = DATE(hoadon.ngay_xuat) ORDER BY ABS(TIMESTAMPDIFF(SECOND, t.ngay_thanh_toan, hoadon.ngay_xuat)) LIMIT 1) as paid_amount')
-            );
+        $query = HoaDon::with(['datphong.phong', 'datphong.khachhang']);
 
         if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('khachhang.ho_ten', 'LIKE', "%{$search}%")
-                  ->orWhere('khachhang.so_dien_thoai', 'LIKE', "%{$search}%")
-                  ->orWhere('phong.so_phong', 'LIKE', "%{$search}%")
-                  ->orWhere('hoadon.id_hoadon', 'LIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('id_hoadon', 'LIKE', "%{$search}%")
+                  ->orWhereHas('datphong', function ($q2) use ($search) {
+                      $q2->where('id_datphong', 'LIKE', "%{$search}%")
+                         ->orWhereHas('khachhang', function ($q3) use ($search) {
+                             $q3->where('ho_ten', 'LIKE', "%{$search}%")
+                                ->orWhere('so_dien_thoai', 'LIKE', "%{$search}%");
+                         })
+                         ->orWhereHas('phong', function ($q3) use ($search) {
+                             $q3->where('so_phong', 'LIKE', "%{$search}%");
+                         });
+                  });
             });
         }
 
-        $danhSachHoaDon = $query->orderBy('hoadon.id_hoadon', 'desc')->paginate(20);
+        $danhSachHoaDon = $query->orderByDesc('id_hoadon')->paginate(20);
+
+        $danhSachHoaDon->getCollection()->transform(function ($invoice) {
+            $payment = ThanhToan::where('id_datphong', $invoice->id_datphong)
+                ->where('so_tien', $invoice->tong_tien)
+                ->whereDate('ngay_thanh_toan', Carbon::parse($invoice->ngay_xuat)->toDateString())
+                ->orderByRaw("ABS(TIMESTAMPDIFF(SECOND, ngay_thanh_toan, '{$invoice->ngay_xuat}'))")
+                ->first();
+
+            $invoice->payment_type = $payment?->loai_thanh_toan;
+            $invoice->paid_amount = $payment?->so_tien;
+            return $invoice;
+        });
 
         return view('admin.quanlyhoadon', compact('danhSachHoaDon', 'search'));
     }
@@ -386,11 +399,11 @@ class ThanhToanManagementController extends Controller
 
         // Truy vấn các phòng Đã xác nhận (đang ở), mà Ngày trả < Hôm nay
         // HOẶC Ngày trả = Hôm nay nhưng Giờ hiện tại >= 12:00:00
-        $danhSachQuaHan = DB::table('datphong')
+        $danhSachQuaHan = DatPhong::with('phong')
             ->where('trang_thai', 'Đã xác nhận')
-            ->where(function($q) use ($now) {
+            ->where(function ($q) use ($now) {
                 $q->whereDate('ngay_tra', '<', $now->toDateString())
-                  ->orWhere(function($q2) use ($now) {
+                  ->orWhere(function ($q2) use ($now) {
                       $q2->whereDate('ngay_tra', '=', $now->toDateString())
                          ->whereTime(DB::raw('CURRENT_TIME()'), '>=', '12:00:00');
                   });
@@ -399,50 +412,55 @@ class ThanhToanManagementController extends Controller
 
         $count = 0;
 
-        foreach ($danhSachQuaHan as $phong) {
+        foreach ($danhSachQuaHan as $booking) {
             DB::beginTransaction();
             try {
-                // Tính toán toàn bộ chi phí
-                $tienCoc = DB::table('thanhtoan')->where('id_datphong', $phong->id_datphong)->where('loai_thanh_toan', 'like', '%cọc%')->sum('so_tien');
-                $tienTamUng = DB::table('thanhtoan')->where('id_datphong', $phong->id_datphong)->where('loai_thanh_toan', 'like', '%tạm ứng%')->sum('so_tien');
-                $tongTienDichVu = DB::table('sudungdichvu')
-                    ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-                    ->where('sudungdichvu.id_datphong', $phong->id_datphong)
-                    ->sum(DB::raw('sudungdichvu.so_luong * dichvu.gia'));
+                $tienCoc = ThanhToan::where('id_datphong', $booking->id_datphong)
+                    ->where('loai_thanh_toan', 'like', '%cọc%')
+                    ->sum('so_tien');
 
-                $tienPhongConLai = ($phong->tong_tien_phai_tra ?? 0) - $tienCoc;
+                $tienTamUng = ThanhToan::where('id_datphong', $booking->id_datphong)
+                    ->where('loai_thanh_toan', 'like', '%tạm ứng%')
+                    ->sum('so_tien');
+
+                $tongTienDichVu = SuDungDichVu::with('dichvu')
+                    ->where('id_datphong', $booking->id_datphong)
+                    ->get()
+                    ->sum(function ($dv) {
+                        return $dv->so_luong * ($dv->dichvu->gia ?? 0);
+                    });
+
+                $tienPhongConLai = ($booking->tong_tien_phai_tra ?? 0) - $tienCoc;
                 $tongThuCuoi = $tienPhongConLai + $tongTienDichVu - $tienTamUng;
                 if ($tongThuCuoi < 0) {
                     $tongThuCuoi = 0;
                 }
-                $tongHoaDon = $phong->tong_tien_phai_tra + $tongTienDichVu;
 
-                // Tạo giao dịch cấn trừ "Tiền tạm ứng" hệ thống tự thu
-                DB::table('thanhtoan')->insert([
-                    'id_datphong' => $phong->id_datphong,
-                    'ngay_thanh_toan' => Carbon::now(),
+                ThanhToan::create([
+                    'id_datphong' => $booking->id_datphong,
+                    'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
                     'so_tien' => $tongThuCuoi,
-                    'hinh_thuc' => 'Tiền mặt', // Mặc định chuyển sang tiền mặt/tạm ứng
+                    'hinh_thuc' => 'Tiền mặt',
                     'ghi_chu' => 'AUTO-CHECKOUT: Hệ thống tự động khấu trừ tiền tạm ứng do quá hạn 12h trưa ngày trả.',
                     'loai_thanh_toan' => 'Thanh toán phần còn lại',
                 ]);
 
-                // Tạo hoá đơn
-                DB::table('hoadon')->insert([
-                    'id_datphong' => $phong->id_datphong,
+                HoaDon::create([
+                    'id_datphong' => $booking->id_datphong,
                     'tong_tien' => $tongThuCuoi,
-                    'ngay_xuat' => Carbon::now()
+                    'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh'),
                 ]);
 
-                // Cập nhật trạng thái phòng và đặt phòng
-                DB::table('datphong')->where('id_datphong', $phong->id_datphong)->update(['trang_thai' => 'Đã thanh toán']);
-                DB::table('phong')->where('id_phong', $phong->id_phong)->update(['trang_thai' => 'Trống']);
+                $booking->update(['trang_thai' => 'Đã thanh toán']);
+                if ($booking->phong) {
+                    $booking->phong->update(['trang_thai' => 'Trống']);
+                }
 
                 DB::commit();
                 $count++;
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error("Lỗi Auto Checkout phòng ID {$phong->id_datphong}: " . $e->getMessage());
+                Log::error("Lỗi Auto Checkout phòng ID {$booking->id_datphong}: " . $e->getMessage());
             }
         }
 

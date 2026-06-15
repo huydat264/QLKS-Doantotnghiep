@@ -6,6 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\HoaDon;
+use App\Models\DatPhong;
+use App\Models\Phong;
+use App\Models\BangLuong;
+use App\Models\SuDungDichVu;
+use App\Models\DichVu;
+use App\Models\NhanVien;
 
 class BaoCaoThongKeController extends Controller
 {
@@ -15,8 +22,8 @@ class BaoCaoThongKeController extends Controller
         $giaTriLoc = $request->input('gia_tri_loc', date('Y'));
 
         // ================= 1. DỮ LIỆU TỔNG QUAN (GIỐNG DASHBOARD MÀ THEO BỘ LỌC) =================
-        $qDoanhThuTong = DB::table('hoadon');
-        $qDatPhongTong = DB::table('datphong')->where('trang_thai', '!=', 'Đã hủy');
+        $qDoanhThuTong = HoaDon::query();
+        $qDatPhongTong = DatPhong::where('trang_thai', '!=', 'Đã hủy');
 
         $this->applyDateFilter($qDoanhThuTong, $kieuLoc, $giaTriLoc, 'ngay_xuat');
         $this->applyDateFilter($qDatPhongTong, $kieuLoc, $giaTriLoc, 'ngay_nhan');
@@ -25,16 +32,16 @@ class BaoCaoThongKeController extends Controller
         $tongDonKy = $qDatPhongTong->count();
 
         // Real-time metrics
-        $tongPhong = DB::table('phong')->count();
-        $phongTrong = DB::table('phong')->where('trang_thai', 'Trống')->count();
-        $phongDangThue = DB::table('phong')->where('trang_thai', 'Đang có khách')->count();
+        $tongPhong = Phong::count();
+        $phongTrong = Phong::where('trang_thai', 'Trống')->count();
+        $phongDangThue = Phong::where('trang_thai', 'Đang có khách')->count();
 
         // ================= 2. DOANH THU & KHẤU HAO (ĐIỀN ĐẦY DỮ LIỆU TRỐNG) =================
         // Tính chi phí lương và giá vốn dịch vụ theo kỳ lọc thực tế
         $salaryCostByPeriod = $this->buildSalaryCostByPeriod($kieuLoc, $giaTriLoc);
         $serviceCostByPeriod = $this->buildServiceCostByPeriod($kieuLoc, $giaTriLoc);
 
-        $queryDoanhThu = DB::table('hoadon');
+        $queryDoanhThu = HoaDon::query();
         $this->applyDateFilter($queryDoanhThu, $kieuLoc, $giaTriLoc, 'ngay_xuat');
 
         $formatGroup = "";
@@ -48,7 +55,7 @@ class BaoCaoThongKeController extends Controller
             ->groupBy('thoi_gian')->pluck('doanh_thu_goc', 'thoi_gian')->toArray();
 
         $doanhThuData = [];
-        $chiPhiLuongTB = DB::table('bangluong')->avg('tong_luong') ?: 0;
+        $chiPhiLuongTB = BangLuong::avg('tong_luong') ?: 0;
 
         if ($kieuLoc == 'nam') {
             for ($i = 1; $i <= 12; $i++) {
@@ -127,18 +134,16 @@ class BaoCaoThongKeController extends Controller
         $doanhThuData = collect($doanhThuData);
 
         // ================= [THÊM MỚI] THỐNG KÊ LƯỢNG KHÁCH (TỔNG & MỚI THEO KỲ) =================
-        $qAllKhach = DB::table('datphong');
+        $qAllKhach = DatPhong::query();
         $this->applyDateFilter($qAllKhach, $kieuLoc, $giaTriLoc, 'ngay_nhan');
         $rawKhach = $qAllKhach->select(DB::raw("DATE_FORMAT(ngay_nhan, '$formatGroup') as thoi_gian"), DB::raw("COUNT(DISTINCT id_khachhang) as tong_khach"))
             ->groupBy('thoi_gian')->pluck('tong_khach', 'thoi_gian')->toArray();
 
         // Subquery lấy ngày đặt phòng đầu tiên của mỗi khách hàng
-        $firstBookings = DB::table('datphong')
-            ->select('id_khachhang', DB::raw('MIN(ngay_nhan) as first_date'))
+        $firstBookings = DatPhong::select('id_khachhang', DB::raw('MIN(ngay_nhan) as first_date'))
             ->groupBy('id_khachhang');
 
-        $qKhachMoi = DB::table(DB::raw("({$firstBookings->toSql()}) as first_bookings"))
-            ->mergeBindings($firstBookings);
+        $qKhachMoi = DB::query()->fromSub($firstBookings, 'first_bookings');
         $this->applyDateFilter($qKhachMoi, $kieuLoc, $giaTriLoc, 'first_date');
         $rawKhachMoi = $qKhachMoi->select(DB::raw("DATE_FORMAT(first_date, '$formatGroup') as thoi_gian"), DB::raw("COUNT(DISTINCT id_khachhang) as khach_moi"))
             ->groupBy('thoi_gian')->pluck('khach_moi', 'thoi_gian')->toArray();
@@ -153,17 +158,16 @@ class BaoCaoThongKeController extends Controller
         });
 
         // ================= 3. TRẠNG THÁI PHÒNG (DỰA TRÊN ĐẶT PHÒNG THỰC TẾ TRONG KỲ) =================
-        $bookedRoomsQuery = DB::table('datphong')->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')->select('phong.so_phong')->distinct();
+        $bookedRoomsQuery = DatPhong::join('phong', 'datphong.id_phong', '=', 'phong.id_phong')->select('phong.so_phong')->distinct();
         $this->applyDateFilter($bookedRoomsQuery, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
         $phongCoKhachList = $bookedRoomsQuery->pluck('so_phong')->toArray();
-        $phongTrongList = DB::table('phong')->whereNotIn('so_phong', $phongCoKhachList)->pluck('so_phong')->toArray();
+        $phongTrongList = Phong::whereNotIn('so_phong', $phongCoKhachList)->pluck('so_phong')->toArray();
 
         $phongLopDay = count($phongCoKhachList);
         $phongTrongTheoKy = $tongPhong - $phongLopDay;
 
         // ================= 4. TẦN SUẤT DỊCH VỤ =================
-        $tanSuatDichVu = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+        $tanSuatDichVu = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
             ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
             ->select('dichvu.ten_dich_vu', DB::raw('SUM(sudungdichvu.so_luong) as tong_so_luong'))
             ->groupBy('dichvu.ten_dich_vu');
@@ -171,8 +175,7 @@ class BaoCaoThongKeController extends Controller
         $tanSuatDichVu = $tanSuatDichVu->orderBy('tong_so_luong', 'desc')->take(5)->get();
 
         // ================= 4.1 DOANH THU THEO DỊCH VỤ =================
-        $doanhThuDichVu = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+        $doanhThuDichVu = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
             ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
             ->select('dichvu.ten_dich_vu', DB::raw('SUM(sudungdichvu.so_luong * dichvu.gia) as doanh_thu'))
             ->groupBy('dichvu.ten_dich_vu');
@@ -180,15 +183,14 @@ class BaoCaoThongKeController extends Controller
         $doanhThuDichVu = $doanhThuDichVu->orderBy('doanh_thu', 'desc')->take(6)->get();
 
         // ================= 5. TOP PHÒNG ĐẮT KHÁCH =================
-        $tanSuatPhong = DB::table('datphong')
-            ->join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
+        $tanSuatPhong = DatPhong::join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
             ->select('phong.so_phong', DB::raw('COUNT(datphong.id_datphong) as so_lan_dat'))
             ->groupBy('phong.so_phong');
         $this->applyDateFilter($tanSuatPhong, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
         $tanSuatPhong = $tanSuatPhong->orderBy('so_lan_dat', 'desc')->take(5)->get();
 
         // ================= 6. HÀNH VI KHÁCH QUAY LẠI =================
-        $khachHangTheoLuot = DB::table('datphong')->select('id_khachhang', DB::raw('COUNT(id_datphong) as so_lan_o'))->groupBy('id_khachhang');
+        $khachHangTheoLuot = DatPhong::select('id_khachhang', DB::raw('COUNT(id_datphong) as so_lan_o'))->groupBy('id_khachhang');
         $this->applyDateFilter($khachHangTheoLuot, $kieuLoc, $giaTriLoc, 'ngay_nhan');
         $khachHangTheoLuot = $khachHangTheoLuot->get();
 
@@ -196,8 +198,7 @@ class BaoCaoThongKeController extends Controller
         $khachQuayLai = $khachHangTheoLuot->where('so_lan_o', '>', 1)->count();
 
         // ================= 7. PHÂN KHÚC KHÁCH HÀNG =================
-        $chiTieuKhachHang = DB::table('datphong')
-            ->leftJoin('hoadon', 'datphong.id_datphong', '=', 'hoadon.id_datphong')
+        $chiTieuKhachHang = DatPhong::leftJoin('hoadon', 'datphong.id_datphong', '=', 'hoadon.id_datphong')
             ->select('datphong.id_khachhang', DB::raw('SUM(hoadon.tong_tien) as tong_chi_tieu'), DB::raw('COUNT(datphong.id_datphong) as so_lan'))
             ->groupBy('datphong.id_khachhang');
         $this->applyDateFilter($chiTieuKhachHang, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
@@ -211,8 +212,8 @@ class BaoCaoThongKeController extends Controller
         }
 
         // ================= 8. CƠ CẤU NHÂN SỰ =================
-        $nhanSuChucVu = DB::table('nhanvien')->select('chuc_vu', DB::raw('COUNT(*) as so_luong'))->groupBy('chuc_vu')->get();
-        $tongNhanVien = DB::table('nhanvien')->count();
+        $nhanSuChucVu = NhanVien::select('chuc_vu', DB::raw('COUNT(*) as so_luong'))->groupBy('chuc_vu')->get();
+        $tongNhanVien = NhanVien::count();
         $soChucVu = $nhanSuChucVu->count();
 
         return view('admin.baocao', compact(
@@ -245,10 +246,10 @@ class BaoCaoThongKeController extends Controller
         $month = $targetDate->month;
         $year = $targetDate->year;
         $daysInMonth = $targetDate->daysInMonth();
-        $totalRooms = DB::table('phong')->count() ?: 1;
+        $totalRooms = Phong::count() ?: 1;
         $availableRoomNights = $totalRooms * $daysInMonth;
 
-        $historicalData = DB::table('datphong')
+            $historicalData = DatPhong::whereMonth('ngay_nhan', $month)
             ->whereMonth('ngay_nhan', $month)
             ->whereYear('ngay_nhan', '<', $year)
             ->where('trang_thai', '!=', 'Đã hủy')
@@ -292,7 +293,7 @@ class BaoCaoThongKeController extends Controller
             $averageBookings = round(array_sum(array_column($performance, 'bookings')) / count($performance), 0);
             $historyText = "Dựa trên dữ liệu cùng tháng của {$yearsObserved} năm trước.";
         } else {
-            $fallback = DB::table('datphong')
+            $fallback = DatPhong::query()
                 ->where('ngay_nhan', '<', $targetDate)
                 ->where('trang_thai', '!=', 'Đã hủy')
                 ->select(
@@ -363,8 +364,8 @@ class BaoCaoThongKeController extends Controller
 
     private function calculatePeriodData($loai, $kieu, $value)
     {
-        $queryInvoice = DB::table('hoadon');
-        $queryBooking = DB::table('datphong');
+        $queryInvoice = HoaDon::query();
+        $queryBooking = DatPhong::query();
 
         $this->applyDateFilter($queryInvoice, $kieu, $value, 'ngay_xuat');
         $this->applyDateFilter($queryBooking, $kieu, $value, 'ngay_nhan');
@@ -376,7 +377,7 @@ class BaoCaoThongKeController extends Controller
             $count = $queryBooking->count();
             return ['value' => $count, 'detail' => $count . ' lượt check-in'];
         } elseif ($loai == 'dich_vu') {
-            $countDv = DB::table('sudungdichvu')->whereIn('id_datphong', $queryBooking->pluck('id_datphong'))->sum('so_luong') ?: 0;
+            $countDv = SuDungDichVu::whereIn('id_datphong', $queryBooking->pluck('id_datphong'))->sum('so_luong') ?: 0;
             return ['value' => $countDv, 'detail' => $countDv . ' lượt order'];
         } else {
             $countKh = $queryBooking->distinct('id_khachhang')->count('id_khachhang');
@@ -437,8 +438,7 @@ class BaoCaoThongKeController extends Controller
 
         if ($kieuLoc === 'nam') {
             $year = (int) $giaTriLoc;
-            $result = DB::table('bangluong')
-                ->select(DB::raw("LPAD(thang, 2, '0') as period"), DB::raw('SUM(tong_luong) as total'))
+            $result = BangLuong::selectRaw("LPAD(thang, 2, '0') as period, SUM(tong_luong) as total")
                 ->where('nam', $year)
                 ->groupBy('thang')
                 ->pluck('total', 'period')
@@ -448,8 +448,7 @@ class BaoCaoThongKeController extends Controller
             $year = (int) ($parts[0] ?? date('Y'));
             $quarter = (int) ($parts[1] ?? 1);
             $start = ($quarter - 1) * 3 + 1;
-            $rows = DB::table('bangluong')
-                ->select(DB::raw("LPAD(thang, 2, '0') as period"), DB::raw('SUM(tong_luong) as total'))
+            $rows = BangLuong::selectRaw("LPAD(thang, 2, '0') as period, SUM(tong_luong) as total")
                 ->where('nam', $year)
                 ->whereBetween('thang', [$start, $start + 2])
                 ->groupBy('thang')
@@ -462,8 +461,7 @@ class BaoCaoThongKeController extends Controller
         } elseif ($kieuLoc === 'thang') {
             [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-            $monthlyTotal = DB::table('bangluong')
-                ->where('nam', $year)
+            $monthlyTotal = BangLuong::where('nam', $year)
                 ->where('thang', $month)
                 ->sum('tong_luong');
             $dailyAvg = $daysInMonth ? $monthlyTotal / $daysInMonth : 0;
@@ -475,8 +473,7 @@ class BaoCaoThongKeController extends Controller
             $year = $date->year;
             $month = $date->month;
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-            $monthlyTotal = DB::table('bangluong')
-                ->where('nam', $year)
+            $monthlyTotal = BangLuong::where('nam', $year)
                 ->where('thang', $month)
                 ->sum('tong_luong');
             $hourlyAvg = $daysInMonth ? $monthlyTotal / ($daysInMonth * 24) : 0;
@@ -494,10 +491,9 @@ class BaoCaoThongKeController extends Controller
 
         if ($kieuLoc === 'nam') {
             $year = (int) $giaTriLoc;
-            $rows = DB::table('sudungdichvu')
-                ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            $rows = SuDungDichVu::join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
                 ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-                ->select(DB::raw("LPAD(MONTH(datphong.ngay_nhan), 2, '0') as period"), DB::raw('SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total'))
+                ->selectRaw("LPAD(MONTH(datphong.ngay_nhan), 2, '0') as period, SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total")
                 ->whereYear('datphong.ngay_nhan', $year)
                 ->groupBy(DB::raw("LPAD(MONTH(datphong.ngay_nhan), 2, '0')"))
                 ->pluck('total', 'period')
@@ -510,10 +506,9 @@ class BaoCaoThongKeController extends Controller
             $year = (int) ($parts[0] ?? date('Y'));
             $quarter = (int) ($parts[1] ?? 1);
             $start = ($quarter - 1) * 3 + 1;
-            $rows = DB::table('sudungdichvu')
-                ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            $rows = SuDungDichVu::join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
                 ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-                ->select(DB::raw("LPAD(MONTH(datphong.ngay_nhan), 2, '0') as period"), DB::raw('SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total'))
+                ->selectRaw("LPAD(MONTH(datphong.ngay_nhan), 2, '0') as period, SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total")
                 ->whereYear('datphong.ngay_nhan', $year)
                 ->whereBetween(DB::raw('MONTH(datphong.ngay_nhan)'), [$start, $start + 2])
                 ->groupBy(DB::raw("LPAD(MONTH(datphong.ngay_nhan), 2, '0')"))
@@ -525,10 +520,9 @@ class BaoCaoThongKeController extends Controller
         } elseif ($kieuLoc === 'thang') {
             [$year, $month] = $this->normalizeYearMonth($giaTriLoc);
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-            $rows = DB::table('sudungdichvu')
-                ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            $rows = SuDungDichVu::join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
                 ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-                ->select(DB::raw("LPAD(DAY(datphong.ngay_nhan), 2, '0') as period"), DB::raw('SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total'))
+                ->selectRaw("LPAD(DAY(datphong.ngay_nhan), 2, '0') as period, SUM(sudungdichvu.so_luong * dichvu.gia) * 0.5 as total")
                 ->whereYear('datphong.ngay_nhan', $year)
                 ->whereMonth('datphong.ngay_nhan', $month)
                 ->groupBy(DB::raw("LPAD(DAY(datphong.ngay_nhan), 2, '0')"))
@@ -539,8 +533,7 @@ class BaoCaoThongKeController extends Controller
             }
         } else {
             $date = $this->parseDateOrToday('Y-m-d', $giaTriLoc)->toDateString();
-            $total = DB::table('sudungdichvu')
-                ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            $total = SuDungDichVu::join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
                 ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
                 ->whereDate('datphong.ngay_nhan', $date)
                 ->sum(DB::raw('sudungdichvu.so_luong * dichvu.gia')) * 0.5;

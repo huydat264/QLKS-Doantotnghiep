@@ -62,8 +62,8 @@
                         <tr>
                             <td class="fw-bold text-primary">#CC-{{ $cc->id_chamcong }}</td>
                             <td>
-                                <div class="fw-bold text-dark">{{ $cc->ho_ten }}</div>
-                                <small class="text-muted">{{ $cc->chuc_vu }}</small>
+                                <div class="fw-bold text-dark">{{ $cc->nhanvien->ho_ten }}</div>
+                                <small class="text-muted">{{ $cc->nhanvien->chuc_vu }}</small>
                             </td>
                             <td class="text-center">
                                 <span class="badge badge-time px-3 py-2 fs-6">Tháng {{ $cc->thang }} / {{ $cc->nam }}</span>
@@ -74,7 +74,7 @@
                             <td class="text-center">
                                 <button class="btn btn-sm btn-outline-warning btn-rounded btn-edit"
                                         data-id="{{ $cc->id_chamcong }}"
-                                        data-hoten="{{ $cc->ho_ten }}"
+                                        data-hoten="{{ $cc->nhanvien->ho_ten }}"
                                         data-thang="{{ $cc->thang }}"
                                         data-nam="{{ $cc->nam }}"
                                         data-dilam="{{ $cc->so_ngay_di_lam }}"

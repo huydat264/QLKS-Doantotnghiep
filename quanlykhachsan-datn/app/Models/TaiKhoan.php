@@ -21,4 +21,14 @@ class TaiKhoan extends Authenticatable
     ];
 
     public $timestamps = false; // Trong SQL không thấy có updated_at nên tắt timestamps mặc định
+
+    public function nhanVien()
+    {
+        return $this->hasOne(NhanVien::class, 'tai_khoan_nhanvien_id', 'id_taikhoan');
+    }
+
+    public function khachHang()
+    {
+        return $this->hasOne(KhachHang::class, 'tai_khoan_khachhang_id', 'id_taikhoan');
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Phong;
 use App\Models\DatPhong;
 use App\Models\ThanhToan;
 use App\Models\KhachHang;
+use App\Models\SuDungDichVu;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -73,17 +74,15 @@ class DashboardController extends Controller
             });
 
         // Thao tác 2: Nhân viên nhập thông tin / gọi thêm dịch vụ cho khách
-        $logsDichVu = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
-            ->select('dichvu.ten_dich_vu', 'sudungdichvu.so_luong', 'sudungdichvu.id_sudungdv', 'sudungdichvu.ngay_su_dung')
-            ->orderBy('sudungdichvu.id_sudungdv', 'desc')
+        $logsDichVu = SuDungDichVu::with('dichvu')
+            ->orderBy('id_sudungdv', 'desc')
             ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
                     'icon' => 'bi-box-seam-fill text-info',
                     'tieu_de' => 'Thao tác Dịch vụ',
-                    'noi_dung' => 'Nhân viên thêm dịch vụ: ' . $item->ten_dich_vu . ' (Số lượng: ' . $item->so_luong . ')',
+                    'noi_dung' => 'Nhân viên thêm dịch vụ: ' . ($item->dichvu->ten_dich_vu ?? 'Dịch vụ') . ' (Số lượng: ' . $item->so_luong . ')',
                     'thoi_gian' => $item->ngay_su_dung
                 ];
             });
@@ -133,8 +132,7 @@ class DashboardController extends Controller
         }
 
         // 6. BIỂU ĐỒ TRÒN: TỰ ĐỘNG LỌC DOANH THU DỊCH VỤ THEO THÁNG HIỆN TẠI
-        $dataDichVuThang = DB::table('sudungdichvu')
-            ->join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+        $dataDichVuThang = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
             ->selectRaw('dichvu.ten_dich_vu as ten_dich_vu, SUM(sudungdichvu.so_luong * dichvu.gia) as tong_tien_dv')
             ->groupBy('dichvu.ten_dich_vu')
             ->get();

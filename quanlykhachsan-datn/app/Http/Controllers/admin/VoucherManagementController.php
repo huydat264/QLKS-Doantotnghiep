@@ -4,22 +4,26 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Models\Voucher;
+use App\Models\KhachHang;
+
 
 class VoucherManagementController extends Controller
 {
     public function index()
     {
         // Lấy danh sách voucher kèm theo thông tin người được phát riêng (nếu có)
-        $vouchers = DB::table('voucher')
-            ->leftJoin('khachhang', 'voucher.id_khachhang', '=', 'khachhang.id_khachhang')
-            ->select('voucher.*', 'khachhang.ho_ten as ten_nguoi_so_huu')
+        $vouchers = Voucher::with('khachhang')
             ->orderBy('id_voucher', 'desc')
             ->paginate(15);
 
+        $vouchers->getCollection()->transform(function ($voucher) {
+            $voucher->ten_nguoi_so_huu = $voucher->khachhang?->ho_ten;
+            return $voucher;
+        });
+
         // Lấy danh sách khách hàng để đổ vào Select Box "Phát riêng"
-        $khachHangs = DB::table('khachhang')->select('id_khachhang', 'ho_ten', 'so_dien_thoai')->get();
+        $khachHangs = KhachHang::select('id_khachhang', 'ho_ten', 'so_dien_thoai')->get();
 
         return view('admin.quanlyvoucher', compact('vouchers', 'khachHangs'));
     }
@@ -40,7 +44,7 @@ class VoucherManagementController extends Controller
         ]);
 
         try {
-            DB::table('voucher')->insert([
+            Voucher::create([
                 'ma_code' => strtoupper($request->ma_code),
                 'loai_voucher' => $request->loai_voucher, // PHONG, DICH_VU, ALL
                 'muc_giam' => $request->muc_giam,
@@ -72,7 +76,8 @@ class VoucherManagementController extends Controller
         ]);
 
         try {
-            DB::table('voucher')->where('id_voucher', $id)->update([
+            $voucher = Voucher::findOrFail($id);
+            $voucher->update([
                 'ma_code' => strtoupper($request->ma_code),
                 'loai_voucher' => $request->loai_voucher,
                 'muc_giam' => $request->muc_giam,
@@ -90,11 +95,12 @@ class VoucherManagementController extends Controller
     public function toggleStatus($id)
     {
         try {
-            $voucher = DB::table('voucher')->where('id_voucher', $id)->first();
+            $voucher = Voucher::find($id);
             if ($voucher) {
                 // Đảo ngược trạng thái 1 -> 0, 0 -> 1
                 $newStatus = $voucher->trang_thai == 1 ? 0 : 1;
-                DB::table('voucher')->where('id_voucher', $id)->update(['trang_thai' => $newStatus]);
+                $voucher->trang_thai = $newStatus;
+                $voucher->save();
 
                 $msg = $newStatus == 1 ? 'Đã BẬT phát hành Voucher.' : 'Đã TẮT phát hành Voucher.';
                 return redirect()->back()->with('success', $msg);
@@ -108,7 +114,8 @@ class VoucherManagementController extends Controller
     public function destroy($id)
     {
         try {
-            DB::table('voucher')->where('id_voucher', $id)->delete();
+            $voucher = Voucher::findOrFail($id);
+            $voucher->delete();
             return redirect()->back()->with('success', 'Xóa Voucher thành công!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Lỗi khi xóa: ' . $e->getMessage());
