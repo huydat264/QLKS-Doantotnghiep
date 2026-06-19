@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ChamCongManagementController;
 use App\Http\Controllers\Admin\BangLuongManagementController;
 use App\Http\Controllers\Admin\VoucherManagementController;
 use App\Http\Controllers\Admin\TaiKhoanManagementController;
+use App\Http\Controllers\AmthucController;
 use App\Models\KhachHang;
 use App\Models\TaiKhoan;
 use Illuminate\Support\Facades\Hash;
@@ -57,6 +58,10 @@ Route::get('/combo', [ComboUserController::class, 'index'])->name('combo.index')
 
 // Hiển thị chi tiết 1 combo
 Route::get('/combo/{id}', [ComboUserController::class, 'show'])->name('combo.show');
+
+// Trang ẩm thực
+Route::get('/amthuc', [AmthucController::class, 'index'])->name('amthuc');
+Route::post('/amthuc/dat-ban', [AmthucController::class, 'datBan'])->name('amthuc.datban');
 
 Route::group(['middleware' => 'auth'], function () {
     // Trạm kiểm tra ban đầu khi nhấn nút Đặt phòng hoặc Đặt Combo
