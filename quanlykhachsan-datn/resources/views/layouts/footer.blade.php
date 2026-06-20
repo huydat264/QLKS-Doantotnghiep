@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-3 mb-4">
-                <img src="https://www.sixsenses.com/Content/Images/logo-six-senses.svg" height="35" class="mb-4">
+                <img src="{{ asset('kimboutique-logo.png') }}" class="footer-logo mb-4" alt="Kim Boutique Hotel logo">
                 <p class="small text-muted">Bãi biển Thị trấn Hoàng Hôn,Sunset Town, An Thới, Phú Quốc, An Giang, Việt Nam</p>
             </div>
 

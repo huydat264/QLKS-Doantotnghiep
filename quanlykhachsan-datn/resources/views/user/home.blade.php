@@ -35,12 +35,11 @@ $currentYear = now()->year;
         <h1 class="display-1 fw-bold mb-0">Kim Boutique Hotel</h1>
         <p class="lead mb-4">Việt Nam</p>
         <div data-aos="fade-up" data-aos-delay="400">
-            <a href="#" class="text-white text-decoration-none small letter-spacing-2">XEM VIDEO ĐẦY ĐỦ <i class="bi bi-play-circle ms-2"></i></a>
+
         </div>
     </div>
 
-    <div class="container" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10;">
-        <div class="search-container-relative">
+    <div class="search-container-relative position-absolute w-100" style="bottom: 40px; left: 0; z-index: 10;">
 
             <div id="calendarPopover" class="booking-popover">
                 <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
@@ -70,29 +69,25 @@ $currentYear = now()->year;
                 </div>
             </div>
 
-            <div class="search-box bg-white rounded-pill p-3 d-flex align-items-center shadow-lg row mx-0" data-aos="fade-up">
+            <div class="search-box bg-white rounded-pill p-2 d-flex align-items-center shadow-lg mx-auto" data-aos="fade-up" style="max-width: 860px; width: calc(100% - 40px);">
                 <form action="{{ route('phong.user') }}" method="GET" class="d-flex align-items-center w-100 row mx-0">
-                    <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkin', event)">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openCalendar('checkin', event)">
                         <label class="d-block small text-muted fw-bold">Nhận phòng</label>
-                        <input type="hidden" name="checkin" id="checkinInput">
-                        <div class="small w-100 text-truncate text-start text-dark" id="checkinDisplay">Chọn ngày...</div>
+                        <input type="hidden" name="checkin" id="checkinInput" value="{{ request('checkin') }}">
+                        <div class="small w-100 text-truncate text-start text-dark" id="checkinDisplay">{{ request('checkin') ? request('checkin') : 'Chọn ngày...' }}</div>
                     </div>
-                    <div class="col-md-2 border-end px-4 cursor-pointer" onclick="openCalendar('checkout', event)">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openCalendar('checkout', event)">
                         <label class="d-block small text-muted fw-bold">Trả phòng</label>
-                        <input type="hidden" name="checkout" id="checkoutInput">
-                        <div class="small w-100 text-truncate text-start text-dark" id="checkoutDisplay">Chọn ngày...</div>
+                        <input type="hidden" name="checkout" id="checkoutInput" value="{{ request('checkout') }}">
+                        <div class="small w-100 text-truncate text-start text-dark" id="checkoutDisplay">{{ request('checkout') ? request('checkout') : 'Chọn ngày...' }}</div>
                     </div>
-                    <div class="col-md-3 border-end px-4 cursor-pointer" onclick="openGuests(event)">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openGuests(event)">
                         <label class="d-block small text-muted fw-bold">Khách</label>
-                        <input type="hidden" name="tong_khach" id="tongKhachInput" value="2">
-                        <div class="small w-100 text-truncate text-start text-dark" id="guestInputDisplay">2 Khách</div>
+                        <input type="hidden" name="tong_khach" id="tongKhachInput" value="{{ request('tong_khach', 2) }}">
+                        <div class="small w-100 text-truncate text-start text-dark" id="guestInputDisplay">{{ request('tong_khach', 2) }} Khách</div>
                     </div>
-                    <div class="col-md-3 px-4">
-                        <label class="d-block small text-muted fw-bold">Mã đặc biệt</label>
-                        <input type="text" name="ma_dac_biet" class="border-0 w-100 small text-dark" placeholder="Nhập mã...">
-                    </div>
-                    <div class="col-md-2 p-0">
-                        <button type="submit" class="btn w-100 rounded-pill py-3 fw-bold text-white btn-book-submit" style="background: var(--primary-color);">TÌM KIẾM <i class="bi bi-search ms-2"></i></button>
+                    <div class="col-auto p-0 d-flex align-items-center">
+                        <button type="submit" class="btn rounded-pill py-2 px-4 fw-bold text-white btn-book-submit" style="background: var(--primary-color); min-width: 140px;">TÌM KIẾM <i class="bi bi-search ms-1"></i></button>
                     </div>
                 </form>
             </div>
@@ -243,7 +238,8 @@ updateLocalTime();setInterval(updateLocalTime,1000);
 
 // Script cho guest counter
 $(document).ready(function(){
-    let tongKhach=2;
+    let initialGuestValue = parseInt($('#tongKhachInput').val());
+    let tongKhach = initialGuestValue && initialGuestValue > 0 ? initialGuestValue : 2;
     function updateGuestDisplay(){
         $('#guestInputDisplay').text(`${tongKhach} Khách`);
         $('#tongKhachInput').val(tongKhach);

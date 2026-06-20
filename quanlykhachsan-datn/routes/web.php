@@ -50,6 +50,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 Route::get('/diem-den', function () {
     return view('user.diemden');
 });
+Route::get('/hoat-dong', function () {
+    return view('user.hoatdong');
+})->name('hoatdong');
 Route::get('/luu-tru', [PhongController::class, 'indexUser'])->name('phong.user');
 Route::get('/luu-tru/{id}', [PhongController::class, 'chitietUser'])->name('phong.chitiet');
 

@@ -15,14 +15,22 @@
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
         /* NAVBAR & LOGO */
-        .navbar { transition: all 0.4s ease; padding: 30px 0; background: transparent !important; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .navbar.scrolled { background: white !important; padding: 15px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom: none; }
-        #logo { height: 40px; transition: 0.4s; }
+        .navbar { transition: all 0.4s ease; padding: 24px 0; background: transparent !important; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .navbar.scrolled { background: white !important; padding: 10px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom: none; }
+        .navbar.scrolled-dark { background: white !important; }
+        .navbar.scrolled-dark .auth-link,
+        .navbar.scrolled-dark .auth-link::after,
+        .navbar.scrolled-dark .btn-book,
+        .navbar.scrolled-dark .menu-toggle span { color: black; }
+        .navbar.scrolled-dark .menu-toggle span { background: black; }
+        .navbar.scrolled-dark .btn-book { background: white; color: black; border-color: black; }
+        #logo { height: 72px; max-height: 72px; width: auto; transition: 0.4s; }
+        .footer-logo { height: 72px; max-height: 72px; width: auto; }
 
         /* MENU TOGGLE (FIXED) */
         .menu-toggle { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 7px; padding: 0; z-index: 2100; }
-        .menu-toggle span { display: block; width: 28px; height: 1.5px; background: white; transition: 0.3s; }
-        .navbar.scrolled .menu-toggle span { background: var(--text-dark); }
+        .menu-toggle span { display: block; width: 28px; height: 1.5px; background: black; transition: 0.3s; }
+        .navbar.scrolled .menu-toggle span { background: black; }
 
         /* SIDEBAR MENU (FIXED) */
         .sidebar { position: fixed; top: 0; left: -100%; width: 350px; height: 100%; background: white; z-index: 2050; transition: 0.5s cubic-bezier(0.77,0.2,0.05,1.0); padding: 100px 50px; box-shadow: 15px 0 40px rgba(0,0,0,0.1); }
@@ -32,12 +40,12 @@
         .sidebar-nav a:hover { padding-left: 10px; color: var(--primary-color); }
 
         /* AUTH & BUTTONS */
-        .auth-link { color: white; text-decoration: none; font-size: 0.7rem; font-weight: 600; letter-spacing: 1.5px; position: relative; }
+        .auth-link { color: black; text-decoration: none; font-size: 0.7rem; font-weight: 600; letter-spacing: 1.5px; position: relative; }
         .navbar.scrolled .auth-link { color: var(--text-dark); }
         .auth-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: currentColor; transition: 0.3s; }
         .auth-link:hover::after { width: 100%; }
 
-        .btn-book { background: white; color: black; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.75rem; border: 1px solid white; transition: 0.3s; margin-left: 20px; }
+        .btn-book { background: white; color: black; padding: 12px 28px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.75rem; border: 1px solid black; transition: 0.3s; margin-left: 20px; }
         .btn-book:hover { background: black !important; color: white !important; border-color: black !important; transform: translateY(-2px); }
 
         /* POPOVERS */
@@ -59,6 +67,13 @@
         }
         .date-cell.selected { background: var(--primary-color); color: white; }
         .date-cell.in-range { background: #ecdced; } /* Màu nhạt cho ngày ở giữa */
+
+        .search-box form { align-items: stretch; }
+        .search-box .search-field { min-height: 72px; display: flex; align-items: center; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .search-box .search-field label { margin-bottom: 0.15rem; }
+        .search-box .search-field .small { margin-bottom: 0; }
+        .search-box .search-field .text-dark { line-height: 1.2; }
+        .search-box .col-auto.search-field { justify-content: center; }
 
         .cursor-pointer { cursor: pointer; }
         .hover-bg:hover:not(.past) { background: #000 !important; color: #fff !important; }
@@ -89,13 +104,23 @@
         }
 
 
+        function isDarkScrollPage() {
+            const path = window.location.pathname.toLowerCase();
+            return path !== '/' && path !== '/diem-den';
+        }
+
         $(window).scroll(function() {
             if ($(this).scrollTop() > 50) {
                 $('.navbar').addClass('scrolled');
-                $('#logo').attr('src', 'https://www.sixsenses.com/Content/Images/logo-six-senses.svg');
+                if (isDarkScrollPage()) {
+                    $('.navbar').addClass('scrolled-dark');
+                } else {
+                    $('.navbar').removeClass('scrolled-dark');
+                }
+                $('#logo').attr('src', '{{ asset("kimboutique-logo.png") }}');
             } else {
-                $('.navbar').removeClass('scrolled');
-                $('#logo').attr('src', 'https://www.sixsenses.com/Content/Images/logo-six-senses-white.svg');
+                $('.navbar').removeClass('scrolled scrolled-dark');
+                $('#logo').attr('src', '{{ asset("kimboutique-logo.png") }}');
             }
         });
 
@@ -257,16 +282,16 @@
             const day = parseInt($(this).data('day'));
             const selectedDate = new Date(currentYear, currentMonth - 1, day);
 
-            let formattedDate = day + '/' + currentMonth + '/' + currentYear;
+            const displayDate = day + '/' + currentMonth + '/' + currentYear;
+            const isoDate = selectedDate.toISOString().slice(0, 10);
 
             if (currentSelecting === 'checkin') {
                 checkinDate = selectedDate;
                 checkoutDate = null;
-                $('#checkinDisplay').text(formattedDate).removeClass('text-muted');
+                $('#checkinDisplay').text(displayDate).removeClass('text-muted');
                 $('#checkoutDisplay').text('Chọn ngày...');
-                $('#checkinInput').val(formattedDate);
+                $('#checkinInput').val(isoDate);
                 $('#checkoutInput').val('');
-
 
                 currentSelecting = 'checkout';
                 $('#calendarPopover').fadeOut(200);
@@ -276,8 +301,8 @@
                     return;
                 }
                 checkoutDate = selectedDate;
-                $('#checkoutDisplay').text(formattedDate).removeClass('text-muted');
-                $('#checkoutInput').val(formattedDate);
+                $('#checkoutDisplay').text(displayDate).removeClass('text-muted');
+                $('#checkoutInput').val(isoDate);
                 $('#calendarPopover').fadeOut(200);
             }
             showCalendar();

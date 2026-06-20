@@ -22,10 +22,8 @@
         <a href="{{ route('home') }}">Trang chủ</a>
         <a href="{{ url('/diem-den') }}">Điểm đến</a>
         <a href="{{ route('phong.user') }}">Lưu trú</a>
-        <a href="{{ route('combo.index') }}">Combo</a>
-        <a href="{{ route('amthuc') }}">Trải nghiệm ẩm thực</a>
-        <a href="#">Wellness & Spa</a>
-        <a href="#">Phát triển bền vững</a>
+        <a href="{{ route('hoatdong') }}">Hoạt động du lịch</a>
+        <a href="#">Về chúng tôi</a>
         <a href="#">Liên hệ</a>
     </nav>
 </div>
@@ -40,7 +38,7 @@
 
         <div class="text-center" style="flex: 1;">
             <a href="/">
-                <img src="https://cdn0806.cdn4s.com/media/logo/logo%20png.png" id="logo" alt="Logo">
+                <img src="{{ asset('kimboutique-logo.png') }}" id="logo" alt="Kim Boutique Hotel logo">
             </a>
         </div>
 
