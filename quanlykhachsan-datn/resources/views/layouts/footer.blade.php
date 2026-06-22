@@ -14,8 +14,8 @@
 
             <div class="col-md-3">
                 <h6 class="footer-title fw-bold small mb-3 text-uppercase">Liên hệ</h6>
-                <p class="small text-muted mb-1">T: +84 32 841 4532</p>
-                <p class="small text-muted">E: reservations-phuquoc@kimboutique.com</p>
+                <p class="small text-muted mb-1">Hotline: +84 32 841 4532</p>
+                <p class="small text-muted">Email: Ksphuquoc@kimboutique.com</p>
             </div>
 
             <div class="col-md-3 text-md-end">

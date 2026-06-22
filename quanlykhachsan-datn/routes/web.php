@@ -30,6 +30,17 @@ Route::get('/', function () {
     return view('user.home');
 })->name('home');;
 
+// Routes Về chúng tôi & Liên hệ
+Route::get('/about', function () {
+    return view('user.about');
+})->name('about');
+
+Route::get('/lienhe', function () {
+    return view('user.lienhe');
+})->name('lienhe');
+
+Route::post('/contact/send', [App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
+
 // Routes Đăng ký
 Route::get('/dang-ky', [DangkyDangnhapController::class, 'showDangky'])->name('register');
 Route::post('/dang-ky', [DangkyDangnhapController::class, 'postDangky']);
@@ -175,5 +186,13 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/quan-ly-tai-khoan/update/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'update'])->name('taikhoan.update');
     Route::post('/quan-ly-tai-khoan/toggle-status/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'toggleStatus'])->name('taikhoan.toggle');
 });// Tuyến đường xem hồ sơ cá nhân của Nhân viên/Admin đang đăng nhập
-Route::get('/ho-so-ca-nhan', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'showProfile'])->name('admin.hoso');
+    Route::get('/ho-so-ca-nhan', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'showProfile'])->name('admin.hoso');
 
+// Các route tĩnh cho trang giới thiệu và liên hệ
+    Route::get('/about', function() {
+    return view('user.about');
+    })->name('about');
+
+    Route::get('/lienhe', function() {
+    return view('user.lienhe');
+    })->name('lienhe');

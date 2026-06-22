@@ -23,8 +23,8 @@
         <a href="{{ url('/diem-den') }}">Điểm đến</a>
         <a href="{{ route('phong.user') }}">Lưu trú</a>
         <a href="{{ route('hoatdong') }}">Hoạt động du lịch</a>
-        <a href="#">Về chúng tôi</a>
-        <a href="#">Liên hệ</a>
+        <a href="{{ route('about') }}">Về chúng tôi</a>
+        <a href="{{ route('lienhe') }}">Liên hệ</a>
     </nav>
 </div>
 
