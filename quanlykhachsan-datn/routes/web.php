@@ -64,6 +64,23 @@ Route::get('/diem-den', function () {
 Route::get('/hoat-dong', function () {
     return view('user.hoatdong');
 })->name('hoatdong');
+// Static content routes: architecture, conservation, journal
+Route::get('/kientruc', function () {
+    return view('user.kientruc');
+})->name('kientruc');
+
+Route::get('/baoton', function () {
+    return view('user.baoton');
+})->name('baoton');
+
+Route::get('/nhatky', function () {
+    return view('user.nhatky');
+})->name('nhatky');
+
+Route::get('/chinhsach', function () {
+    return view('user.chinhsach');
+})->name('chinhsach');
+
 Route::get('/luu-tru', [PhongController::class, 'indexUser'])->name('phong.user');
 Route::get('/luu-tru/{id}', [PhongController::class, 'chitietUser'])->name('phong.chitiet');
 

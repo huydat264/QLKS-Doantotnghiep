@@ -12,7 +12,7 @@ $currentYear = now()->year;
     .experience-slider{position:relative}
     .experience-slider .carousel-item{height:85vh;min-height:600px;background-size:cover;background-position:center}
     .experience-slider .overlay-dark{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1}
-    .experience-slider .carousel-caption{top:50%;transform:translateY(-50%);bottom:auto;z-index:2}
+    .experience-slider .carousel-caption{top:50%;transform:translateY(-50%);bottom:auto;z-index:2;left:0;right:0;text-align:center}
     .experience-slider .caption-category{font-family:'Montserrat',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;display:block}
     .experience-slider .caption-title{font-family:'Playfair Display',serif;font-size:2.8rem;line-height:1.4;max-width:800px;margin:0 auto 30px auto}
     .experience-slider .btn-readmore{font-family:'Montserrat',sans-serif;color:white;text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid white;padding-bottom:3px;transition:.3s}
@@ -104,12 +104,12 @@ $currentYear = now()->year;
 
         <div class="col-lg-7">
             <h1 class="fw-bold mb-4" style="font-family: 'Playfair Display', serif; line-height: 1.4;">
-                Khu nghỉ dưỡng ven biển tại Việt Nam, nơi tôn vinh và lưu giữ trọn vẹn nét mộc mạc và bản sắc của làng chài truyền thống.
+                Khách sạn nghỉ dưỡng ven biển tại Việt Nam, nơi tôn vinh và lưu giữ trọn vẹn nét mộc mạc và bản sắc của làng chài truyền thống.
             </h1>
 
             <p class="text-muted" style="line-height: 1.8;">
-                Ẩn mình giữa Vườn quốc gia và khu bảo tồn biển được bảo vệ, khu nghỉ dưỡng mang đến không gian yên bình,
-                nơi mỗi khoảnh khắc đều gợi lên cảm giác an yên và thư thái. Là khu nghỉ dưỡng ven biển sang trọng
+                Ẩn mình giữa Vườn quốc gia và khu bảo tồn biển được bảo vệ, khách sạn mang đến không gian yên bình,
+                nơi mỗi khoảnh khắc đều gợi lên cảm giác an yên và thư thái. Là khách sạn nghỉ dưỡng ven biển sang trọng
                 hàng đầu tại Phú Quốc, nơi đây kết hợp giữa vẻ đẹp đương đại và nét mộc mạc làng chài xưa.
             </p>
 
@@ -157,24 +157,24 @@ $currentYear = now()->year;
 <div class="container py-5 mt-5">
     <div class="row align-items-center py-5">
         <div class="col-md-6 px-lg-5" data-aos="fade-right">
-            <h2 class="display-5 mb-4">Khu nghỉ dưỡng tôn vinh nét mộc mạc</h2>
-            <p class="text-muted mb-4 lead">Nơi lưu giữ trọn vẹn bản sắc của làng chài truyền thống Việt Nam, kết hợp cùng dịch vụ đẳng cấp thế giới giữa thiên nhiên hoang sơ.</p>
-            <a href="#" class="btn btn-outline-dark rounded-pill px-4">KHÁM PHÁ CHI TIẾT</a>
+            <h2 class="display-5 mb-4">Khách sạn nghỉ dưỡng tôn vinh nét đẹp truyền thống</h2>
+            <p class="text-muted mb-4 lead">Nơi lưu giữ trọn vẹn bản sắc truyền thống Việt Nam, kết hợp cùng dịch vụ chăm sóc chuyên nghiệp giữa thiên nhiên hoang sơ.</p>
+            <a href="{{ url('/kientruc') }}" class="btn btn-outline-dark rounded-pill px-4">KHÁM PHÁ CHI TIẾT</a>
         </div>
         <div class="col-md-6" data-aos="zoom-in">
-            <img src="https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1000&q=80" class="img-fluid rounded shadow-lg" alt="">
+            <img src="https://images.trvl-media.com/lodging/94000000/93240000/93235700/93235601/4961892d.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill" class="img-fluid rounded shadow-lg" alt="">
         </div>
     </div>
 
     <div class="row align-items-center flex-row-reverse py-5 my-5">
         <div class="col-md-6 px-lg-5" data-aos="fade-left">
             <span class="text-uppercase small fw-bold text-muted letter-spacing-2">Phát triển bền vững</span>
-            <h2 class="display-5 my-4">Chương trình bảo tồn rùa biển</h2>
-            <p class="text-muted mb-4">Chúng tôi tự hào là đơn vị tiên phong trong việc bảo vệ môi trường biển tại Nam Đảo Phú Quốc, giúp hàng nghìn chú rùa con trở về đại dương mỗi năm.</p>
-            <a href="#" class="text-dark fw-bold text-decoration-none border-bottom border-dark pb-1">ĐỌC THÊM →</a>
+            <h2 class="display-5 my-4">Chương trình bảo tồn san hô</h2>
+            <p class="text-muted mb-4">Chúng tôi tự hào là đơn vị tiên phong trong việc bảo vệ môi trường biển tại Nam Đảo Phú Quốc, giúp quần thể san hô được bảo tồn mỗi năm.</p>
+            <a href="{{ url('/baoton') }}" class="text-dark fw-bold text-decoration-none border-bottom border-dark pb-1">ĐỌC THÊM →</a>
         </div>
         <div class="col-md-6" data-aos="zoom-in">
-            <img src="https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&w=1000&q=80" class="img-fluid rounded shadow-lg" alt="">
+            <img src="https://vj-prod-website-cms.s3.ap-southeast-1.amazonaws.com/depositphotos54387583xl-1719191773890.jpg" class="img-fluid rounded shadow-lg" alt="">
         </div>
     </div>
 </div>
@@ -193,7 +193,7 @@ $currentYear = now()->year;
             <div class="carousel-caption">
                 <span class="caption-category">LƯU TRÚ</span>
                 <h3 class="caption-title">Tận hưởng kỳ nghỉ trọn vẹn với đa dạng lựa chọn biệt thự đẳng cấp, cùng chuỗi tiện ích phong phú giữa lòng Đảo Ngọc Phú Quốc</h3>
-                <a href="#" class="btn-readmore">ĐỌC THÊM <i class="bi bi-chevron-right ms-1" style="font-size: 0.75rem;"></i></a>
+
             </div>
         </div>
 
@@ -202,7 +202,7 @@ $currentYear = now()->year;
             <div class="carousel-caption">
                 <span class="caption-category">VĂN HÓA</span>
                 <h3 class="caption-title">Hòa mình vào nhịp sống thường nhật dung dị và đượm tình người dân chài qua những hành trình khám phá Làng chài Hàm Ninh độc đáo</h3>
-                <a href="#" class="btn-readmore">ĐỌC THÊM <i class="bi bi-chevron-right ms-1" style="font-size: 0.75rem;"></i></a>
+
             </div>
         </div>
 
@@ -211,7 +211,7 @@ $currentYear = now()->year;
             <div class="carousel-caption">
                 <span class="caption-category">HOẠT ĐỘNG ĐẶC SẮC</span>
                 <h3 class="caption-title">Đắm mình vào thế giới đại dương đầy sắc màu qua các trải nghiệm lặn biển và ngắm san hô tại một trong những rạn san hô đẹp nhất Phú Quốc</h3>
-                <a href="#" class="btn-readmore">ĐỌC THÊM <i class="bi bi-chevron-right ms-1" style="font-size: 0.75rem;"></i></a>
+
             </div>
         </div>
     </div>
@@ -229,7 +229,7 @@ $currentYear = now()->year;
     <div class="text-center py-5" data-aos="fade-up">
         <h2 class="display-4 mb-3">Nhật ký Kim Boutique Hotel</h2>
         <p class="text-muted mx-auto" style="max-width: 700px;">Khám phá những câu chuyện thú vị và những khoảnh khắc đáng nhớ tại khu nghỉ dưỡng của chúng tôi qua lăng kính của các vị khách.</p>
-        <a href="#" class="text-uppercase small fw-bold text-dark letter-spacing-2 text-decoration-none mt-3 d-inline-block">XEM TẤT CẢ CÂU CHUYỆN <i class="bi bi-arrow-right ms-2"></i></a>
+        <a href="{{ url('/nhatky') }}" class="text-uppercase small fw-bold text-dark letter-spacing-2 text-decoration-none mt-3 d-inline-block">XEM TẤT CẢ CÂU CHUYỆN <i class="bi bi-arrow-right ms-2"></i></a>
     </div>
 </div>
 

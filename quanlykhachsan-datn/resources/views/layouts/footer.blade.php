@@ -10,6 +10,7 @@
                 <h6 class="footer-title fw-bold small mb-3 text-uppercase">Về chúng tôi</h6>
                 <a href="#" class="d-block small text-muted text-decoration-none mb-2">Câu chuyện thương hiệu</a>
                 <a href="#" class="d-block small text-muted text-decoration-none mb-2">Phát triển bền vững</a>
+                <a href="{{ route('chinhsach') }}" class="d-block small text-muted text-decoration-none mb-2">Chính sách khách sạn</a>
             </div>
 
             <div class="col-md-3">
