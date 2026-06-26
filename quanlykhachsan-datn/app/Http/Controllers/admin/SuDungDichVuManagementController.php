@@ -30,7 +30,8 @@ class SuDungDichVuManagementController extends Controller
                                   'sudungdichvu.thanh_tien',
                                   'dichvu.ten_dich_vu',
                                   'dichvu.gia',
-                                  'phong.so_phong'
+                                  'phong.so_phong',
+                                  'datphong.trang_thai as datphong_trang_thai'
                               );
 
         // Hỗ trợ tìm kiếm theo Số phòng hoặc Tên dịch vụ
@@ -48,13 +49,17 @@ class SuDungDichVuManagementController extends Controller
         // Lấy dữ liệu bổ trợ cho các Form Modal Thêm/Sửa
         $danhSachDichVu = DichVu::select('id_dichvu', 'ten_dich_vu', 'gia')->get();
 
-        // Lấy danh sách các đơn đặt phòng hiện tại kèm số phòng tương ứng để gán dịch vụ
-        $danhSachDatPhong = DatPhong::with('phong')->get()->map(function ($datPhong) {
-            return (object)[
-                'id_datphong' => $datPhong->id_datphong,
-                'so_phong' => $datPhong->phong?->so_phong,
-            ];
-        });
+        // Lấy danh sách các đơn đặt phòng có trạng thái "Đã xác nhận" kèm số phòng và tên khách hàng
+        $danhSachDatPhong = DatPhong::where('trang_thai', 'Đã xác nhận')
+                                     ->with(['phong', 'khachhang'])
+                                     ->get()
+                                     ->map(function ($datPhong) {
+                                         return (object)[
+                                             'id_datphong' => $datPhong->id_datphong,
+                                             'so_phong' => $datPhong->phong?->so_phong,
+                                             'ten_khachhang' => $datPhong->khachhang?->ho_ten,
+                                         ];
+                                     });
 
         return view('admin.quanlysudungdichvu', compact('danhSachSuDung', 'search', 'danhSachDichVu', 'danhSachDatPhong'));
     }

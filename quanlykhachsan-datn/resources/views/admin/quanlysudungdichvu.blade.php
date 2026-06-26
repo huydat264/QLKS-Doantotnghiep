@@ -64,6 +64,7 @@
                     <th>Vị trí phòng</th>
                     <th>Dịch vụ cung cấp</th>
                     <th>Số lượng</th>
+                    <th>Ngày sử dụng</th>
                     <th>Đơn giá</th>
                     <th>Thành tiền</th>
                     <th class="text-center">Hành động</th>
@@ -76,16 +77,20 @@
                         <td><span class="badge bg-primary px-2 py-1" style="border-radius: 6px;">Phòng {{ $item->so_phong }}</span></td>
                         <td><strong>{{ $item->ten_dich_vu }}</strong></td>
                         <td class="fw-bold">{{ $item->so_luong }}</td>
+                        <td>{{ optional($item->ngay_su_dung) ? \Carbon\Carbon::parse($item->ngay_su_dung)->format('d/m/Y') : '-' }}</td>
                         <td>{{ number_format($item->gia, 0, ',', '.') }} đ</td>
                         <td class="text-danger fw-bold">{{ number_format($item->so_luong * $item->gia, 0, ',', '.') }} đ</td>
                         <td class="text-center">
-                                <button class="btn btn-warning btn-sm btn-rounded btn-edit"
+                                @php
+                                    $disabled = in_array($item->datphong_trang_thai ?? '', ['Đã thanh toán', 'Đã hủy']);
+                                @endphp
+                                <button class="btn btn-warning btn-sm btn-rounded btn-edit" {{ $disabled ? 'disabled' : '' }}
                                     data-id="{{ $item->id_sudungdv }}"
                                     data-datphong="{{ $item->id_datphong }}"
                                     data-dichvu="{{ $item->id_dichvu }}"
                                     data-soluong="{{ $item->so_luong }}">
-                                <i class="bi bi-pencil-square"></i> Sửa thông tin
-                            </button>
+                                    <i class="bi bi-pencil-square"></i> Sửa thông tin
+                                </button>
                         </td>
                     </tr>
                 @empty
@@ -116,7 +121,7 @@
                     <select name="id_datphong" class="form-select" required>
                         <option value="">-- Lựa chọn phòng --</option>
                         @foreach($danhSachDatPhong as $dp)
-                            <option value="{{ $dp->id_datphong }}">Phòng {{ $dp->so_phong }} (Đơn đặt #{{ $dp->id_datphong }})</option>
+                            <option value="{{ $dp->id_datphong }}">Phòng {{ $dp->so_phong }} - {{ $dp->ten_khachhang ?? 'N/A' }} (Đơn #{{ $dp->id_datphong }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -155,7 +160,7 @@
                     <label class="form-label fw-bold">Phòng đang sử dụng</label>
                     <select name="id_datphong" id="edit_id_datphong" class="form-select" required>
                         @foreach($danhSachDatPhong as $dp)
-                            <option value="{{ $dp->id_datphong }}">Phòng {{ $dp->so_phong }}</option>
+                            <option value="{{ $dp->id_datphong }}">Phòng {{ $dp->so_phong }} - {{ $dp->ten_khachhang ?? 'N/A' }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\HoaDon;
 use App\Models\DatPhong;
@@ -544,5 +545,322 @@ class BaoCaoThongKeController extends Controller
         }
 
         return $result;
+    }
+
+    // ================= XUẤT PDF & EXCEL =================
+    private function getFullReportData($kieuLoc, $giaTriLoc)
+    {
+        // Copy logic từ index() để lấy toàn bộ dữ liệu
+        $qDoanhThuTong = HoaDon::query();
+        $qDatPhongTong = DatPhong::where('trang_thai', '!=', 'Đã hủy');
+        $this->applyDateFilter($qDoanhThuTong, $kieuLoc, $giaTriLoc, 'ngay_xuat');
+        $this->applyDateFilter($qDatPhongTong, $kieuLoc, $giaTriLoc, 'ngay_nhan');
+
+        $tongDoanhThuKy = $qDoanhThuTong->sum('tong_tien');
+        $tongDonKy = $qDatPhongTong->count();
+        $tongPhong = Phong::count();
+        $phongTrong = Phong::where('trang_thai', 'Trống')->count();
+        $phongDangThue = Phong::where('trang_thai', 'Đang có khách')->count();
+        $tongNhanVien = NhanVien::count();
+
+        // Tính lấp đầy
+        $phongLopDay = max(0, $phongDangThue);
+        $phongTrongTheoKy = max(0, $tongPhong - $phongDangThue);
+
+        // Dữ liệu dịch vụ
+        $tanSuatDichVu = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+            ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            ->select('dichvu.ten_dich_vu', DB::raw('SUM(sudungdichvu.so_luong) as tong_so_luong'));
+        $this->applyDateFilter($tanSuatDichVu, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
+        $tanSuatDichVu = $tanSuatDichVu->groupBy('dichvu.id_dichvu', 'dichvu.ten_dich_vu')
+            ->orderBy('tong_so_luong', 'desc')->limit(10)->get();
+
+        $doanhThuDichVu = SuDungDichVu::join('dichvu', 'sudungdichvu.id_dichvu', '=', 'dichvu.id_dichvu')
+            ->join('datphong', 'sudungdichvu.id_datphong', '=', 'datphong.id_datphong')
+            ->select('dichvu.ten_dich_vu', DB::raw('SUM(sudungdichvu.thanh_tien) as doanh_thu'));
+        $this->applyDateFilter($doanhThuDichVu, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
+        $doanhThuDichVu = $doanhThuDichVu->groupBy('dichvu.id_dichvu', 'dichvu.ten_dich_vu')
+            ->orderBy('doanh_thu', 'desc')->limit(10)->get();
+
+        $tanSuatPhong = DatPhong::join('phong', 'datphong.id_phong', '=', 'phong.id_phong')
+            ->select('phong.so_phong', DB::raw('COUNT(datphong.id_datphong) as so_lan_dat'));
+        $this->applyDateFilter($tanSuatPhong, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
+        $tanSuatPhong = $tanSuatPhong->groupBy('phong.id_phong', 'phong.so_phong')
+            ->orderBy('so_lan_dat', 'desc')->limit(10)->get();
+
+        // Khách hàng
+        $chiTieuKhachHang = DatPhong::leftJoin('hoadon', 'datphong.id_datphong', '=', 'hoadon.id_datphong')
+            ->select('datphong.id_khachhang', DB::raw('SUM(hoadon.tong_tien) as tong_chi_tieu'), DB::raw('COUNT(datphong.id_datphong) as so_lan'))
+            ->groupBy('datphong.id_khachhang');
+        $this->applyDateFilter($chiTieuKhachHang, $kieuLoc, $giaTriLoc, 'datphong.ngay_nhan');
+        $chiTieuKhachHang = $chiTieuKhachHang->get();
+
+        $khachVIP = 0; $khachThuong = 0; $khachItQuayLai = 0;
+        $khachMotLan = 0; $khachQuayLai = 0;
+        foreach($chiTieuKhachHang as $kh) {
+            if($kh->tong_chi_tieu >= 10000000 || $kh->so_lan >= 5) $khachVIP++;
+            elseif($kh->so_lan >= 2) $khachThuong++;
+            else $khachItQuayLai++;
+
+            if($kh->so_lan == 1) $khachMotLan++;
+            else $khachQuayLai++;
+        }
+
+        return [
+            'kieuLoc' => $kieuLoc,
+            'giaTriLoc' => $giaTriLoc,
+            'tongDoanhThuKy' => $tongDoanhThuKy,
+            'tongDonKy' => $tongDonKy,
+            'phongDangThue' => $phongDangThue,
+            'tongPhong' => $tongPhong,
+            'phongTrong' => $phongTrong,
+            'tongNhanVien' => $tongNhanVien,
+            'phongLopDay' => $phongLopDay,
+            'phongTrongTheoKy' => $phongTrongTheoKy,
+            'tanSuatDichVu' => $tanSuatDichVu,
+            'doanhThuDichVu' => $doanhThuDichVu,
+            'tanSuatPhong' => $tanSuatPhong,
+            'khachVIP' => $khachVIP,
+            'khachThuong' => $khachThuong,
+            'khachItQuayLai' => $khachItQuayLai,
+            'khachMotLan' => $khachMotLan,
+            'khachQuayLai' => $khachQuayLai,
+        ];
+    }
+
+    public function exportPDF(Request $request)
+    {
+        $kieuLoc = $request->input('kieu_loc', 'nam');
+        $giaTriLoc = $request->input('gia_tri_loc', date('Y'));
+
+        $data = $this->getFullReportData($kieuLoc, $giaTriLoc);
+
+        $html = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Báo Cáo Thống Kê</title>
+            <style>
+                * { margin: 0; padding: 0; }
+                body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1e40af; padding-bottom: 20px; }
+                .header h1 { color: #1e40af; font-size: 24px; margin-bottom: 5px; }
+                .header p { color: #666; margin: 3px 0; }
+                .section { margin: 30px 0; padding: 20px; background: #f8fafc; border-left: 5px solid #1e40af; page-break-inside: avoid; }
+                .section h2 { color: #1e40af; font-size: 16px; margin-bottom: 15px; }
+                .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+                .stat-item { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+                .stat-label { color: #666; font-size: 13px; font-weight: bold; text-transform: uppercase; }
+                .stat-value { color: #1e40af; font-size: 20px; font-weight: bold; margin-top: 5px; }
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+                th { background: #1e40af; color: white; font-weight: bold; }
+                tr:nth-child(even) { background: #f1f5f9; }
+                .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; color: #999; font-size: 12px; }
+                @page { margin: 15mm; size: A4; }
+                @media print { body { margin: 0; padding: 0; } .container { max-width: 100%; } }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>📊 BÁO CÁO THỐNG KÊ KINH DOANH</h1>
+                    <p><strong>Lọc theo:</strong> " . ($data['kieuLoc'] == 'nam' ? 'Năm' : ($data['kieuLoc'] == 'thang' ? 'Tháng' : ($data['kieuLoc'] == 'quy' ? 'Quý' : 'Ngày'))) . " | <strong>Kỳ:</strong> {$data['giaTriLoc']}</p>
+                    <p><strong>Ngày xuất:</strong> " . date('d/m/Y H:i:s') . "</p>
+                </div>
+
+                <div class='section'>
+                    <h2>📈 CHỈ TIÊU TỔNG QUAN</h2>
+                    <div class='stat-grid'>
+                        <div class='stat-item'>
+                            <div class='stat-label'>💰 Doanh Thu Kỳ</div>
+                            <div class='stat-value'>" . number_format($data['tongDoanhThuKy'], 0, ',', '.') . " đ</div>
+                        </div>
+                        <div class='stat-item'>
+                            <div class='stat-label'>📝 Lượt Đặt Phòng</div>
+                            <div class='stat-value'>{$data['tongDonKy']} đơn</div>
+                        </div>
+                        <div class='stat-item'>
+                            <div class='stat-label'>🏨 Phòng Đang Thuê</div>
+                            <div class='stat-value'>{$data['phongDangThue']} / {$data['tongPhong']}</div>
+                        </div>
+                        <div class='stat-item'>
+                            <div class='stat-label'>👥 Nhân Viên Hoạt Động</div>
+                            <div class='stat-value'>{$data['tongNhanVien']} người</div>
+                        </div>
+                        <div class='stat-item'>
+                            <div class='stat-label'>📊 Tỷ Lệ Lấp Đầy</div>
+                            <div class='stat-value'>" . ($data['tongPhong'] > 0 ? round($data['phongDangThue'] / $data['tongPhong'] * 100, 1) : 0) . "%</div>
+                        </div>
+                        <div class='stat-item'>
+                            <div class='stat-label'>🏢 Phòng Trống</div>
+                            <div class='stat-value'>{$data['phongTrong']}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='section'>
+                    <h2>👥 PHÂN KHÚC KHÁCH HÀNG</h2>
+                    <table>
+                        <tr>
+                            <th>Phân Khúc</th>
+                            <th>Số Lượng</th>
+                            <th>Tỷ Lệ</th>
+                        </tr>
+                        <tr>
+                            <td>👑 Khách VIP</td>
+                            <td>{$data['khachVIP']}</td>
+                            <td>" . (($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) > 0 ? round($data['khachVIP'] / ($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) * 100, 1) : 0) . "%</td>
+                        </tr>
+                        <tr>
+                            <td>🟢 Khách Thường</td>
+                            <td>{$data['khachThuong']}</td>
+                            <td>" . (($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) > 0 ? round($data['khachThuong'] / ($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) * 100, 1) : 0) . "%</td>
+                        </tr>
+                        <tr>
+                            <td>🔴 Khách Ít Quay Lại</td>
+                            <td>{$data['khachItQuayLai']}</td>
+                            <td>" . (($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) > 0 ? round($data['khachItQuayLai'] / ($data['khachVIP'] + $data['khachThuong'] + $data['khachItQuayLai']) * 100, 1) : 0) . "%</td>
+                        </tr>
+                        <tr style='background: #e8f4f8; font-weight: bold;'>
+                            <td>Quay Lại Vs Lần Đầu</td>
+                            <td>{$data['khachQuayLai']} / {$data['khachMotLan']}</td>
+                            <td>" . (($data['khachQuayLai'] + $data['khachMotLan']) > 0 ? round($data['khachQuayLai'] / ($data['khachQuayLai'] + $data['khachMotLan']) * 100, 1) : 0) . "%</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class='section'>
+                    <h2>🎯 TOP DỊCH VỤ (Tần Suất Sử Dụng)</h2>
+                    <table>
+                        <tr>
+                            <th>Tên Dịch Vụ</th>
+                            <th>Số Lần Sử Dụng</th>
+                        </tr>";
+                        foreach($data['tanSuatDichVu'] as $dv) {
+                            $html .= "<tr><td>{$dv->ten_dich_vu}</td><td>" . number_format($dv->tong_so_luong, 0) . "</td></tr>";
+                        }
+                        $html .= "
+                    </table>
+                </div>
+
+                <div class='section'>
+                    <h2>💵 TOP DỊCH VỤ (Doanh Thu)</h2>
+                    <table>
+                        <tr>
+                            <th>Tên Dịch Vụ</th>
+                            <th>Doanh Thu</th>
+                        </tr>";
+                        foreach($data['doanhThuDichVu'] as $dv) {
+                            $html .= "<tr><td>{$dv->ten_dich_vu}</td><td>" . number_format($dv->doanh_thu, 0, ',', '.') . " đ</td></tr>";
+                        }
+                        $html .= "
+                    </table>
+                </div>
+
+                <div class='section'>
+                    <h2>🔥 TOP PHÒNG ĐẮT KHÁCH</h2>
+                    <table>
+                        <tr>
+                            <th>Số Phòng</th>
+                            <th>Lượt Đặt</th>
+                        </tr>";
+                        foreach($data['tanSuatPhong'] as $p) {
+                            $html .= "<tr><td>Phòng {$p->so_phong}</td><td>" . number_format($p->so_lan_dat, 0) . "</td></tr>";
+                        }
+                        $html .= "
+                    </table>
+                </div>
+
+                <div class='footer'>
+                    <p>© " . date('Y') . " - Hệ Thống Quản Lý Khách Sạn</p>
+                    <p>Báo cáo được tạo tự động - Dữ liệu được cập nhật thực thời</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="BaoCao_' . date('Y-m-d_H-i-s') . '.html"',
+        ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $kieuLoc = $request->input('kieu_loc', 'nam');
+            $giaTriLoc = $request->input('gia_tri_loc', date('Y'));
+
+            Log::debug('Export Excel Start', ['kieuLoc' => $kieuLoc, 'giaTriLoc' => $giaTriLoc]);
+            $data = $this->getFullReportData($kieuLoc, $giaTriLoc);
+            Log::debug('Export Excel Data Loaded', ['data_keys' => array_keys($data)]);
+
+            // Tạo CSV Unicode
+            $csv = chr(239).chr(187).chr(191); // BOM UTF-8
+
+            $csv .= "BÁO CÁO THỐNG KÊ KHÁCH SẠN\n";
+            $csv .= "Lọc Theo: " . ($kieuLoc == 'nam' ? 'Năm' : ($kieuLoc == 'thang' ? 'Tháng' : ($kieuLoc == 'quy' ? 'Quý' : 'Ngày'))) . " | Kỳ: $giaTriLoc\n";
+            $csv .= "Ngày Xuất: " . date('d/m/Y H:i:s') . "\n";
+            $csv .= "\n";
+
+            // Phần 1: Chỉ tiêu tổng quan
+            $csv .= "CHỈ TIÊU TỔNG QUAN\n";
+            $csv .= "Doanh Thu Kỳ,Lượt Đặt Phòng,Phòng Đang Thuê,Tổng Phòng,Phòng Trống,Nhân Viên,Tỷ Lệ Lấp Đầy\n";
+            $csv .= number_format($data['tongDoanhThuKy'], 0) . "," . $data['tongDonKy'] . "," . $data['phongDangThue'] . "," . $data['tongPhong'] . "," . $data['phongTrong'] . "," . $data['tongNhanVien'] . "," . ($data['tongPhong'] > 0 ? round($data['phongDangThue'] / $data['tongPhong'] * 100, 1) : 0) . "%\n";
+            $csv .= "\n";
+
+            // Phần 2: Phân khúc khách
+            $csv .= "PHÂN KHÚC KHÁCH HÀNG\n";
+            $csv .= "Phân Khúc,Số Lượng\n";
+            $csv .= "Khách VIP," . $data['khachVIP'] . "\n";
+            $csv .= "Khách Thường," . $data['khachThuong'] . "\n";
+            $csv .= "Khách Ít Quay Lại," . $data['khachItQuayLai'] . "\n";
+            $csv .= "Khách Quay Lại," . $data['khachQuayLai'] . "\n";
+            $csv .= "Khách Lần Đầu," . $data['khachMotLan'] . "\n";
+            $csv .= "\n";
+
+            // Phần 3: Top dịch vụ
+            $csv .= "TOP DỊCH VỤ (TẦN SUẤT SỬ DỤNG)\n";
+            $csv .= "Tên Dịch Vụ,Số Lần Sử Dụng\n";
+            foreach($data['tanSuatDichVu'] as $dv) {
+                $csv .= "\"{$dv->ten_dich_vu}\"," . $dv->tong_so_luong . "\n";
+            }
+            $csv .= "\n";
+
+            // Phần 4: Top dịch vụ theo doanh thu
+            $csv .= "TOP DỊCH VỤ (DOANH THU)\n";
+            $csv .= "Tên Dịch Vụ,Doanh Thu\n";
+            foreach($data['doanhThuDichVu'] as $dv) {
+                $csv .= "\"{$dv->ten_dich_vu}\"," . number_format($dv->doanh_thu, 0) . "\n";
+            }
+            $csv .= "\n";
+
+            // Phần 5: Top phòng
+            $csv .= "TOP PHÒNG ĐẮT KHÁCH\n";
+            $csv .= "Số Phòng,Lượt Đặt\n";
+            foreach($data['tanSuatPhong'] as $p) {
+                $csv .= "Phòng {$p->so_phong}," . $p->so_lan_dat . "\n";
+            }
+            $csv .= "\n";
+
+            $csv .= "GHI CHÚ\n";
+            $csv .= "✓ Dữ liệu được cập nhật thực thời tính đến lúc xuất báo cáo\n";
+            $csv .= "✓ Tỷ lệ lấp đầy = (Phòng đang thuê / Tổng phòng) × 100\n";
+            $csv .= "✓ Khách VIP: Chi tiêu >= 10 triệu hoặc lượt đặt >= 5\n";
+            $csv .= "✓ Khách Thường: Lượt đặt >= 2\n";
+
+            Log::debug('Export Excel CSV Built', ['csv_size' => strlen($csv)]);
+
+            return response($csv, 200, [
+                'Content-Type' => 'text/csv; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="BaoCao_' . date('Y-m-d_H-i-s') . '.csv"',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Export Excel Error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

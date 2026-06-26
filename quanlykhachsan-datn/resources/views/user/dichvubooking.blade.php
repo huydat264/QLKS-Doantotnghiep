@@ -13,6 +13,13 @@
     /* Tùy chỉnh giao diện Flatpickr để hợp với tông màu tím của bạn */
     .flatpickr-day.disabled { color: #ccc !important; text-decoration: line-through; }
     .flatpickr-day.selected { background: #673065 !important; border-color: #673065 !important; }
+    .flatpickr-months, .flatpickr-current-month { display: flex !important; align-items: center !important; gap: 0.5rem !important; justify-content: center !important; }
+    .flatpickr-current-month .cur-month { display: none !important; }
+    .flatpickr-current-month .numInputWrapper, .flatpickr-current-month .flatpickr-monthDropdown-months { display: inline-flex !important; visibility: visible !important; opacity: 1 !important; min-width: 110px !important; }
+    .flatpickr-current-month .numInputWrapper { width: auto !important; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month .numInput { color: #333 !important; background: #fff !important; border: 1px solid #d1d5db !important; border-radius: 4px !important; padding: 4px 8px !important; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months { padding: 0 !important; }
+    .flatpickr-current-month .numInput::-webkit-inner-spin-button, .flatpickr-current-month .numInput::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
@@ -217,6 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
         altFormat: "d/m/Y",
         minDate: "today",
         disable: disabledDates,
+        monthSelectorType: "dropdown",
+        yearSelectorType: "dropdown",
         onChange: function(selectedDates, dateStr) {
             if (isCombo && selectedDates.length > 0) {
                 // Tự động tính ngày trả dựa trên số đêm của combo
@@ -239,6 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
         altFormat: "d/m/Y",
         minDate: "{{ $defaultCheckout }}",
         disable: disabledDates,
+        monthSelectorType: "dropdown",
+        yearSelectorType: "dropdown",
         clickOpens: !isCombo, // Khóa không cho mở lịch nếu là combo
         onChange: function() {
             updateSummary();

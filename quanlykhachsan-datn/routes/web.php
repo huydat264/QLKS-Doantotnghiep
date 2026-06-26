@@ -180,6 +180,8 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/baocao-thongke', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'index'])->name('baocao.index');
     Route::get('/baocao-thongke/data-so-sanh', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getComparisonData'])->name('baocao.comparison');
     Route::get('/baocao-thongke/du-bao', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'getForecastData'])->name('baocao.forecast');
+    Route::get('/baocao-thongke/export-pdf', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'exportPDF'])->name('baocao.export-pdf');
+    Route::get('/baocao-thongke/export-excel', [\App\Http\Controllers\Admin\BaoCaoThongKeController::class, 'exportExcel'])->name('baocao.export-excel');
     // Nhóm route Quản lý Tài khoản
     Route::get('/quan-ly-tai-khoan', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'index'])->name('taikhoan.index');
     Route::post('/quan-ly-tai-khoan/store', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'store'])->name('taikhoan.store');

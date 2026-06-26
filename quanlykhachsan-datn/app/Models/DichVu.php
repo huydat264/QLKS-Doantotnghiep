@@ -11,12 +11,13 @@ class DichVu extends Model
 
     protected $table = 'dichvu';
     protected $primaryKey = 'id_dichvu';
+    public $timestamps = false;
 
     protected $fillable = [
         'ten_dich_vu',
+        'gia_von',
         'gia',
-        'loai_dich_vu',
-        'anh_dich_vu',
+        'hinh_anh',
         'mo_ta'
     ];
 }

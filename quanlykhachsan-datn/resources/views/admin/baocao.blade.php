@@ -5,7 +5,8 @@
 @section('content')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+<div id="baocaoPrintable">
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
     <div class="row align-items-center g-3">
         <div class="col-md-7">
             <form action="{{ route('admin.baocao.index') }}" method="GET" class="row g-2 align-items-center mb-0">
@@ -32,6 +33,14 @@
             </form>
         </div>
         <div class="col-md-5 text-md-end">
+            <div class="btn-group shadow-sm me-2" role="group">
+                <button type="button" class="btn btn-outline-success fw-bold" title="Xuất Excel" onclick="xuatExcel()">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Excel
+                </button>
+                <button type="button" class="btn btn-outline-secondary fw-bold" title="In báo cáo" onclick="window.print()">
+                    <i class="bi bi-printer me-1"></i> In
+                </button>
+            </div>
             <button class="btn btn-outline-dark fw-bold shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalSoSanh">
                 <i class="bi bi-arrow-left-right text-danger me-1"></i> So Sánh
             </button>
@@ -235,13 +244,20 @@
         let vung = document.getElementById('vung_input_loc');
         let currentVal = '{{ $giaTriLoc }}';
 
-        if(kieu === 'nam') vung.innerHTML = `<input type="number" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="2026">`;
-        else if(kieu === 'thang') vung.innerHTML = `<input type="month" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="${currentVal}">`;
-        else if(kieu === 'ngay') vung.innerHTML = `<input type="date" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="${currentVal}">`;
-        else vung.innerHTML = `<select name="gia_tri_loc" class="form-select border-2 shadow-sm">
-                                <option value="2026-Q1">2026 - Quý 1</option><option value="2026-Q2">2026 - Quý 2</option>
-                                <option value="2026-Q3">2026 - Quý 3</option><option value="2026-Q4">2026 - Quý 4</option>
+        if (kieu === 'nam') {
+            vung.innerHTML = `<input id="gia_tri_loc" type="number" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="${currentVal}">`;
+        } else if (kieu === 'thang') {
+            vung.innerHTML = `<input id="gia_tri_loc" type="month" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="${currentVal}">`;
+        } else if (kieu === 'ngay') {
+            vung.innerHTML = `<input id="gia_tri_loc" type="date" name="gia_tri_loc" class="form-control border-2 shadow-sm" value="${currentVal}">`;
+        } else {
+            vung.innerHTML = `<select id="gia_tri_loc" name="gia_tri_loc" class="form-select border-2 shadow-sm">
+                                <option value="2026-Q1" ${currentVal === '2026-Q1' ? 'selected' : ''}>2026 - Quý 1</option>
+                                <option value="2026-Q2" ${currentVal === '2026-Q2' ? 'selected' : ''}>2026 - Quý 2</option>
+                                <option value="2026-Q3" ${currentVal === '2026-Q3' ? 'selected' : ''}>2026 - Quý 3</option>
+                                <option value="2026-Q4" ${currentVal === '2026-Q4' ? 'selected' : ''}>2026 - Quý 4</option>
                               </select>`;
+        }
     }
     document.addEventListener('DOMContentLoaded', doiLoaiInput);
 
@@ -624,5 +640,52 @@
                 });
         });
     });
+
+    // ================= HÀM XUẤT EXCEL =================
+    function xuatExcel() {
+        const kieuLoc = document.getElementById('kieu_loc').value;
+        const giaTriLoc = document.getElementById('gia_tri_loc').value;
+        const url = `{{ route('admin.baocao.export-excel') }}?kieu_loc=${kieuLoc}&gia_tri_loc=${giaTriLoc}`;
+
+        // Dùng Fetch để tải file với blob handling
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Tạo URL tạm từ blob
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `BaoCao_${new Date().toISOString().slice(0, 10)}_${new Date().getHours()}-${new Date().getMinutes()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Lỗi xuất Excel:', error);
+                alert('Lỗi khi xuất file Excel: ' + error.message);
+            });
+    }
+
+    // ================= CSS CHO IN TẬP TRUNG =================
+    const styleIn = `
+        @media print {
+            body { background: white; }
+            .btn, .modal, .btn-group, button { display: none !important; }
+            .card { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+            canvas { max-height: 200px !important; page-break-inside: avoid; }
+            h5, h6 { page-break-after: avoid; }
+            .row { page-break-inside: avoid; }
+            @page { margin: 1cm; size: A4; }
+        }
+    `;
+    const styleElem = document.createElement('style');
+    styleElem.textContent = styleIn;
+    document.head.appendChild(styleElem);
 </script>
 @endsection

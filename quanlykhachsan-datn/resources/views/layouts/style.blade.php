@@ -50,9 +50,9 @@
 
         /* POPOVERS */
         .search-container-relative { position: relative; width: 100%; }
-        .booking-popover { display: none; position: absolute; bottom: calc(100% + 15px); background: white; border-radius: 12px; z-index: 2000; box-shadow: 0 15px 50px rgba(0,0,0,0.15); padding: 20px; color: var(--text-dark); max-height: 400px; overflow-y: auto; }
-        #calendarPopover { left: 50%; transform: translateX(-50%); width: 400px; }
-        #guestPopover { right: 0; width: 300px; }
+        .booking-popover { display: none; position: absolute; bottom: calc(100% + 15px); left: auto; right: auto; transform: translateX(0); background: white; border-radius: 12px; z-index: 2000; box-shadow: 0 15px 50px rgba(0,0,0,0.15); padding: 20px; color: var(--text-dark); max-height: 400px; overflow-y: auto; }
+        #calendarPopover { width: 400px; }
+        #guestPopover { width: 300px; }
         .calendar-header { border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .calendar-days .d-grid { grid-template-columns: repeat(7, 1fr); }
 
@@ -73,7 +73,12 @@
         .search-box .search-field label { margin-bottom: 0.15rem; }
         .search-box .search-field .small { margin-bottom: 0; }
         .search-box .search-field .text-dark { line-height: 1.2; }
-        .search-box .col-auto.search-field { justify-content: center; }
+        /* Ensure the last search-field aligns items to bottom so button sits lower */
+        .search-box .search-field:last-child { align-items: flex-end; }
+        /* Add horizontal spacing inside the button column so it's not flush with the divider */
+        .search-box .col-auto.search-field { justify-content: center; padding-left: 18px; padding-right: 18px; }
+        /* Nudge the button slightly down and away from the vertical divider */
+        .search-box .btn-book-submit { transform: translateY(6px); margin-right: 6px; }
 
         .cursor-pointer { cursor: pointer; }
         .hover-bg:hover:not(.past) { background: #000 !important; color: #fff !important; }
@@ -140,12 +145,32 @@
             currentSelecting = type;
             $('#guestPopover').hide();
             showCalendar();
+            if (event) {
+                const target = $(event.currentTarget);
+                const container = $('.search-container-relative');
+                if (target.length && container.length) {
+                    const rect = target[0].getBoundingClientRect();
+                    const containerRect = container[0].getBoundingClientRect();
+                    const leftPos = rect.left - containerRect.left + rect.width / 2 - 200;
+                    $('#calendarPopover').css({ left: leftPos + 'px', right: 'auto', transform: 'translateX(0)' });
+                }
+            }
             $('#calendarPopover').fadeIn(200);
         }
 
         function openGuests(event) {
             if (event) event.stopPropagation();
             $('#calendarPopover').hide();
+            if (event) {
+                const target = $(event.currentTarget);
+                const container = $('.search-container-relative');
+                if (target.length && container.length) {
+                    const rect = target[0].getBoundingClientRect();
+                    const containerRect = container[0].getBoundingClientRect();
+                    const leftPos = rect.left - containerRect.left + rect.width - 300;
+                    $('#guestPopover').css({ left: leftPos + 'px', right: 'auto', transform: 'translateX(0)' });
+                }
+            }
             $('#guestPopover').fadeToggle(200);
         }
 

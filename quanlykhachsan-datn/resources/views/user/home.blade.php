@@ -20,6 +20,10 @@ $currentYear = now()->year;
     .experience-slider .carousel-control-prev,.experience-slider .carousel-control-next{width:8%;opacity:0;transition:opacity .4s ease;z-index:3}
     .experience-slider:hover .carousel-control-prev,.experience-slider:hover .carousel-control-next{opacity:1}
     .carousel-indicators{z-index:3}
+    .search-box { align-items: center; }
+    .search-box form { align-items: stretch; }
+    .search-box .btn-book-submit { line-height: 1; margin-bottom: 6px; }
+    .search-box .col-auto { display: flex; align-items: flex-end; justify-content: center; }
     h1{letter-spacing:.5px}
 </style>
 
@@ -41,7 +45,7 @@ $currentYear = now()->year;
 
     <div class="search-container-relative position-absolute w-100" style="bottom: 40px; left: 0; z-index: 10;">
 
-            <div id="calendarPopover" class="booking-popover">
+            <div id="calendarPopover" class="booking-popover" style="width: 400px;">
                 <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
                     <button id="prevMonth" class="btn btn-sm btn-outline-secondary">&laquo;</button>
                     <div id="headerContent">
@@ -58,7 +62,7 @@ $currentYear = now()->year;
                 </div>
             </div>
 
-            <div id="guestPopover" class="booking-popover">
+            <div id="guestPopover" class="booking-popover" style="width: 300px;">
                 <div class="guest-type-row d-flex justify-content-between align-items-center">
                     <span class="fw-bold">Số khách</span>
                     <div class="d-flex align-items-center gap-2">
@@ -69,24 +73,24 @@ $currentYear = now()->year;
                 </div>
             </div>
 
-            <div class="search-box bg-white rounded-pill p-2 d-flex align-items-center shadow-lg mx-auto" data-aos="fade-up" style="max-width: 860px; width: calc(100% - 40px);">
-                <form action="{{ route('phong.user') }}" method="GET" class="d-flex align-items-center w-100 row mx-0">
-                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openCalendar('checkin', event)">
+            <div class="search-box bg-white rounded-pill p-2 d-flex align-items-center justify-content-center shadow-lg mx-auto" data-aos="fade-up" style="max-width: 860px; width: calc(100% - 40px); min-height: 74px;">
+                <form action="{{ route('phong.user') }}" method="GET" class="d-flex align-items-stretch w-100 row mx-0">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2 search-field" onclick="openCalendar('checkin', event)">
                         <label class="d-block small text-muted fw-bold">Nhận phòng</label>
                         <input type="hidden" name="checkin" id="checkinInput" value="{{ request('checkin') }}">
                         <div class="small w-100 text-truncate text-start text-dark" id="checkinDisplay">{{ request('checkin') ? request('checkin') : 'Chọn ngày...' }}</div>
                     </div>
-                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openCalendar('checkout', event)">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2 search-field" onclick="openCalendar('checkout', event)">
                         <label class="d-block small text-muted fw-bold">Trả phòng</label>
                         <input type="hidden" name="checkout" id="checkoutInput" value="{{ request('checkout') }}">
                         <div class="small w-100 text-truncate text-start text-dark" id="checkoutDisplay">{{ request('checkout') ? request('checkout') : 'Chọn ngày...' }}</div>
                     </div>
-                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2" onclick="openGuests(event)">
+                    <div class="col-md-3 border-end px-2 cursor-pointer d-flex flex-column justify-content-center py-2 search-field" onclick="openGuests(event)">
                         <label class="d-block small text-muted fw-bold">Khách</label>
                         <input type="hidden" name="tong_khach" id="tongKhachInput" value="{{ request('tong_khach', 2) }}">
                         <div class="small w-100 text-truncate text-start text-dark" id="guestInputDisplay">{{ request('tong_khach', 2) }} Khách</div>
                     </div>
-                    <div class="col-auto p-0 d-flex align-items-center">
+                    <div class="col-auto p-0 d-flex align-items-center justify-content-center h-100 search-field">
                         <button type="submit" class="btn rounded-pill py-2 px-4 fw-bold text-white btn-book-submit" style="background: var(--primary-color); min-width: 140px;">TÌM KIẾM <i class="bi bi-search ms-1"></i></button>
                     </div>
                 </form>
@@ -193,7 +197,7 @@ $currentYear = now()->year;
             </div>
         </div>
 
-        <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1559592413-7ce4f0a048a7?q=80&w=2069&auto=format&fit=crop');">
+        <div class="carousel-item" style="background-image: url('https://eholiday.vn/wp-content/uploads/2021/07/ve-dep-van-hoa-va-con-nguoi-phu-quoc-6.jpg');">
             <div class="overlay-dark"></div>
             <div class="carousel-caption">
                 <span class="caption-category">VĂN HÓA</span>

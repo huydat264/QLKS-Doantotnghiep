@@ -32,6 +32,11 @@ class Phong extends Model
                     ->latestOfMany('ngay_dat');
     }
 
+    public function datPhongs()
+    {
+        return $this->hasMany(DatPhong::class, 'id_phong', 'id_phong');
+    }
+
     public function getIsSaleActiveAttribute()
     {
         if ($this->giam_gia_percent <= 0 || !$this->sale_tu_ngay || !$this->sale_den_ngay) {

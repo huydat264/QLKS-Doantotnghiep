@@ -248,41 +248,52 @@
             <h2 class="text-center text-md-start mb-4" style="font-family: 'Playfair Display', serif; font-size: 32px;">
                 Khám phá các Gói Combo Ưu Đãi
             </h2>
+            <p class="text-center text-md-start text-muted mb-4" style="max-width: 780px; font-size: 0.95rem; line-height: 1.8;">
+                Chọn ngay gói combo trọn gói với lưu trú, dịch vụ và ưu đãi hấp dẫn. Lọc theo loại phòng và ngân sách để tìm được kỳ nghỉ phù hợp nhất với bạn và gia đình.
+            </p>
 
-            <form action="{{ url('/combo') }}" method="GET" class="d-flex flex-wrap gap-3 filter-dropdown">
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG ÁP DỤNG</div>
-                    <div class="dropdown-menu">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Standard" id="cb-std" {{ (is_array(request('loai_phong')) && in_array('Standard', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-std">Standard</label>
+            <form action="{{ url('/combo') }}" method="GET" class="filter-panel d-flex flex-column flex-lg-row flex-wrap gap-3 align-items-start align-items-lg-center">
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">BỘ LỌC</div>
+                        <div class="dropdown-menu">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Số đêm lưu trú tối thiểu</label>
+                                <input type="number" name="so_dem_luu_tru" class="form-control form-control-sm shadow-none" value="{{ request('so_dem_luu_tru') }}" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Tình trạng combo</label>
+                                <select name="active" class="form-select form-select-sm shadow-none">
+                                    <option value="">Tất cả</option>
+                                    <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>Còn hiệu lực</option>
+                                    <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>Ngưng áp dụng</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Deluxe" id="cb-dlx" {{ (is_array(request('loai_phong')) && in_array('Deluxe', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-dlx">Deluxe</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Suite" id="cb-sui" {{ (is_array(request('loai_phong')) && in_array('Suite', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-sui">Suite</label>
+                    </div>
+
+                    <div class="ms-2 d-flex align-items-center">
+                        <input type="text" name="keyword" class="form-control form-control-sm shadow-none" placeholder="Tìm kiếm (tên gói, mô tả, loại phòng...)" value="{{ request('keyword') }}">
+                    </div>
+
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VND</div>
+                        <div class="dropdown-menu" style="min-width: 300px;">
+                            <label class="form-label text-muted small d-flex justify-content-between">
+                                <span>Giá tối đa:</span>
+                                <span id="price-val" class="fw-bold" style="color:#673065;">
+                                    {{ number_format(request('gia_max', 10000000), 0, ',', '.') }} VNĐ
+                                </span>
+                            </label>
+                            <input type="range" name="gia_max" class="form-range" min="1000000" max="20000000" step="500000" id="price-slider" value="{{ request('gia_max', 10000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
                         </div>
                     </div>
                 </div>
 
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">MỨC GIÁ COMBO (VND)</div>
-                    <div class="dropdown-menu" style="min-width: 300px;">
-                        <label class="form-label text-muted small d-flex justify-content-between">
-                            <span>Giá tối đa:</span>
-                            <span id="price-val" class="fw-bold" style="color:#673065;">
-                                {{ number_format(request('gia_max', 10000000), 0, ',', '.') }} VNĐ
-                            </span>
-                        </label>
-                        <input type="range" name="gia_max" class="form-range" min="1000000" max="20000000" step="500000" id="price-slider" value="{{ request('gia_max', 10000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
-                    </div>
+                <div class="filter-actions ms-auto">
+                    <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
+                    <a href="{{ url('/combo') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
                 </div>
-
-                <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
-                <a href="{{ url('/combo') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
             </form>
         </div>
     </div>
@@ -299,6 +310,17 @@
             <div class="row flex-grow-1">
                 <div class="col-md-7 pe-md-4 d-flex flex-column">
                     <h3 class="room-title">{{ $combo->ten_combo }}</h3>
+
+                    @if(request()->filled('keyword') && isset($combo->match_meta))
+                        <div class="mb-2">
+                            @if(!empty($combo->match_meta['matched']))
+                                <small class="text-success">Khớp bởi: {{ implode(', ', $combo->match_meta['matched']) }}</small>
+                            @endif
+                            @if(!empty($combo->match_meta['unmatched']))
+                                <br><small class="text-muted">Không khớp: {{ implode(', ', $combo->match_meta['unmatched']) }}</small>
+                            @endif
+                        </div>
+                    @endif
 
                     <ul class="nav nav-tabs-custom" role="tablist">
                         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $combo->id_combo }}">MÔ TẢ COMBO</a></li>
@@ -388,7 +410,7 @@
             </div>
             <div class="col-lg-4 d-none d-lg-flex justify-content-center">
                 <div class="illustration-wrapper">
-                    <img src="https://www.sixsenses.com/media/8254/icon-gem.png" alt="icon" style="width: 150px; opacity: 0.6; filter: grayscale(1);">
+                    <img src="https://www.sixsenses.com/images/icons/guest-services.svg" alt="icon" style="width: 250px; opacity: 0.8; filter: grayscale(1);">
                 </div>
             </div>
         </div>

@@ -160,6 +160,75 @@
         min-width: 250px;
     }
 
+    .filter-panel {
+        background: #fff;
+        padding: 24px;
+        border-radius: 24px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+        width: 100%;
+    }
+
+    .filter-panel .filter-toggle {
+        min-width: 180px;
+        max-width: 220px;
+    }
+
+    .filter-panel .search-input {
+        min-width: 320px;
+        max-width: 520px;
+    }
+
+    /* make filter items align center vertically and keep consistent spacing */
+    .filter-panel .filter-toggle .nav-link,
+    .filter-panel .search-input input {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+    }
+
+    .filter-panel .search-input {
+        min-width: 220px;
+        max-width: 520px;
+    }
+
+    .filter-panel .filter-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-actions .btn {
+        min-width: 120px;
+    }
+
+    .badge-hot {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: #fff4d8;
+        color: #b05a1a;
+        border: 1px solid #f0c692;
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .filter-toggle-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: #6b5e78;
+    }
+
+    .filter-panel .form-check-label {
+        font-size: 0.9rem;
+        color: #4f3f5c;
+    }
+
     .custom-list-card {
         list-style-type: none;
         padding-left: 0;
@@ -259,68 +328,97 @@
     <div class="row mb-5">
         <div class="col-12">
             <h2 class="text-center text-md-start mb-4" style="font-family: 'Playfair Display', serif; font-size: 32px;">
-                Kiểm tra tình trạng phòng trống và đặt trực tiếp
+                Đặt phòng trực tiếp
             </h2>
+            <p class="text-center text-md-start text-muted mb-4" style="max-width: 780px; font-size: 0.95rem; line-height: 1.8;">
+                Duyệt qua các phòng đang trống, so sánh giá và tiện ích nhanh chóng. Chúng tôi giúp bạn tìm phòng phù hợp nhất với nhu cầu và trải nghiệm nghỉ dưỡng đẳng cấp.
+            </p>
 
-            <form action="{{ url('/luu-tru') }}" method="GET" class="d-flex flex-wrap gap-3 filter-dropdown">
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">BỘ LỌC</div>
-                    <div class="dropdown-menu">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Hướng phòng</label>
-                            <select name="huong_phong" class="form-select form-select-sm shadow-none">
-                                <option value="">Tất cả</option>
-                                <option value="biển" {{ request('huong_phong') == 'biển' ? 'selected' : '' }}>Hướng biển</option>
-                                <option value="vườn" {{ request('huong_phong') == 'vườn' ? 'selected' : '' }}>Hướng vườn</option>
-                            </select>
+            <form action="{{ url('/luu-tru') }}" method="GET" class="filter-panel d-flex flex-column flex-lg-row flex-wrap gap-3 align-items-start align-items-lg-center">
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <div class="search-input me-2">
+                        <input type="text" name="keyword" class="form-control form-control-sm shadow-none" placeholder="Tìm kiếm (tên, mô tả, tiện nghi...)" value="{{ request('keyword') }}">
+                    </div>
+
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">BỘ LỌC</div>
+                        <div class="dropdown-menu">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Hướng phòng</label>
+                                <select name="huong_phong" class="form-select form-select-sm shadow-none">
+                                    <option value="">Tất cả</option>
+                                    <option value="biển" {{ request('huong_phong') == 'biển' ? 'selected' : '' }}>Hướng biển</option>
+                                    <option value="vườn" {{ request('huong_phong') == 'vườn' ? 'selected' : '' }}>Hướng vườn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Số người tối thiểu</label>
+                                <input type="number" name="so_luong_nguoi" class="form-control form-control-sm shadow-none" value="{{ request('so_luong_nguoi') }}" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Số phòng ngủ</label>
+                                <input type="number" name="so_phong_ngu" class="form-control form-control-sm shadow-none" value="{{ request('so_phong_ngu') }}" min="1">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Số người tối thiểu</label>
-                            <input type="number" name="so_luong_nguoi" class="form-control form-control-sm shadow-none" value="{{ request('so_luong_nguoi') }}" min="1">
+                    </div>
+
+
+
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG</div>
+                        <div class="dropdown-menu">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Standard" id="cb-std" {{ (is_array(request('loai_phong')) && in_array('Standard', request('loai_phong'))) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cb-std">Standard</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Deluxe" id="cb-dlx" {{ (is_array(request('loai_phong')) && in_array('Deluxe', request('loai_phong'))) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cb-dlx">Deluxe</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Suite" id="cb-sui" {{ (is_array(request('loai_phong')) && in_array('Suite', request('loai_phong'))) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cb-sui">Suite</label>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">Số phòng ngủ</label>
-                            <input type="number" name="so_phong_ngu" class="form-control form-control-sm shadow-none" value="{{ request('so_phong_ngu') }}" min="1">
+                    </div>
+
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VND</div>
+                        <div class="dropdown-menu" style="min-width: 300px;">
+                            <label class="form-label text-muted small d-flex justify-content-between">
+                                <span>Mức giá tối đa:</span>
+                                <span id="price-val" class="fw-bold" style="color:#673065;">
+                                    {{ number_format(request('gia_max', 5000000), 0, ',', '.') }} VNĐ
+                                </span>
+                            </label>
+                            <input type="range" name="gia_max" class="form-range" min="500000" max="5000000" step="100000" id="price-slider" value="{{ request('gia_max', 5000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
+                        </div>
+                    </div>
+
+                    <div class="dropdown filter-toggle" data-bs-auto-close="outside">
+                        <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">PHÒNG HOT</div>
+                        <div class="dropdown-menu" style="min-width: 320px;">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="hot" value="1" id="cb-hot" {{ request('hot') == '1' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cb-hot">Chỉ phòng hot</label>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Thời gian hot</label>
+                                <select name="hot_scope" class="form-select form-select-sm shadow-none">
+                                    <option value="month" {{ request('hot_scope', 'month') == 'month' ? 'selected' : '' }}>Trong tháng</option>
+                                    <option value="year" {{ request('hot_scope') == 'year' ? 'selected' : '' }}>Trong năm</option>
+                                </select>
+                            </div>
+                            <p class="text-muted small mb-0">Hiển thị những phòng được đặt nhiều nhất trong phạm vi thời gian đã chọn.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">LOẠI PHÒNG</div>
-                    <div class="dropdown-menu">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Standard" id="cb-std" {{ (is_array(request('loai_phong')) && in_array('Standard', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-std">Standard</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Deluxe" id="cb-dlx" {{ (is_array(request('loai_phong')) && in_array('Deluxe', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-dlx">Deluxe</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="loai_phong[]" value="Suite" id="cb-sui" {{ (is_array(request('loai_phong')) && in_array('Suite', request('loai_phong'))) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="cb-sui">Suite</label>
-                        </div>
-                    </div>
+                <div class="filter-actions ms-auto">
+                    <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
+                    <a href="{{ url('/luu-tru') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
                 </div>
-
-                <div class="dropdown" data-bs-auto-close="outside">
-                    <div class="nav-link dropdown-toggle" data-bs-toggle="dropdown">VND</div>
-                    <div class="dropdown-menu" style="min-width: 300px;">
-                        <label class="form-label text-muted small d-flex justify-content-between">
-                            <span>Mức giá tối đa:</span>
-                            <span id="price-val" class="fw-bold" style="color:#673065;">
-                                {{ number_format(request('gia_max', 5000000), 0, ',', '.') }} VNĐ
-                            </span>
-                        </label>
-                        <input type="range" name="gia_max" class="form-range" min="500000" max="5000000" step="100000" id="price-slider" value="{{ request('gia_max', 5000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-sm text-white px-4" style="background: #673065; border-radius: 20px;">ÁP DỤNG LỌC</button>
-                <a href="{{ url('/luu-tru') }}" class="btn btn-sm btn-light px-3" style="border-radius: 20px;">Xóa lọc</a>
             </form>
-        </div>
-    </div>
 
 
     @foreach($phongs as $phong)
@@ -334,7 +432,23 @@
         <div class="col-lg-7 d-flex flex-column">
             <div class="row flex-grow-1">
                 <div class="col-md-7 pe-md-4 d-flex flex-column">
-                    <h3 class="room-title">{{ $phong->loai_phong }} - Phòng {{ $phong->so_phong }}</h3>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <h3 class="room-title mb-0">{{ $phong->loai_phong }} - Phòng {{ $phong->so_phong }}</h3>
+                        @if($phong->booking_count > 0)
+                            <span class="badge-hot">HOT {{ $phong->booking_count }} lượt đặt</span>
+                        @endif
+                    </div>
+
+                    @if(request()->filled('keyword') && isset($phong->match_meta))
+                        <div class="mb-2">
+                            @if(!empty($phong->match_meta['matched']))
+                                <small class="text-success">Khớp bởi: {{ implode(', ', $phong->match_meta['matched']) }}</small>
+                            @endif
+                            @if(!empty($phong->match_meta['unmatched']))
+                                <br><small class="text-muted">Không khớp: {{ implode(', ', $phong->match_meta['unmatched']) }}</small>
+                            @endif
+                        </div>
+                    @endif
 
                     <ul class="nav nav-tabs-custom" role="tablist">
                         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#desc-{{ $phong->id_phong }}">MÔ TẢ</a></li>
@@ -444,7 +558,7 @@
             </div>
             <div class="col-lg-4 d-none d-lg-flex justify-content-center">
                 <div class="illustration-wrapper">
-                    <img src="https://www.sixsenses.com/media/8254/icon-gem.png" alt="icon" style="width: 150px; opacity: 0.6; filter: grayscale(1);">
+                    <img src="https://www.sixsenses.com/images/icons/guest-services.svg" alt="icon" style="width: 250px; opacity: 0.8; filter: grayscale(1);">
                 </div>
             </div>
         </div>

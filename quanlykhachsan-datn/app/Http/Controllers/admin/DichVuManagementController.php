@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\DichVu;
 use App\Models\SuDungDichVu;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class DichVuManagementController extends Controller
 {
@@ -73,6 +74,16 @@ class DichVuManagementController extends Controller
         $dichVuCu = DichVu::findOrFail($id);
         $imgPath = $dichVuCu->hinh_anh;
 
+        // DEBUG: Log request data
+        Log::debug('DichVu Update Debug', [
+            'id' => $id,
+            'hasFile' => $request->hasFile('hinh_anh'),
+            'hinh_anh_link' => $request->input('hinh_anh_link'),
+            'filled_link' => $request->filled('hinh_anh_link'),
+            'old_hinh_anh' => $dichVuCu->hinh_anh,
+            'all_request' => $request->all()
+        ]);
+
         // Xử lý ghi đè ảnh
         if ($request->hasFile('hinh_anh')) {
             // Xóa ảnh cũ trên máy chủ
@@ -80,20 +91,28 @@ class DichVuManagementController extends Controller
                 Storage::disk('public')->delete($imgPath);
             }
             $imgPath = $request->file('hinh_anh')->store('dichvu', 'public');
+            Log::debug('Upload file mới', ['new_path' => $imgPath]);
         } elseif ($request->filled('hinh_anh_link')) {
             if ($imgPath && !filter_var($imgPath, FILTER_VALIDATE_URL) && Storage::disk('public')->exists($imgPath)) {
                 Storage::disk('public')->delete($imgPath);
             }
             $imgPath = $request->hinh_anh_link;
+            Log::debug('Update link mới', ['new_link' => $imgPath]);
+        } else {
+            Log::debug('Giữ nguyên ảnh cũ', ['old_path' => $imgPath]);
         }
 
-        $dichVuCu->update([
+        $update_data = [
             'ten_dich_vu' => $request->ten_dich_vu,
             'gia_von' => $request->gia_von,
             'gia' => $request->gia,
             'mo_ta' => $request->mo_ta,
             'hinh_anh' => $imgPath
-        ]);
+        ];
+
+        Log::debug('Update data', $update_data);
+        $dichVuCu->update($update_data);
+        Log::debug('Sau update', ['result' => $dichVuCu->fresh()]);
 
         return redirect()->back()->with('success', 'Cập nhật thông tin dịch vụ thành công!');
     }
