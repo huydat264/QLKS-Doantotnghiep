@@ -19,7 +19,7 @@
         <div class="ticket-box">
 
             <div class="ticket-header text-center">
-                <img src="https://www.sixsenses.com/media/8254/icon-gem.png" alt="logo" style="width: 50px; filter: brightness(0) invert(1); margin-bottom: 15px; opacity: 0.8;">
+                <img src="{{ asset('kimboutique-logo.png') }}" alt="KimBoutique Logo" style="width: 60px; margin-bottom: 15px; opacity: 0.95;">
                 <h2 class="font-family-serif mb-1" style="letter-spacing:1px;">XÁC NHẬN ĐẶT PHÒNG THÀNH CÔNG</h2>
                 <p class="small mb-0 opacity-75">Mã giữ chỗ điện tử: <strong>#SS{{ time() }}</strong></p>
             </div>

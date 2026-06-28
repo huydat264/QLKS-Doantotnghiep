@@ -388,7 +388,7 @@
                             <label class="form-label text-muted small d-flex justify-content-between">
                                 <span>Mức giá tối đa:</span>
                                 <span id="price-val" class="fw-bold" style="color:#673065;">
-                                    {{ number_format(request('gia_max', 5000000), 0, ',', '.') }} VNĐ
+                                    {{ number_format(request('gia_max', 10000000), 0, ',', '.') }} VNĐ
                                 </span>
                             </label>
                             <input type="range" name="gia_max" class="form-range" min="500000" max="5000000" step="100000" id="price-slider" value="{{ request('gia_max', 5000000) }}" oninput="document.getElementById('price-val').innerText = parseInt(this.value).toLocaleString('vi-VN') + ' VNĐ'">
@@ -506,7 +506,7 @@
                     <span class="text-muted" style="font-size: 14px;">Giá tham khảo: {{ number_format($phong->gia_phong, 0, ',', '.') }} VNĐ/Đêm</span>
                 @endif
 
-                @if($phong->trang_thai === 'Trống')
+                @if($phong->trang_thai !== 'Bảo trì')
                     @auth
                         <a href="javascript:void(0)"
                             class="btn btn-book text-decoration-none"
@@ -523,7 +523,7 @@
                 @else
                     <a href="javascript:void(0)"
                         class="btn btn-book text-decoration-none disabled"
-                        title="Phòng này đã được đặt hoặc không khả dụng">
+                        title="Phòng này đang bảo trì và không thể đặt">
                         HẾT PHÒNG
                     </a>
                 @endif

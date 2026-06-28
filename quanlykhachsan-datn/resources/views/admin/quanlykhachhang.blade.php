@@ -116,40 +116,53 @@
             </div>
             <form action="{{ route('admin.khachhang.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="form_source" value="add_customer">
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" name="ho_ten" class="form-control" required placeholder="Nhập họ tên...">
+                            <input type="text" name="ho_ten" value="{{ old('ho_ten') }}" class="form-control @error('ho_ten') is-invalid @enderror" required placeholder="Nhập họ tên...">
+                            @error('ho_ten')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Số CCCD / CMND <span class="text-danger">*</span></label>
-                            <input type="text" name="cccd" class="form-control" required placeholder="Nhập CCCD...">
+                            <input type="text" name="cccd" value="{{ old('cccd') }}" class="form-control @error('cccd') is-invalid @enderror" required placeholder="Nhập CCCD...">
+                            @error('cccd')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                            <input type="text" name="so_dien_thoai" class="form-control" required placeholder="Nhập số điện thoại...">
+                            <input type="text" name="so_dien_thoai" value="{{ old('so_dien_thoai') }}" class="form-control @error('so_dien_thoai') is-invalid @enderror" required placeholder="Nhập số điện thoại...">
+                            @error('so_dien_thoai')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="Nhập địa chỉ email...">
+                            <input type="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" placeholder="Nhập địa chỉ email...">
+                            @error('email')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Ngày sinh</label>
-                            <input type="date" name="ngay_sinh" class="form-control">
+                            <input type="date" name="ngay_sinh" value="{{ old('ngay_sinh') }}" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Giới tính</label>
                             <select name="gioi_tinh" class="form-select">
-                                <option value="">-- Chọn giới tính --</option>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
-                                <option value="Khác">Khác</option>
+                                <option value="" {{ old('gioi_tinh') == '' ? 'selected' : '' }}>-- Chọn giới tính --</option>
+                                <option value="Nam" {{ old('gioi_tinh') == 'Nam' ? 'selected' : '' }}>Nam</option>
+                                <option value="Nữ" {{ old('gioi_tinh') == 'Nữ' ? 'selected' : '' }}>Nữ</option>
+                                <option value="Khác" {{ old('gioi_tinh') == 'Khác' ? 'selected' : '' }}>Khác</option>
                             </select>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-bold">Địa chỉ</label>
-                            <input type="text" name="dia_chi" class="form-control" placeholder="Nhập địa chỉ...">
+                            <input type="text" name="dia_chi" value="{{ old('dia_chi') }}" class="form-control" placeholder="Nhập địa chỉ...">
                         </div>
                     </div>
                 </div>
@@ -169,42 +182,56 @@
                 <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square"></i> Cập Nhật Thông Tin Khách Hàng</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formEditCustomer" method="POST">
+            <form id="formEditCustomer" method="POST" action="{{ old('form_source') === 'edit_customer' && old('edit_customer_id') ? route('admin.khachhang.update', old('edit_customer_id')) : '' }}">
                 @csrf
+                <input type="hidden" name="form_source" value="edit_customer">
+                <input type="hidden" id="edit_customer_id" name="edit_customer_id" value="{{ old('edit_customer_id') }}">
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" name="ho_ten" id="edit_ho_ten" class="form-control" required>
+                            <input type="text" name="ho_ten" id="edit_ho_ten" value="{{ old('ho_ten') }}" class="form-control @error('ho_ten') is-invalid @enderror" required>
+                            @error('ho_ten')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Số CCCD / CMND <span class="text-danger">*</span></label>
-                            <input type="text" name="cccd" id="edit_cccd" class="form-control" required>
+                            <input type="text" name="cccd" id="edit_cccd" value="{{ old('cccd') }}" class="form-control @error('cccd') is-invalid @enderror" required>
+                            @error('cccd')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                            <input type="text" name="so_dien_thoai" id="edit_sdt" class="form-control" required>
+                            <input type="text" name="so_dien_thoai" id="edit_sdt" value="{{ old('so_dien_thoai') }}" class="form-control @error('so_dien_thoai') is-invalid @enderror" required>
+                            @error('so_dien_thoai')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Email</label>
-                            <input type="email" name="email" id="edit_email" class="form-control">
+                            <input type="email" name="email" id="edit_email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror">
+                            @error('email')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Ngày sinh</label>
-                            <input type="date" name="ngay_sinh" id="edit_ngay_sinh" class="form-control">
+                            <input type="date" name="ngay_sinh" id="edit_ngay_sinh" value="{{ old('ngay_sinh') }}" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Giới tính</label>
                             <select name="gioi_tinh" id="edit_gioi_tinh" class="form-select">
-                                <option value="">-- Chọn giới tính --</option>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
-                                <option value="Khác">Khác</option>
+                                <option value="" {{ old('gioi_tinh') == '' ? 'selected' : '' }}>-- Chọn giới tính --</option>
+                                <option value="Nam" {{ old('gioi_tinh') == 'Nam' ? 'selected' : '' }}>Nam</option>
+                                <option value="Nữ" {{ old('gioi_tinh') == 'Nữ' ? 'selected' : '' }}>Nữ</option>
+                                <option value="Khác" {{ old('gioi_tinh') == 'Khác' ? 'selected' : '' }}>Khác</option>
                             </select>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-bold">Địa chỉ</label>
-                            <input type="text" name="dia_chi" id="edit_dia_chi" class="form-control">
+                            <input type="text" name="dia_chi" id="edit_dia_chi" value="{{ old('dia_chi') }}" class="form-control">
                         </div>
                     </div>
                 </div>
@@ -242,6 +269,18 @@
                 var editModal = new bootstrap.Modal(editModalEl);
                 editModal.show();
             });
+
+            @if(old('form_source') === 'add_customer' && $errors->any())
+                var addModalEl = document.getElementById('addCustomerModal');
+                var addModal = new bootstrap.Modal(addModalEl);
+                addModal.show();
+            @endif
+
+            @if(old('form_source') === 'edit_customer' && old('edit_customer_id'))
+                var editModalEl = document.getElementById('editCustomerModal');
+                var editModal = new bootstrap.Modal(editModalEl);
+                editModal.show();
+            @endif
         });
     });
 </script>

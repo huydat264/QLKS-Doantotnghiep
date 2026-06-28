@@ -9,6 +9,8 @@ use App\Models\Phong;
 use App\Models\KhachHang;
 use Carbon\Carbon;
 use App\Models\ThanhToan;
+use App\Services\RoomAvailabilityService;
+use Illuminate\Support\Facades\DB;
 
 class DatPhongManagementController extends Controller
 {
@@ -32,7 +34,9 @@ class DatPhongManagementController extends Controller
 
         // Lấy dữ liệu bổ trợ cho form Thêm/Sửa
         $danhSachKhachHang = KhachHang::all();
-        $danhSachPhong = Phong::where('trang_thai', 'Trống')->get(); // Chỉ lấy phòng trống để đặt mới
+        // Phòng vẫn hiển thị bình thường để quản trị viên đặt song song,
+        // nhưng chỉ những phòng bảo trì mới không mở đặt.
+        $danhSachPhong = Phong::where('trang_thai', '!=', 'Bảo trì')->get();
         $tatCaPhong = Phong::all(); // Cho form sửa cần hiển thị lại phòng cũ
 
         return view('admin.quanlydatphong', compact('danhSachDatPhong', 'search', 'danhSachKhachHang', 'danhSachPhong', 'tatCaPhong'));
@@ -52,18 +56,29 @@ class DatPhongManagementController extends Controller
         $phong = Phong::findOrFail($request->id_phong);
         $tongTien = $phong->calculatePriceForPeriod($request->ngay_nhan, $request->ngay_tra);
 
-        DatPhong::create([
-            'id_khachhang' => $request->id_khachhang,
-            'id_phong' => $request->id_phong,
-            'ngay_dat' => Carbon::now(),
-            'ngay_nhan' => Carbon::parse($request->ngay_nhan)->startOfDay(),
-            'ngay_tra' => Carbon::parse($request->ngay_tra)->endOfDay(),
-            'tong_tien_phai_tra' => $tongTien,
-            'trang_thai' => 'Đã xác nhận'
-        ]);
+        $booking = DB::transaction(function () use ($request, $tongTien) {
+            $roomLock = DB::table('phong')->where('id_phong', $request->id_phong)->lockForUpdate()->first();
+            if (!$roomLock || $roomLock->trang_thai === 'Bảo trì') {
+                throw new \Exception('Phòng không hợp lệ hoặc đang bảo trì.');
+            }
 
-        // Cập nhật trạng thái phòng sang 'Đã đặt'
-        Phong::where('id_phong', $request->id_phong)->update(['trang_thai' => 'Đã đặt']);
+            if (!RoomAvailabilityService::isRoomAvailable($request->id_phong, $request->ngay_nhan, $request->ngay_tra)) {
+                throw new \Exception('Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn ngày khác.');
+            }
+
+            $phong = Phong::findOrFail($request->id_phong);
+            $tongTien = $phong->calculatePriceForPeriod($request->ngay_nhan, $request->ngay_tra);
+
+            return DatPhong::create([
+                'id_khachhang' => $request->id_khachhang,
+                'id_phong' => $request->id_phong,
+                'ngay_dat' => Carbon::now(),
+                'ngay_nhan' => Carbon::parse($request->ngay_nhan)->startOfDay(),
+                'ngay_tra' => Carbon::parse($request->ngay_tra)->endOfDay(),
+                'tong_tien_phai_tra' => $tongTien,
+                'trang_thai' => 'Đã xác nhận'
+            ]);
+        });
 
         return redirect()->back()->with('success', 'Tạo đơn đặt phòng thành công!');
     }
@@ -83,19 +98,20 @@ class DatPhongManagementController extends Controller
         $phong = Phong::findOrFail($datPhong->id_phong);
         $tongTienMoi = $phong->calculatePriceForPeriod($request->ngay_nhan, $request->ngay_tra);
 
-        $datPhong->update([
-            'ngay_nhan' => Carbon::parse($request->ngay_nhan)->startOfDay(),
-            'ngay_tra' => Carbon::parse($request->ngay_tra)->endOfDay(),
-            'tong_tien_phai_tra' => $tongTienMoi,
-            'trang_thai' => $request->trang_thai
-        ]);
+        DB::transaction(function () use ($request, $datPhong, $tongTienMoi) {
+            DB::table('phong')->where('id_phong', $datPhong->id_phong)->lockForUpdate()->first();
 
-        // Nếu hủy phòng thì trả trạng thái về Trống
-        if ($request->trang_thai === 'Đã hủy' || $request->trang_thai === 'Đã trả phòng') {
-            Phong::where('id_phong', $datPhong->id_phong)->update(['trang_thai' => 'Trống']);
-        } else {
-            Phong::where('id_phong', $datPhong->id_phong)->update(['trang_thai' => 'Đã đặt']);
-        }
+            if (!RoomAvailabilityService::isRoomAvailable($datPhong->id_phong, $request->ngay_nhan, $request->ngay_tra, $datPhong->id_datphong)) {
+                throw new \Exception('Khoảng thời gian mới bị trùng với một booking khác. Vui lòng chọn ngày khác.');
+            }
+
+            $datPhong->update([
+                'ngay_nhan' => Carbon::parse($request->ngay_nhan)->startOfDay(),
+                'ngay_tra' => Carbon::parse($request->ngay_tra)->endOfDay(),
+                'tong_tien_phai_tra' => $tongTienMoi,
+                'trang_thai' => $request->trang_thai
+            ]);
+        });
 
         return redirect()->back()->with('success', 'Cập nhật thông tin gia hạn/đổi ngày thành công!');
     }
@@ -131,6 +147,31 @@ class DatPhongManagementController extends Controller
             'price' => $tongTien,
             'price_formatted' => number_format($tongTien, 0, ',', '.') . ' đ'
         ]);
+    }
+
+    public function checkAvailability(Request $request)
+    {
+        $request->validate([
+            'id_phong' => 'required|exists:phong,id_phong',
+            'ngay_nhan' => 'required|date',
+            'ngay_tra' => 'required|date|after:ngay_nhan',
+            'exclude_booking_id' => 'nullable|integer',
+        ]);
+
+        $idPhong = $request->input('id_phong');
+        $ngayNhan = $request->input('ngay_nhan');
+        $ngayTra = $request->input('ngay_tra');
+        $excludeBookingId = $request->input('exclude_booking_id');
+
+        $phong = Phong::findOrFail($idPhong);
+
+        if ($phong->trang_thai === 'Bảo trì') {
+            return response()->json(['available' => false]);
+        }
+
+        $available = RoomAvailabilityService::isRoomAvailable($idPhong, $ngayNhan, $ngayTra, $excludeBookingId);
+
+        return response()->json(['available' => $available]);
     }
 
     // Price calculation moved to Phong model as calculatePriceForPeriod()

@@ -192,7 +192,7 @@
 
                     <div class="auth-visual-side d-none d-lg-flex">
                         <div class="auth-visual-content">
-                            <h3>The Sanctuary</h3>
+                            <h3>Kim Boutique Hotel</h3>
                             <p>Tái tạo năng lượng • Kết nối tâm hồn</p>
                             <div class="mt-5">
                                 <div style="width: 30px; height: 1px; background: white; margin: 0 auto 20px; opacity: 0.5;"></div>

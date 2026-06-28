@@ -52,12 +52,12 @@
         <div class="row mb-4">
             <div class="col-sm-6">
                 <h6 class="fw-bold text-muted text-uppercase border-bottom pb-1 mb-2">Thông tin khách hàng</h6>
-                <p class="mb-1"><strong>Họ tên:</strong> {{ $datPhong->ho_ten }}</p>
-                <p class="mb-1"><strong>Điện thoại:</strong> {{ $datPhong->so_dien_thoai }}</p>
+                <p class="mb-1"><strong>Họ tên:</strong> {{ optional($datPhong->khachhang)->ho_ten ?? 'Khách lẻ' }}</p>
+                <p class="mb-1"><strong>Điện thoại:</strong> {{ optional($datPhong->khachhang)->so_dien_thoai ?? 'N/A' }}</p>
             </div>
             <div class="col-sm-6">
                 <h6 class="fw-bold text-muted text-uppercase border-bottom pb-1 mb-2">Chi tiết Đặt phòng</h6>
-                <p class="mb-1"><strong>Phòng:</strong> {{ $datPhong->ten_phong }}</p>
+                <p class="mb-1"><strong>Phòng:</strong> {{ optional($datPhong->phong)->so_phong ?? 'N/A' }}</p>
                 <p class="mb-1"><strong>Nhận phòng:</strong> {{ \Carbon\Carbon::parse($datPhong->ngay_nhan)->format('d/m/Y') }}</p>
                 <p class="mb-1"><strong>Trả phòng:</strong> {{ \Carbon\Carbon::parse($datPhong->ngay_tra)->format('d/m/Y') }}</p>
             </div>
@@ -102,10 +102,10 @@
             <tbody>
                 @foreach($dichVus as $dv)
                 <tr>
-                    <td>{{ $dv->ten_dich_vu }}</td>
+                    <td>{{ optional($dv->dichvu)->ten_dich_vu ?? 'N/A' }}</td>
                     <td class="text-center">{{ $dv->so_luong }}</td>
-                    <td class="text-end">{{ number_format($dv->don_gia, 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($dv->so_luong * $dv->don_gia, 0, ',', '.') }} đ</td>
+                    <td class="text-end">{{ number_format(optional($dv->dichvu)->gia ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($dv->so_luong * (optional($dv->dichvu)->gia ?? 0), 0, ',', '.') }} đ</td>
                 </tr>
                 @endforeach
             </tbody>

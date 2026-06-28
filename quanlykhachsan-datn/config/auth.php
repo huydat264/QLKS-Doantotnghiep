@@ -45,7 +45,7 @@ return [
         // Thêm guard này
     'admin' => [
         'driver' => 'session',
-        'provider' => 'users', // Hoặc tạo provider riêng nếu admin ở bảng khác
+        'provider' => 'users', // Hoặc tạo provider(nhà cung cấp) riêng nếu admin ở bảng khác
     ],
     ],
 

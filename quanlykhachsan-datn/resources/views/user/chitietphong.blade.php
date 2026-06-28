@@ -183,9 +183,9 @@
                     <li>{{ $phong->so_phong_ngu }} Phòng ngủ</li>
                 </ul>
 
-                <a href="#" class="design-link">Sơ đồ thiết kế ></a>
+                <a href="{{ route('chinhsach') }}" class="design-link">Xem chính sách áp dụng ></a>
 
-                @if($phong->trang_thai === 'Trống')
+                @if($phong->trang_thai !== 'Bảo trì')
                     @auth
                         <a href="{{ route('booking.check', ['type' => 'phong', 'id' => $phong->id_phong]) }}"
                            class="btn-booking">
@@ -202,7 +202,7 @@
                     <a href="javascript:void(0)"
                        class="btn-booking"
                        style="background-color: #ccc; color: #666; cursor: not-allowed; pointer-events: none;"
-                       title="Phòng này đã được đặt hoặc không khả dụng"> HẾT PHÒNG
+                       title="Phòng này đang bảo trì và không thể đặt"> HẾT PHÒNG
                     </a>
                 @endif
             </div>
@@ -243,5 +243,8 @@
         </div>
     </div>
 </div>
+
+@include('user.dangky')
+@include('user.dangnhap')
 
 @endsection

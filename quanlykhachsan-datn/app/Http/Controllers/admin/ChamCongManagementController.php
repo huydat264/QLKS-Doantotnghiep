@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\ChamCong;
 use App\Models\NhanVien;
@@ -65,6 +66,28 @@ class ChamCongManagementController extends Controller
             return redirect()->back()->with('error', 'Nhân viên này đã được chấm công trong tháng ' . $request->thang . '/' . $request->nam . ' rồi!');
         }
 
+        $nhanVien = NhanVien::find($request->id_nhanvien);
+        if (! $nhanVien || ! $nhanVien->ngay_vao_lam) {
+            return redirect()->back()->with('error', 'Không tìm thấy ngày vào làm của nhân viên để xác thực chấm công.');
+        }
+
+        $hireDate = Carbon::parse($nhanVien->ngay_vao_lam);
+        $selectedMonth = Carbon::createFromDate($request->nam, $request->thang, 1);
+        $firstWorkMonth = Carbon::createFromDate($hireDate->year, $hireDate->month, 1);
+
+        if ($selectedMonth->lt($firstWorkMonth)) {
+            return redirect()->back()->with('error', 'Không thể chấm công cho tháng trước ngày vào làm của nhân viên.');
+        }
+
+        if ($selectedMonth->eq($firstWorkMonth)) {
+            $maxDaysInFirstMonth = $hireDate->copy()->endOfMonth()->day - $hireDate->day + 1;
+            $recordedDays = $request->so_ngay_di_lam + $request->so_ngay_nghi_co_phep + $request->so_ngay_nghi_khong_phep;
+
+            if ($recordedDays > $maxDaysInFirstMonth) {
+                return redirect()->back()->with('error', 'Tháng đầu tiên làm việc chỉ được chấm tối đa ' . $maxDaysInFirstMonth . ' ngày từ ngày vào đến cuối tháng.');
+            }
+        }
+
         ChamCong::create([
             'id_nhanvien' => $request->id_nhanvien,
             'thang' => $request->thang,
@@ -90,6 +113,28 @@ class ChamCongManagementController extends Controller
 
         // Kiểm tra trùng tháng/năm với bản ghi khác của cùng nhân viên đó (Trừ chính nó ra)
         $chamCongHienTai = ChamCong::findOrFail($id);
+        $nhanVien = NhanVien::find($chamCongHienTai->id_nhanvien);
+
+        if (! $nhanVien || ! $nhanVien->ngay_vao_lam) {
+            return redirect()->back()->with('error', 'Không tìm thấy ngày vào làm của nhân viên để xác thực chấm công.');
+        }
+
+        $selectedMonth = Carbon::createFromDate($request->nam, $request->thang, 1);
+        $hireDate = Carbon::parse($nhanVien->ngay_vao_lam);
+        $firstWorkMonth = Carbon::createFromDate($hireDate->year, $hireDate->month, 1);
+
+        if ($selectedMonth->lt($firstWorkMonth)) {
+            return redirect()->back()->with('error', 'Không thể chấm công cho tháng trước ngày vào làm của nhân viên.');
+        }
+
+        if ($selectedMonth->eq($firstWorkMonth)) {
+            $maxDaysInFirstMonth = $hireDate->copy()->endOfMonth()->day - $hireDate->day + 1;
+            $recordedDays = $request->so_ngay_di_lam + $request->so_ngay_nghi_co_phep + $request->so_ngay_nghi_khong_phep;
+
+            if ($recordedDays > $maxDaysInFirstMonth) {
+                return redirect()->back()->with('error', 'Tháng đầu tiên làm việc chỉ được chấm tối đa ' . $maxDaysInFirstMonth . ' ngày từ ngày vào đến cuối tháng.');
+            }
+        }
 
         $isExist = ChamCong::where('id_nhanvien', $chamCongHienTai->id_nhanvien)
             ->where('thang', $request->thang)

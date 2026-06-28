@@ -25,7 +25,28 @@ class ThanhToanManagementController extends Controller
             ->paginate(15);
 
         $danhSachChoThanhToan->getCollection()->transform(function ($booking) {
-            $booking->tong_tien = $booking->tong_tien_phai_tra;
+            $tienCoc = ThanhToan::where('id_datphong', $booking->id_datphong)
+                ->where('loai_thanh_toan', 'like', '%cọc%')
+                ->sum('so_tien');
+
+            $tienTamUng = ThanhToan::where('id_datphong', $booking->id_datphong)
+                ->where('loai_thanh_toan', 'Tạm ứng đã chọn')
+                ->sum('so_tien');
+
+            $tongTienDichVu = SuDungDichVu::with('dichvu')
+                ->where('id_datphong', $booking->id_datphong)
+                ->get()
+                ->sum(function ($dv) {
+                    return $dv->so_luong * ($dv->dichvu->gia ?? 0);
+                });
+
+            $tienPhongConLai = ($booking->tong_tien_phai_tra ?? 0) - $tienCoc;
+            $tongThanhToanCuoi = $tienPhongConLai + $tongTienDichVu - $tienTamUng;
+            if ($tongThanhToanCuoi < 0) {
+                $tongThanhToanCuoi = 0;
+            }
+
+            $booking->tong_tien = $tongThanhToanCuoi;
             $booking->ten_phong = $booking->phong?->so_phong;
             $booking->ho_ten = $booking->khachhang?->ho_ten;
             $booking->so_dien_thoai = $booking->khachhang?->so_dien_thoai;
@@ -134,10 +155,12 @@ class ThanhToanManagementController extends Controller
 
         // Trừ tiền tạm ứng ra khỏi tổng cần thu cuối
         $tongThanhToanCuoi = $tienPhongConLai + $tongTienDichVu + $tienBoiThuong - $tienTamUng;
-        if ($tongThanhToanCuoi < 0) $tongThanhToanCuoi = 0;
+        if ($tongThanhToanCuoi < 0) {
+            $tongThanhToanCuoi = 0;
+        }
 
-        // Tổng hóa đơn để lưu bảng hoadon (Bao gồm tất cả: cọc + tạm ứng + phần thu cuối)
-        $tongHoaDonInvoice = $tienCoc + $tienTamUng + $tongThanhToanCuoi;
+        // Số tiền cần ghi trên hóa đơn checkout: phần còn lại + tạm ứng đã giữ
+        $invoiceAmount = $tienTamUng + $tongThanhToanCuoi;
 
         // Ghi chú linh hoạt
         $ghiChu = "Thanh toán trả phòng. ";
@@ -153,8 +176,7 @@ class ThanhToanManagementController extends Controller
             session(["checkout_info_{$id}" => [
                 'so_tien' => $tongThanhToanCuoi,
                 'ghi_chu' => $ghiChu,
-                'invoice_amount' => $tongThanhToanCuoi,
-                'total_bill' => $tongHoaDonInvoice
+                'invoice_amount' => $invoiceAmount,
             ]]);
 
             $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
@@ -220,7 +242,7 @@ class ThanhToanManagementController extends Controller
 
             HoaDon::create([
                 'id_datphong' => $id,
-                'tong_tien' => $tongThanhToanCuoi,
+                'tong_tien' => $invoiceAmount,
                 'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh'),
             ]);
 
@@ -436,6 +458,8 @@ class ThanhToanManagementController extends Controller
                     $tongThuCuoi = 0;
                 }
 
+                $autoInvoiceAmount = $tienTamUng + $tongThuCuoi;
+
                 ThanhToan::create([
                     'id_datphong' => $booking->id_datphong,
                     'ngay_thanh_toan' => Carbon::now('Asia/Ho_Chi_Minh'),
@@ -447,7 +471,7 @@ class ThanhToanManagementController extends Controller
 
                 HoaDon::create([
                     'id_datphong' => $booking->id_datphong,
-                    'tong_tien' => $tongThuCuoi,
+                    'tong_tien' => $autoInvoiceAmount,
                     'ngay_xuat' => Carbon::now('Asia/Ho_Chi_Minh'),
                 ]);
 

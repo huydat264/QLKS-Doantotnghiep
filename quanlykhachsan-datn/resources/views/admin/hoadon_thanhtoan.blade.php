@@ -12,14 +12,16 @@
 <div class="row justify-content-center">
     <div class="col-lg-9">
         <div class="card invoice-card p-4 p-md-5">
-            <div class="invoice-header d-flex justify-content-between align-items-center">
+            <div class="invoice-header d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
                     <h4 class="fw-bold text-primary mb-1">HOÁ ĐƠN THANH TOÁN</h4>
                     <p class="text-muted mb-0">Mã đặt phòng: <strong>#{{ $datPhong->id_datphong }}</strong></p>
+                    <p class="text-muted mb-0">Phòng: <strong>{{ optional($datPhong->phong)->so_phong ?? 'N/A' }}</strong></p>
                 </div>
                 <div class="text-end">
                     <p class="mb-1">Ngày lập: <strong>{{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</strong></p>
-                    <span class="badge bg-info-subtle text-info fs-6">Phòng: {{ $datPhong->phong->so_phong }}</span>
+                    <p class="mb-0"><strong>Khách:</strong> {{ $datPhong->khachhang->ho_ten ?? 'Khách lẻ' }}</p>
+                    <p class="mb-0"><strong>SĐT:</strong> {{ $datPhong->khachhang->so_dien_thoai ?? 'N/A' }}</p>
                 </div>
             </div>
 
@@ -28,6 +30,7 @@
                     <h6 class="fw-bold text-secondary text-uppercase mb-3">Thông tin khách hàng</h6>
                     <p class="mb-1"><strong>Họ tên:</strong> {{ $datPhong->khachhang->ho_ten ?? 'Khách lẻ' }}</p>
                     <p class="mb-1"><strong>SĐT:</strong> {{ $datPhong->khachhang->so_dien_thoai ?? 'N/A' }}</p>
+                    <p class="mb-1"><strong>Phòng:</strong> {{ optional($datPhong->phong)->so_phong ?? 'N/A' }}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <h6 class="fw-bold text-secondary text-uppercase mb-3">Thông tin lưu trú</h6>

@@ -172,7 +172,7 @@
                     <li><strong>Giá trọn gói:</strong> <span class="fw-bold" style="color: #673065; font-size: 18px;">{{ number_format($combo->gia_combo, 0, ',', '.') }} VNĐ</span></li>
                 </ul>
 
-                <a href="#" class="design-link">Xem quy định áp dụng ></a>
+                <a href="{{ route('chinhsach') }}" class="design-link">Xem chính sách áp dụng ></a>
                 @php
                     $isComboAvailable = ($combo->available_rooms ?? null) !== null ? (($combo->available_rooms ?? 0) > 0 && ($combo->is_active ?? true)) : true;
                 @endphp
@@ -234,5 +234,8 @@
         </div>
     </div>
 </div>
+
+@include('user.dangky')
+@include('user.dangnhap')
 
 @endsection

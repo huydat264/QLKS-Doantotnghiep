@@ -31,7 +31,7 @@
         <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
             <div class="card journal-card">
                 <div class="journal-img-container">
-                    <img src="https://images.unsplash.com/photo-1533760831669-d0db1d41afc8?auto=format&fit=crop&w=800&q=80" class="journal-img" alt="Sunset">
+                    <img src="https://cdn3.ivivu.com/2018/08/ngam-hoang-hon-dep-nhat-thai-lan-tren-mui-da-cua-chua-ivivu-1.jpg" class="journal-img" alt="Sunset">
                 </div>
                 <div class="card-body journal-card-body">
                     <span class="journal-meta">Lãng Mạn • 15 Tháng 5, 2026</span>
@@ -46,7 +46,7 @@
         <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
             <div class="card journal-card">
                 <div class="journal-img-container">
-                    <img src="https://images.unsplash.com/photo-1534080391025-4979983003a3?auto=format&fit=crop&w=800&q=80" class="journal-img" alt="Local Food">
+                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/4a/4e/ba/caption.jpg?w=900&h=500&s=1" class="journal-img" alt="Local Food">
                 </div>
                 <div class="card-body journal-card-body">
                     <span class="journal-meta">Ẩm Thực • 10 Tháng 5, 2026</span>

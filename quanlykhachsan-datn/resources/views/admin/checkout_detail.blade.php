@@ -72,10 +72,10 @@
                             <tbody>
                                 @foreach($dichVus as $dv)
                                 <tr>
-                                    <td>{{ $dv->ten_dich_vu }}</td>
+                                    <td>{{ $dv->dichvu->ten_dich_vu ?? 'N/A' }}</td>
                                     <td class="text-center">{{ $dv->so_luong }}</td>
-                                    <td class="text-end">{{ number_format($dv->don_gia, 0, ',', '.') }}</td>
-                                    <td class="text-end fw-semibold">{{ number_format($dv->so_luong * $dv->don_gia, 0, ',', '.') }} đ</td>
+                                    <td class="text-end">{{ number_format($dv->dichvu->gia ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-end fw-semibold">{{ number_format($dv->so_luong * ($dv->dichvu->gia ?? 0), 0, ',', '.') }} đ</td>
                                 </tr>
                                 @endforeach
                                 <tr>

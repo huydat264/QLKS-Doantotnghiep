@@ -172,7 +172,7 @@
                             </div>
 
                             <div class="text-end mb-4">
-                                <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                                <a href="#" class="forgot-link">Vui lòng liên hệ hotline để được hỗ trợ khi quên tài khoản!</a>
                             </div>
 
                             <button type="submit" class="btn btn-login-submit">Đăng nhập</button>
@@ -187,7 +187,7 @@
 
                     <div class="auth-visual-side d-none d-lg-flex">
                         <div class="auth-visual-content">
-                            <h3>The Retreat</h3>
+                            <h3>Kim Boutique Hotel</h3>
                             <p>Sự tĩnh lặng • Chiều chuộng giác quan</p>
                             <div class="mt-5">
                                 <div style="width: 30px; height: 1px; background: white; margin: 0 auto 20px; opacity: 0.5;"></div>

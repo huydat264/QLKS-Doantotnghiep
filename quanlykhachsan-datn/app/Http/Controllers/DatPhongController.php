@@ -44,13 +44,18 @@ class DatPhongController extends Controller
     public function saveCustomer(Request $request)
     {
         $request->validate([
-            'ho_ten' => 'required|string|max:100',
+            'ho_ten' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
             'ngay_sinh' => 'nullable|date',
             'gioi_tinh' => 'nullable|string|max:10',
-            'so_dien_thoai' => 'required|string|max:15',
+            'so_dien_thoai' => ['required', 'regex:/^[0-9]{1,12}$/'],
             'email' => 'required|email|max:100',
-            'cccd' => 'required|string|max:20',
+            'cccd' => ['required', 'regex:/^[0-9]+$/', 'max:20'],
             'dia_chi' => 'nullable|string|max:200',
+        ], [
+            'ho_ten.regex' => 'Tên không được chứa số hoặc ký tự đặc biệt.',
+            'so_dien_thoai.regex' => 'Số điện thoại chỉ gồm chữ số và không quá 12 ký tự.',
+            'email.email' => 'Email phải đúng định dạng.',
+            'cccd.regex' => 'Số định danh cá nhân chỉ được phép chứa chữ số.',
         ]);
 
         KhachHang::create([

@@ -146,6 +146,7 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
 
     // API Route phục vụ AJAX live-price nhảy số tiền tự động khi kéo lịch
     Route::get('/dat-phong/get-live-price', [DatPhongManagementController::class, 'getLivePrice'])->name('datphong.getprice');
+    Route::get('/dat-phong/check-availability', [DatPhongManagementController::class, 'checkAvailability'])->name('datphong.checkAvailability');
 
     // Nhóm route Quản lý khách hàng
     Route::get('/khach-hang', [\App\Http\Controllers\Admin\KhachHangManagementController::class, 'index'])->name('khachhang.index');
@@ -204,8 +205,9 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/quan-ly-tai-khoan/store', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'store'])->name('taikhoan.store');
     Route::post('/quan-ly-tai-khoan/update/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'update'])->name('taikhoan.update');
     Route::post('/quan-ly-tai-khoan/toggle-status/{id}', [\App\Http\Controllers\Admin\TaiKhoanManagementController::class, 'toggleStatus'])->name('taikhoan.toggle');
-});// Tuyến đường xem hồ sơ cá nhân của Nhân viên/Admin đang đăng nhập
-    Route::get('/ho-so-ca-nhan', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'showProfile'])->name('admin.hoso');
+    // Tuyến đường xem hồ sơ cá nhân của Nhân viên/Admin đang đăng nhập
+    Route::get('/ho-so-ca-nhan', [\App\Http\Controllers\Admin\NhanVienManagementController::class, 'showProfile'])->name('hoso');
+});
 
 // Các route tĩnh cho trang giới thiệu và liên hệ
     Route::get('/about', function() {

@@ -24,10 +24,21 @@
 
             <form action="{{ route('booking.save_customer') }}" method="POST">
                 @csrf
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-md-12">
                         <label class="form-label">Họ và tên khách hàng</label>
-                        <input type="text" name="ho_ten" class="form-control" placeholder="Nhập đầy đủ họ và tên" required>
+                        <input type="text" name="ho_ten" class="form-control" placeholder="Nhập đầy đủ họ và tên" value="{{ old('ho_ten') }}" required>
                     </div>
 
                     <div class="col-md-6">
@@ -45,16 +56,16 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Số điện thoại liên hệ</label>
-                        <input type="tel" name="so_dien_thoai" class="form-control" placeholder="Số điện thoại di động" required>
+                        <input type="tel" name="so_dien_thoai" class="form-control" placeholder="Số điện thoại di động" value="{{ old('so_dien_thoai') }}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Địa chỉ định danh Email</label>
-                        <input type="email" name="email" class="form-control" placeholder="Địa chỉ email cá nhân" required>
+                        <input type="email" name="email" class="form-control" placeholder="Địa chỉ email cá nhân" value="{{ old('email') }}" required>
                     </div>
 
                     <div class="col-md-12">
                         <label class="form-label">Số định danh cá nhân (CCCD / Passport)</label>
-                        <input type="text" name="cccd" class="form-control" placeholder="Nhập số CCCD gồm 12 số hoặc hộ chiếu" required>
+                        <input type="text" name="cccd" class="form-control" placeholder="Nhập số CCCD gồm 12 số hoặc hộ chiếu" value="{{ old('cccd') }}" required>
                     </div>
 
                     <div class="col-md-12">

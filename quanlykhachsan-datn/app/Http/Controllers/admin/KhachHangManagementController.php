@@ -33,13 +33,18 @@ class KhachHangManagementController extends Controller
     {
         $request->validate([
             'tai_khoan_khachhang_id' => 'nullable|integer',
-            'ho_ten' => 'required|string|max:100',
-            'cccd' => 'required|string|max:20|unique:khachhang,cccd',
+            'ho_ten' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'cccd' => ['required', 'regex:/^[0-9]+$/', 'max:20', 'unique:khachhang,cccd'],
             'ngay_sinh' => 'nullable|date',
             'gioi_tinh' => 'nullable|string',
-            'so_dien_thoai' => 'required|string|max:15',
+            'so_dien_thoai' => ['required', 'regex:/^[0-9]{1,12}$/'],
             'email' => 'nullable|email|max:100',
             'dia_chi' => 'nullable|string|max:200',
+        ], [
+            'ho_ten.regex' => 'Tên không được chứa số hoặc ký tự đặc biệt.',
+            'so_dien_thoai.regex' => 'Số điện thoại chỉ gồm chữ số và tối đa 12 ký tự.',
+            'email.email' => 'Email phải đúng định dạng.',
+            'cccd.regex' => 'Số định danh cá nhân chỉ được phép chứa chữ số.',
         ]);
 
         KhachHang::create($request->all());
@@ -54,13 +59,18 @@ class KhachHangManagementController extends Controller
 
         $request->validate([
             'tai_khoan_khachhang_id' => 'nullable|integer',
-            'ho_ten' => 'required|string|max:100',
-            'cccd' => 'required|string|max:20|unique:khachhang,cccd,' . $id . ',id_khachhang',
+            'ho_ten' => ['required', 'string', 'max:100', 'regex:/^[\pL\s]+$/u'],
+            'cccd' => ['required', 'regex:/^[0-9]+$/', 'max:20', 'unique:khachhang,cccd,' . $id . ',id_khachhang'],
             'ngay_sinh' => 'nullable|date',
             'gioi_tinh' => 'nullable|string',
-            'so_dien_thoai' => 'required|string|max:15',
+            'so_dien_thoai' => ['required', 'regex:/^[0-9]{1,12}$/'],
             'email' => 'nullable|email|max:100',
             'dia_chi' => 'nullable|string|max:200',
+        ], [
+            'ho_ten.regex' => 'Tên không được chứa số hoặc ký tự đặc biệt.',
+            'so_dien_thoai.regex' => 'Số điện thoại chỉ gồm chữ số và tối đa 12 ký tự.',
+            'email.email' => 'Email phải đúng định dạng.',
+            'cccd.regex' => 'Số định danh cá nhân chỉ được phép chứa chữ số.',
         ]);
 
         $khachHang->update($request->all());

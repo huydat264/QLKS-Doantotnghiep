@@ -186,7 +186,7 @@
                 </div>
             </div>
             <div class="mt-3 text-center">
-                <a href="#" class="btn btn-sm btn-outline-dark w-100 fw-bold py-2"><i class="bi bi-people"></i> Xem tất cả khách hàng</a>
+                <a href="{{ route('admin.khachhang.index') }}" class="btn btn-sm btn-outline-dark w-100 fw-bold py-2"><i class="bi bi-people"></i> Xem tất cả khách hàng</a>
             </div>
         </div>
     </div>
@@ -250,49 +250,45 @@
         refreshLiveLogAges();
         setInterval(refreshLiveLogAges, 1000);
 
-        if (rawLabels.length === 0) {
-            // Định dạng format tiền VNĐ cho nhãn text hiển thị
-            const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+        // Tạo biểu đồ dịch vụ nếu có dữ liệu; nếu không có dữ liệu, vẫn hiển thị biểu đồ trống
+        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+        const formattedLabels = rawLabels.map((label, index) => {
+            return `${label}: ${formatter.format(rawValues[index]).replace('₫', 'đ')}`;
+        });
 
-            // Ép mảng nhãn mới chứa kèm theo số tiền chi tiết ngay cạnh tên dịch vụ giống ảnh minh họa
-            const formattedLabels = rawLabels.map((label, index) => {
-                return `${label}: ${formatter.format(rawValues[index]).replace('₫', 'đ')}`;
-            });
-
-            new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: formattedLabels, // Đưa nhãn đính kèm tiền vào đây
-                    datasets: [{
-                        data: rawValues,
-                        backgroundColor: ['#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 10, weight: 'bold' },
-                                padding: 8
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` Doanh thu: ${formatter.format(context.raw).replace('₫', 'đ')}`;
-                                }
-                            }
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: formattedLabels,
+                datasets: [{
+                    data: rawValues,
+                    backgroundColor: ['#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 10, weight: 'bold' },
+                            padding: 8
                         }
                     },
-                    cutout: '55%'
-                }
-            });
-        }
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Doanh thu: ${formatter.format(context.raw).replace('₫', 'đ')}`;
+                            }
+                        }
+                    }
+                },
+                cutout: '55%'
+            }
+        });
     });
 </script>
 @endsection

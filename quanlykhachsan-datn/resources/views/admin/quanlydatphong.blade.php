@@ -160,10 +160,11 @@
                     <div class="alert alert-info mt-3 d-none" id="add_price_box">
                         <i class="bi bi-wallet2"></i> Dự kiến tổng chi phí phòng tạm tính: <strong id="add_calculated_price" class="text-danger">0 đ</strong>
                     </div>
+                    <div class="alert alert-danger mt-3 d-none" id="add_availability_alert"></div>
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary btn-rounded" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-success btn-rounded">Xác nhận đặt phòng</button>
+                    <button type="submit" id="btnSubmitAdd" class="btn btn-success btn-rounded">Xác nhận đặt phòng</button>
                 </div>
             </form>
         </div>
@@ -180,6 +181,7 @@
             <form id="formEditBooking" method="POST">
                 @csrf
                 <input type="hidden" id="edit_id_phong">
+                <input type="hidden" id="edit_booking_id">
                 <div class="modal-body p-4">
                     @if($errors->any())
                         <div class="alert alert-danger" role="alert">
@@ -212,6 +214,7 @@
                     <div class="alert alert-warning mt-3 d-none" id="edit_price_box">
                         <i class="bi bi-exclamation-triangle-fill"></i> Hệ thống tự động tính lại tiền phòng dựa trên giá gốc/giá sale: <strong id="edit_calculated_price" class="text-danger">0 đ</strong>
                     </div>
+                    <div class="alert alert-danger mt-3 d-none" id="edit_availability_alert"></div>
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary btn-rounded" data-bs-dismiss="modal">Đóng</button>
@@ -230,18 +233,22 @@
             let val = $(this).val();
             $('#add_ngay_tra').attr('min', val);
             calculateLivePrice('add');
+            validateBookingAvailability('add');
         });
         $('#add_ngay_tra, #add_id_phong').on('change', function() {
             calculateLivePrice('add');
+            validateBookingAvailability('add');
         });
 
         $('#edit_ngay_nhan').on('change', function() {
             let val = $(this).val();
             $('#edit_ngay_tra').attr('min', val);
             calculateLivePrice('edit');
+            validateBookingAvailability('edit');
         });
-        $('#edit_ngay_tra').on('change', function() {
+        $('#edit_ngay_tra, #edit_id_phong').on('change', function() {
             calculateLivePrice('edit');
+            validateBookingAvailability('edit');
         });
 
         // Hàm gọi AJAX tính tiền trực tiếp thời gian thực
@@ -265,6 +272,45 @@
             }
         }
 
+        function validateBookingAvailability(type) {
+            let idPhong = (type === 'add') ? $('#add_id_phong').val() : $('#edit_id_phong').val();
+            let ngayNhan = (type === 'add') ? $('#add_ngay_nhan').val() : $('#edit_ngay_nhan').val();
+            let ngayTra = (type === 'add') ? $('#add_ngay_tra').val() : $('#edit_ngay_tra').val();
+            let alertBox = $(`#${type}_availability_alert`);
+            let submitButton = (type === 'add') ? $('#btnSubmitAdd') : $('#btnSubmitEdit');
+            let excludeBookingId = (type === 'edit') ? $('#edit_booking_id').val() : null;
+
+            if (!idPhong || !ngayNhan || !ngayTra) {
+                alertBox.addClass('d-none').text('');
+                submitButton.prop('disabled', false);
+                return;
+            }
+
+            const requestData = { id_phong: idPhong, ngay_nhan: ngayNhan, ngay_tra: ngayTra };
+            if (excludeBookingId) {
+                requestData.exclude_booking_id = excludeBookingId;
+            }
+
+            $.ajax({
+                url: "{{ route('admin.datphong.checkAvailability') }}",
+                method: "GET",
+                data: requestData,
+                success: function(res) {
+                    if (res.available) {
+                        alertBox.addClass('d-none').text('');
+                        submitButton.prop('disabled', false);
+                    } else {
+                        alertBox.removeClass('d-none').text('Phòng đã có booking trong khoảng ngày này. Vui lòng chọn phòng hoặc ngày khác.');
+                        submitButton.prop('disabled', true);
+                    }
+                },
+                error: function() {
+                    alertBox.removeClass('d-none').text('Không thể kiểm tra tình trạng phòng vào lúc này. Vui lòng thử lại.');
+                    submitButton.prop('disabled', true);
+                }
+            });
+        }
+
         // Bấm nút Khách hàng mới (Tạm thời thông báo thiết lập sau)
         // Click Mở Modal Sửa Đơn Đặt Phòng
         $('.btn-edit').click(function() {
@@ -276,11 +322,13 @@
 
             $('#formEditBooking').attr('action', `/admin/dat-phong/update/${id}`);
             $('#edit_id_phong').val(idPhong);
+            $('#edit_booking_id').val(id);
             $('#edit_ngay_nhan').val(ngayNhan);
             $('#edit_ngay_tra').val(ngayTra).attr('min', ngayNhan);
             $('#edit_trang_thai').val(status);
 
             calculateLivePrice('edit');
+            validateBookingAvailability('edit');
             $('#editBookingModal').modal('show');
         });
 

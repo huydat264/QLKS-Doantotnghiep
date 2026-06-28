@@ -36,7 +36,7 @@
                 <div class="method-card">
                     <input class="form-check-input me-3" type="radio" name="payment_gateway" value="vnpay" checked id="r_vnpay">
                     <label class="d-flex align-items-center w-100" for="r_vnpay" style="cursor:pointer;">
-                        <img src="https://vnpay.vn/Cong-thanh-toan-VNPAY-QR-0myhb8a9f2qm" alt="VNPay" height="30" class="me-3">
+                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png" alt="VNPay" height="30" class="me-3">
                         <div>
                             <strong class="d-block text-dark small">Cổng thanh toán điện tử VNPay</strong>
                             <small class="text-muted" style="font-size:12px;">Hỗ trợ thẻ ATM nội địa, QR Code ngân hàng, thẻ quốc tế Visa/MasterCard</small>
